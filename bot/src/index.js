@@ -26,6 +26,7 @@ bot.catch((err) => {
 });
 
 const API_URL = process.env.API_URL || 'http://localhost:3001';
+const WEB_URL = process.env.WEB_URL || 'https://finchat-web-git-main-irgyagentaarnezzi-3119s-projects.vercel.app';
 
 const CATEGORY_ICONS = {
   'Makanan & Minuman': '🍔',
@@ -174,13 +175,13 @@ const START_COMMAND = `bot.command('start', async (ctx) => {
       "👋 Halo " + userName + "! *Selamat datang di FinChat!* 🎉\\n\\n" +
       "✅ Kamu sudah login!\\n\\n" +
       "🌐 *Buka Dashboard:*\\n" +
-      "https://finchat.vercel.app/dashboard\\n\\n" +
+      WEB_URL + "/dashboard\\n\\n" +
       "Atau klik button di bawah:",
       { 
         parse_mode: 'Markdown',
         reply_markup: {
           inline_keyboard: [
-            [{ text: '🌐 Buka Dashboard', url: 'https://finchat.vercel.app/dashboard' }]
+            [{ text: '🌐 Buka Dashboard', url: WEB_URL + '/dashboard' }]
           ]
         }
       }
@@ -663,7 +664,7 @@ bot.on('callback_query', async (ctx) => {
         parse_mode: 'Markdown',
         reply_markup: {
           inline_keyboard: [
-            [{ text: '🌐 Buka Dashboard', url: 'https://finchat.vercel.app/dashboard' }]
+            [{ text: '🌐 Buka Dashboard', url: WEB_URL + '/dashboard' }]
           ]
         }
       }
