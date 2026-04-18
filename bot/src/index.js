@@ -26,7 +26,7 @@ bot.catch((err) => {
 });
 
 const API_URL = process.env.API_URL || 'http://localhost:3001';
-const WEB_URL = process.env.WEB_URL || 'https://finchat-web-git-main-irgyagentaarnezzi-3119s-projects.vercel.app';
+const WEB_URL = process.env.WEB_URL || 'https://finchat-web.vercel.app';
 
 const CATEGORY_ICONS = {
   'Makanan & Minuman': '🍔',
