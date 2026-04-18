@@ -162,13 +162,13 @@ const checkTransactionLimit = async (telegramId) => {
 
 // === COMMANDS ===
 
-const START_COMMAND = `bot.command('start', async (ctx) => {
+bot.command('start', async (ctx) => {
   const from = ctx.from;
   if (!from) return;
 
   const userName = from.first_name || 'User';
   
-// Regular /start - auto register and show dashboard link
+  // Regular /start - auto register and show dashboard link
   try {
     const token = await loginAndGetToken(from.id, userName, from.username);
     const dashboardUrl = WEB_URL + "/dashboard?token=" + token;
@@ -195,9 +195,9 @@ const START_COMMAND = `bot.command('start', async (ctx) => {
   ctx.session.onboarding = true;
   ctx.session.onboardingStep = 1;
 
-  const welcomeMessage = "👋 Halo " + userName + "! Selamat datang di *FinChat*! 🎉\\n\\n" +
-    "Saya akan membantu kamu mencatat keuangan dengan mudah.\\n\\n" +
-    "Sebelum mulai, mari atur preferensi kamu:\\n\\n" +
+  const welcomeMessage = "👋 Halo " + userName + "! Selamat datang di *FinChat*! 🎉\n\n" +
+    "Saya akan membantu kamu mencatat keuangan dengan mudah.\n\n" +
+    "Sebelum mulai, mari atur preferensi kamu:\n\n" +
     "🕐 *Pilih zona waktu:*";
 
   await ctx.reply(welcomeMessage, {
@@ -215,9 +215,7 @@ const START_COMMAND = `bot.command('start', async (ctx) => {
       ]
     }
   });
-});`;
-
-eval(START_COMMAND);
+});
 
 bot.command('bantuan', async (ctx) => {
   const helpMessage = `📚 *Daftar Command FinChat:*
