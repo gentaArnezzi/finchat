@@ -131,6 +131,14 @@ export default function LandingPage() {
   const [botLink, setBotLink] = useState('');
 
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokenFromUrl = urlParams.get('token');
+    if (tokenFromUrl) {
+      localStorage.setItem('finchat_token', tokenFromUrl);
+      router.push('/dashboard');
+      return;
+    }
+
     const botName = process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME;
     const link = botName && botName !== 'your_bot_username' 
       ? `https://t.me/${botName}?start=auth` 

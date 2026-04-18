@@ -168,20 +168,21 @@ const START_COMMAND = `bot.command('start', async (ctx) => {
 
   const userName = from.first_name || 'User';
   
-  // Regular /start - auto register and show dashboard link
+// Regular /start - auto register and show dashboard link
   try {
     const token = await loginAndGetToken(from.id, userName, from.username);
+    const dashboardUrl = WEB_URL + "/dashboard?token=" + token;
     await ctx.reply(
-      "👋 Halo " + userName + "! *Selamat datang di FinChat!* 🎉\\n\\n" +
-      "✅ Kamu sudah login!\\n\\n" +
-      "🌐 *Buka Dashboard:*\\n" +
-      WEB_URL + "/dashboard\\n\\n" +
+      "👋 Halo " + userName + "! *Selamat datang di FinChat!* 🎉\n\n" +
+      "✅ Kamu sudah login!\n\n" +
+      "🌐 *Buka Dashboard:*\n" +
+      dashboardUrl + "\n\n" +
       "Atau klik button di bawah:",
       { 
         parse_mode: 'Markdown',
         reply_markup: {
           inline_keyboard: [
-            [{ text: '🌐 Buka Dashboard', url: WEB_URL + '/dashboard' }]
+            [{ text: '🌐 Buka Dashboard', url: dashboardUrl }]
           ]
         }
       }
