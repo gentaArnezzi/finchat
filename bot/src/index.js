@@ -214,6 +214,13 @@ bot.command('start', async (ctx) => {
 });
 
 bot.command('bantuan', async (ctx) => {
+  const from = ctx.from;
+  let token;
+  try {
+    token = await loginAndGetToken(from.id, from.first_name, from.username);
+  } catch (e) {}
+  const dashboardLink = token ? `${WEB_URL}/dashboard?token=${token}` : `${WEB_URL}/dashboard`;
+
   const helpMessage = `📚 *Daftar Command FinChat:*
 
 📝 *Pencatatan:*
@@ -232,7 +239,14 @@ Ketik pesan natural seperti:
 
 💡 _Tips: Kamu bisa catat transaksi langsung tanpa command!_`;
 
-  await ctx.reply(helpMessage, { parse_mode: 'Markdown' });
+  await ctx.reply(helpMessage, { 
+    parse_mode: 'Markdown',
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: '🌐 Buka Dashboard', url: dashboardLink }]
+      ]
+    }
+  });
 });
 
 bot.command('ringkasan', async (ctx) => {
@@ -391,9 +405,23 @@ ${icon} ${lastTx.description || typeText}
 });
 
 bot.command('dashboard', async (ctx) => {
+  const from = ctx.from;
+  let token;
+  try {
+    token = await loginAndGetToken(from.id, from.first_name, from.username);
+  } catch (e) {}
+  const dashboardUrl = token ? `${WEB_URL}/dashboard?token=${token}` : `${WEB_URL}/dashboard`;
+
   await ctx.reply(
-    '🌐 *Buka FinChat Dashboard:*\n\nhttps://finchat-dashboard.vercel.app\n\nLogin dengan akun Telegram kamu!',
-    { parse_mode: 'Markdown' }
+    '🌐 Klik tombol di bawah untuk masuk dashboard:',
+    { 
+      parse_mode: 'Markdown',
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '🌐 Buka Dashboard', url: dashboardUrl }]
+        ]
+      }
+    }
   );
 });
 
@@ -425,7 +453,7 @@ bot.command('upgrade', async (ctx) => {
         parse_mode: 'Markdown',
         reply_markup: {
           inline_keyboard: [
-            [{ text: '⭐ Upgrade di Dashboard', url: `${process.env.WEB_URL || 'https://finchat-dashboard.vercel.app'}/dashboard/upgrade` }],
+            [{ text: '⭐ Upgrade di Dashboard', url: `${WEB_URL}/dashboard/upgrade` }],
           ]
         }
       }

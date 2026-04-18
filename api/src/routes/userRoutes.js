@@ -37,6 +37,30 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Generate token from telegram_id (for deep links like menu button)
+router.get('/token/:telegramId', async (req, res) => {
+  try {
+    const { telegramId } = req.params;
+    
+    if (!telegramId) {
+      return res.status(400).json({ error: 'telegram_id is required' });
+    }
+
+    // Get or create user, return token directly for redirect flow
+    const result = await query('SELECT * FROM users WHERE telegram_id = $1', [telegramId]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found. Start /start dari bot dulu!' });
+    }
+
+    const user = result.rows[0];
+    const token = generateToken(user);
+    res.json({ success: true, token });
+  } catch (error) {
+    console.error('Token error:', error);
+    res.status(500).json({ error: 'Failed to generate token' });
+  }
+});
+
 router.post('/telegram-auth', async (req, res) => {
   try {
     const { initData, ...telegramData } = req.body;
