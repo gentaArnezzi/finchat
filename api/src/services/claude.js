@@ -1,11 +1,29 @@
-import Anthropic from '@anthropic-ai/sdk';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+
+async function callGemini(prompt) {
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.1,
+          maxOutputTokens: 500,
+        }
+      })
+    }
+  );
+  const data = await response.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.candidates[0].content.parts[0].text;
+}
 
 const CATEGORIES = [
   'Makanan & Minuman',
@@ -89,16 +107,22 @@ If you cannot determine the amount, return null.`;
 
     const userMessage = message;
 
-    const response = await anthropic.messages.create({
-      model: 'claude-3-5-haiku-20241022',
-      max_tokens: 300,
-      system: systemPrompt,
-      messages: [
-        { role: 'user', content: userMessage }
-      ]
-    });
+    const fullPrompt = `${systemPrompt}\n\nInput: "${userMessage}"\n\nRespond ONLY with valid JSON (no explanation):`;
 
-    const content = response.content[0].text;
+    let content;
+    try {
+      content = await callGemini(fullPrompt);
+    } catch (error) {
+      console.error('Gemini error:', error.message);
+      const fallback = detectCategory(message, 0, 'expense');
+      return {
+        type: fallback === 'Gaji' ? 'income' : 'expense',
+        amount: 0,
+        category: fallback,
+        description: message,
+        date: new Date().toISOString().split('T')[0]
+      };
+    }
     let parsed;
     
     try {
