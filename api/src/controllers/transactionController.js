@@ -33,6 +33,12 @@ export const createTransaction = async (userId, data) => {
     [id, userId, amount, type, categoryId, description, date]
   );
 
+  // Increment user's monthly tx count (for Free plan tracking)
+  await query(
+    `UPDATE users SET monthly_tx_count = COALESCE(monthly_tx_count, 0) + 1 WHERE id = $1`,
+    [userId]
+  );
+
   return result.rows[0];
 };
 
@@ -41,7 +47,7 @@ export const getTransactions = async (userId, filters = {}) => {
     SELECT t.*, c.name as category_name, c.icon as category_icon, c.color as category_color
     FROM transactions t
     LEFT JOIN categories c ON t.category_id = c.id
-    WHERE t.user_id = $1
+    WHERE t.user_id = $1 AND (t.is_deleted IS NOT TRUE)
   `;
   const params = [userId];
   let paramCount = 1;
@@ -133,8 +139,9 @@ export const updateTransaction = async (id, userId, updates) => {
 };
 
 export const deleteTransaction = async (id, userId) => {
+  // Soft delete - just mark as deleted, don't decrement count
   const result = await query(
-    'DELETE FROM transactions WHERE id = $1 AND user_id = $2 RETURNING *',
+    'UPDATE transactions SET is_deleted = TRUE WHERE id = $1 AND user_id = $2 RETURNING *',
     [id, userId]
   );
   return result.rows[0];

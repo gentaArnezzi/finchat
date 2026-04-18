@@ -21,11 +21,11 @@ export const PLANS = {
     txLimit: Infinity,
     features: ['Unlimited transaksi', 'Export PDF/Excel', 'Budget alerts', 'Dashboard lengkap', 'AI categorization'],
   },
-  business: {
-    name: 'Business',
-    price: 79000,
+  premium: {
+    name: 'Premium',
+    price: 59000,
     txLimit: Infinity,
-    features: ['Semua fitur Pro', 'Multi-user', 'Priority support', 'API access', 'Custom categories'],
+    features: ['Semua fitur Pro', 'Custom categories unlimited', 'Priority support', 'Data unlimited'],
   }
 };
 
@@ -63,12 +63,10 @@ export async function checkFeatureAccess(userId, feature) {
   const plan = await getUserPlan(userId);
 
   const featureGating = {
-    export: ['pro', 'business'],
-    budget_alerts: ['pro', 'business'],
-    unlimited_transactions: ['pro', 'business'],
-    multi_user: ['business'],
-    api_access: ['business'],
-    custom_categories: ['business'],
+    export: ['pro', 'premium'],
+    budget_alerts: ['pro', 'premium'],
+    unlimited_transactions: ['pro', 'premium'],
+    custom_categories: ['premium'],
   };
 
   const allowedPlans = featureGating[feature];
@@ -79,6 +77,7 @@ export async function checkFeatureAccess(userId, feature) {
 
 /**
  * Check transaction limit for current month
+ * Uses stored monthly count to prevent counting deleted transactions
  */
 export async function checkTransactionLimit(userId) {
   const plan = await getUserPlan(userId);
@@ -87,6 +86,45 @@ export async function checkTransactionLimit(userId) {
   if (planConfig.txLimit === Infinity) {
     return { allowed: true, count: 0, limit: Infinity, plan };
   }
+
+  const now = new Date();
+  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+
+  // Get user's stored count and reset date
+  const userResult = await query(
+    'SELECT monthly_tx_count, monthly_reset_at FROM users WHERE id = $1',
+    [userId]
+  );
+  
+  let count = userResult.rows[0]?.monthly_tx_count || 0;
+  const resetAt = userResult.rows[0]?.monthly_reset_at;
+  
+  // If new month, reset count from actual transactions
+  if (!resetAt || new Date(resetAt) < new Date(currentMonth)) {
+    const startOfMonth = currentMonth;
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const endOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+    
+    const txResult = await query(
+      'SELECT COUNT(*) as count FROM transactions WHERE user_id = $1 AND date >= $2 AND date <= $3 AND is_deleted IS NOT TRUE',
+      [userId, startOfMonth, endOfMonth]
+    );
+    count = parseInt(txResult.rows[0].count);
+    
+    // Update stored count
+    await query(
+      'UPDATE users SET monthly_tx_count = $1, monthly_reset_at = NOW() WHERE id = $2',
+      [count, userId]
+    );
+  }
+
+  return {
+    allowed: count < planConfig.txLimit,
+    count,
+    limit: planConfig.txLimit,
+    plan
+  };
+}
 
   const now = new Date();
   const startOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
