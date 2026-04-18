@@ -1,0 +1,250 @@
+'use client';
+
+import { useEffect, useState, useCallback } from 'react';
+import { api } from '@/lib/api';
+import { Transaction } from '@/types';
+import MonthlyBarChart from '@/components/charts/BarChart';
+import ExportButton from '@/components/ExportButton';
+import { Wallet, TrendingUp, TrendingDown, Clock, ArrowRight, ArrowUpRight, ArrowDownRight, LayoutTemplate } from 'lucide-react';
+
+const getCategoryIcon = (categoryName: string) => {
+  const name = categoryName?.toLowerCase() || '';
+  if (name.includes('makan')) return <LayoutTemplate size={20} className="text-indigo-500" />;
+  if (name.includes('transport')) return <LayoutTemplate size={20} className="text-indigo-500" />;
+  // for now, use a generic corporate icon
+  return <Wallet size={20} className="text-slate-400" />;
+};
+
+const formatRupiah = (amount: number): string => {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(amount);
+};
+
+interface ComparisonData {
+  current: { income: { total: number }; expense: { total: number } };
+  previous: { income: { total: number }; expense: { total: number } };
+  expenseChange: number;
+  incomeChange: number;
+}
+
+export default function DashboardPage() {
+  const [stats, setStats] = useState<{ income: { total: number }; expense: { total: number } } | null>(null);
+  const [comparison, setComparison] = useState<ComparisonData | null>(null);
+  const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
+  const [monthlyData, setMonthlyData] = useState<{ month: string; income: number; expense: number }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+
+  const loadData = useCallback(async () => {
+    try {
+      const now = new Date();
+      const startOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+      const endOfMonth = now.toISOString().split('T')[0];
+
+      const [statsRes, transactionsRes, historyRes, comparisonRes] = await Promise.all([
+        api.getStats(startOfMonth, endOfMonth),
+        api.getTransactions({ limit: 5 }),
+        api.getHistory(now.getFullYear()),
+        api.getComparisonStats(),
+      ]);
+
+      setStats(statsRes.stats);
+      setRecentTransactions(transactionsRes.transactions);
+      setComparison(comparisonRes.comparison);
+
+      // Process monthly data for bar chart (group by month, side-by-side income/expense)
+      const monthMap: Record<string, { income: number; expense: number }> = {};
+      historyRes.stats.forEach((item: any) => {
+        const monthKey = new Date(item.month).toLocaleDateString('id-ID', { month: 'short' });
+        if (!monthMap[monthKey]) monthMap[monthKey] = { income: 0, expense: 0 };
+        monthMap[monthKey][item.type as 'income' | 'expense'] = parseFloat(item.total);
+      });
+
+      const chartData = Object.entries(monthMap).map(([month, data]) => ({
+        month,
+        income: data.income,
+        expense: data.expense,
+      }));
+      setMonthlyData(chartData);
+
+      setLastRefresh(new Date());
+    } catch (error) {
+      console.error('Failed to load data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadData();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [loadData]);
+
+  const totalIncome = stats?.income?.total || 0;
+  const totalExpense = stats?.expense?.total || 0;
+  const balance = totalIncome - totalExpense;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Dashboard Visual</h1>
+          <p className="text-slate-500 text-sm mt-1">
+            Ringkasan keuangan bulan ini •{' '}
+            <span className="text-xs text-slate-400 font-medium">
+              Update: {lastRefresh.toLocaleTimeString('id-ID')}
+            </span>
+          </p>
+        </div>
+        <ExportButton apiUrl={api.getApiUrl()} token={api.getToken()} />
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+        
+        {/* Income Card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 transition-all hover:shadow-md">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm font-semibold text-slate-500">Pemasukan</p>
+            <div className="p-2 bg-emerald-50 rounded-lg">
+              <TrendingUp size={18} className="text-emerald-600" />
+            </div>
+          </div>
+          <p className="text-2xl font-bold text-slate-900">{formatRupiah(totalIncome)}</p>
+          {comparison && (
+            <div className="flex items-center mt-3 text-xs font-medium">
+              {comparison.incomeChange >= 0 ? (
+                <span className="text-emerald-600 flex items-center bg-emerald-50 px-2 py-1 rounded-full">
+                  <ArrowUpRight size={14} className="mr-1" /> {Math.abs(comparison.incomeChange)}%
+                </span>
+              ) : (
+                <span className="text-red-500 flex items-center bg-red-50 px-2 py-1 rounded-full">
+                  <ArrowDownRight size={14} className="mr-1" /> {Math.abs(comparison.incomeChange)}%
+                </span>
+              )}
+              <span className="text-slate-400 ml-2">vs bulan lalu</span>
+            </div>
+          )}
+        </div>
+
+        {/* Expense Card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 transition-all hover:shadow-md">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm font-semibold text-slate-500">Pengeluaran</p>
+            <div className="p-2 bg-rose-50 rounded-lg">
+              <TrendingDown size={18} className="text-rose-600" />
+            </div>
+          </div>
+          <p className="text-2xl font-bold text-slate-900">{formatRupiah(totalExpense)}</p>
+          {comparison && (
+            <div className="flex items-center mt-3 text-xs font-medium">
+              {comparison.expenseChange <= 0 ? (
+                <span className="text-emerald-600 flex items-center bg-emerald-50 px-2 py-1 rounded-full">
+                  <ArrowDownRight size={14} className="mr-1" /> {Math.abs(comparison.expenseChange)}%
+                </span>
+              ) : (
+                <span className="text-red-500 flex items-center bg-red-50 px-2 py-1 rounded-full">
+                  <ArrowUpRight size={14} className="mr-1" /> {Math.abs(comparison.expenseChange)}%
+                </span>
+              )}
+              <span className="text-slate-400 ml-2">vs bulan lalu</span>
+            </div>
+          )}
+        </div>
+
+        {/* Balance Card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 transition-all hover:shadow-md">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm font-semibold text-slate-500">Saldo Bersih</p>
+            <div className="p-2 bg-indigo-50 rounded-lg">
+              <Wallet size={18} className="text-indigo-600" />
+            </div>
+          </div>
+          <p className={`text-2xl font-bold ${balance >= 0 ? 'text-slate-900' : 'text-red-600'}`}>
+            {formatRupiah(balance)}
+          </p>
+        </div>
+
+        {/* Previous Month Card */}
+        {comparison && (
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 transition-all hover:shadow-md">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm font-semibold text-slate-500">Bulan Lalu</p>
+              <div className="p-2 bg-slate-100 rounded-lg">
+                <Clock size={18} className="text-slate-600" />
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-slate-900">
+              {formatRupiah(comparison.previous.expense.total)}
+            </p>
+            <p className="text-xs text-slate-400 mt-2 font-medium uppercase tracking-wider">Total Pengeluaran</p>
+          </div>
+        )}
+      </div>
+
+      {/* Monthly Bar Chart */}
+      {monthlyData.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+          <MonthlyBarChart data={monthlyData} title="Tren Pemasukan vs Pengeluaran" />
+        </div>
+      )}
+
+      {/* Recent Transactions */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-lg font-bold text-slate-900">Transaksi Terbaru</h2>
+          <a href="/dashboard/transactions" className="flex items-center text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+            Lihat semua <ArrowRight size={16} className="ml-1" />
+          </a>
+        </div>
+
+        {recentTransactions.length === 0 ? (
+          <p className="text-slate-500 text-center py-8 text-sm">Belum ada transaksi</p>
+        ) : (
+          <div className="space-y-4">
+            {recentTransactions.map((tx) => (
+              <div key={tx.id} className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0 hover:bg-slate-50 p-2 rounded-xl transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-indigo-50/50 rounded-xl flex items-center justify-center border border-indigo-100/50">
+                    {getCategoryIcon(tx.category_name)}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-900 leading-tight">{tx.description || tx.category_name}</p>
+                    <p className="text-sm text-slate-500 mt-0.5">{tx.category_name}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className={`font-bold ${tx.type === 'income' ? 'text-emerald-600' : 'text-slate-900'}`}>
+                    {tx.type === 'income' ? '+' : '-'}{formatRupiah(Math.abs(tx.amount))}
+                  </p>
+                  <p className="text-sm font-medium text-slate-400 mt-0.5">
+                    {new Date(tx.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
