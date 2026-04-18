@@ -16,6 +16,12 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokenFromUrl = urlParams.get('token');
+    if (tokenFromUrl) {
+      localStorage.setItem('finchat_token', tokenFromUrl);
+    }
+    
     const token = api.getToken();
     if (!token) {
       router.push('/');

@@ -170,7 +170,8 @@ export const sendMonthlyReport = async () => {
 
     for (const user of result.rows) {
       const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
-      const endDate = `${year}-${String(month).padStart(2, '0')}-31`;
+const lastDay = new Date(year, month, 0).getDate();
+    const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 
       const stats = await query(`
         SELECT type, SUM(amount) as total, COUNT(*) as count
