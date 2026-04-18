@@ -173,13 +173,9 @@ bot.command('start', async (ctx) => {
     const token = await loginAndGetToken(from.id, userName, from.username);
     const dashboardUrl = WEB_URL + "/dashboard?token=" + token;
     await ctx.reply(
-      "👋 Halo " + userName + "! *Selamat datang di FinChat!* 🎉\n\n" +
-      "✅ Kamu sudah login!\n\n" +
-      "🌐 *Buka Dashboard:*\n" +
-      dashboardUrl + "\n\n" +
-      "Atau klik button di bawah:",
+      "👋 Halo " + userName + "! Selamat datang di FinChat! 🎉\n\n" +
+      "Kamu sudah login! Klik tombol di bawah untuk masuk dashboard:\n",
       { 
-        parse_mode: 'Markdown',
         reply_markup: {
           inline_keyboard: [
             [{ text: '🌐 Buka Dashboard', url: dashboardUrl }]
