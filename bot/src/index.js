@@ -638,7 +638,7 @@ bot.command('upgrade', async (ctx) => {
       `━━━━━━━━━━━━━━━━━━━━\n\n` +
       `🆓 *Free* - Gratis\n• 50 transaksi/bulan\n• Dashboard basic\n\n` +
       `🚀 *Pro* - Rp 29.000/bulan\n• Unlimited transaksi\n• Export PDF/Excel\n• Budget alerts\n• 10 kategori custom\n\n` +
-      `💎 *Premium* - Rp 59.000/bulan\n• Semua fitur Pro\n• Kategori unlimited\n• Data unlimited\n• Priority support\n\n` +
+      `💎 *Premium* - Rp 79.000/bulan\n• Semua fitur Pro\n• Kategori unlimited\n• Data unlimited\n• Priority support\n\n` +
       `━━━━━━━━━━━━━━━━━━━━\n\n` +
       `Upgrade sekarang di dashboard! 👇`,
       {

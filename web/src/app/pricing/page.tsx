@@ -60,7 +60,7 @@ const plans = [
   {
     id: 'premium',
     name: 'Premium',
-    price: 59000,
+    price: 79000,
     priceAnnual: 49167,
     badge: null,
     description: 'Untuk freelancer & usaha kecil yang butuh lebih',

@@ -23,7 +23,7 @@ export const PLANS = {
   },
   premium: {
     name: 'Premium',
-    price: 59000,
+    price: 79000,
     txLimit: Infinity,
     features: ['Semua fitur Pro', 'Custom categories unlimited', 'Priority support', 'Data unlimited'],
   }
