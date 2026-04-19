@@ -1,12 +1,10 @@
 /**
  * Transaction Parser for FinChat
- * TIER 1: Regex parsing
- * TIER 2: Gemini AI parsing for complex cases
+ * Strategy: Regex first (80%) → AI fallback (20%)
  */
 
 import 'dotenv/config';
 
-// Constants
 const CATEGORIES = [
   'Makanan & Minuman',
   'Transportasi',
@@ -20,18 +18,19 @@ const CATEGORIES = [
 ];
 
 const CATEGORY_KEYWORDS = {
-  'Makanan & Minuman': ['makan', 'minum', 'kopi', 'teh', 'soto', 'nasi', 'sambel', 'ayam', 'mie', 'bakso', 'pizza', 'burger', 'snack', 'roti', 'kue', 'es', 'jus', 'susu', 'indomaret', 'alfamart', 'convenience'],
-  'Transportasi': ['bensin', 'parkir', 'tol', 'ojek', 'gojek', 'grab', 'taxi', 'bus', 'kereta', 'metro', 'bbm', 'sulfuel', 'parkir', 'taxi', 'grab', 'gojek'],
-  'Belanja': ['beli', 'shopping', 'toko', 'market', 'supermarket', 'tokopedia', 'shopee', 'lazada', 'ecommerce'],
-  'Hiburan': ['nonton', 'film', 'bioskop', 'game', 'konser', 'musik', 'netflix', 'spotify', 'disney', 'hbo', 'youtube', 'spotify'],
-  'Kesehatan': ['obat', 'dokter', 'rumah sakit', 'apotek', 'medical', 'check up', 'vitamin', 'health'],
-  'Tagihan': ['listrik', 'air', 'internet', 'pulsa', 'token', 'wifi', 'paket', 'langganan', 'bpjs', 'tokenlistrik'],
-  'Gaji': ['gaji', 'salary', 'thr', 'bonus', 'income', 'pendapatan'],
-  'Investasi': ['invest', 'saham', 'reksadana', 'crypto', 'deposito', 'obligasi', 'investasi', 'trading'],
+  'Makanan & Minuman': ['makan', 'minum', 'kopi', 'teh', 'soto', 'nasi', 'ayam', 'mie', 'bakso', 'pizza', 'burger', 'snack', 'roti', 'kue', 'es', 'jus', 'susu', 'indomaret', 'alfamart', 'convenience', 'makan', 'sarapan', 'siang', 'malam', 'lapar', 'food', 'cafe', 'restaurant'],
+  'Transportasi': ['bensin', 'parkir', 'tol', 'ojek', 'gojek', 'grab', 'taxi', 'bus', 'kereta', 'metro', 'bbm', 'sulfuel', 'parkir', 'taxi', 'grab', 'gojek', 'angkot', 'travel', 'gas', 'fuel', 'pertamina'],
+  'Belanja': ['beli', 'shopping', 'toko', 'market', 'supermarket', 'tokopedia', 'shopee', 'lazada', 'ecommerce', 'belanja', 'barang', 'shopping', 'zara', 'unilever'],
+  'Hiburan': ['nonton', 'film', 'bioskop', 'game', 'konser', 'musik', 'netflix', 'spotify', 'disney', 'hbo', 'youtube', 'spotify', 'tiket', 'bioskop', 'bola', 'match'],
+  'Kesehatan': ['obat', 'dokter', 'rumah sakit', 'apotek', 'medical', 'check up', 'vitamin', 'health', 'rs', 'klinik', 'medis', 'obat', 'influenza', 'sakit'],
+  'Tagihan': ['listrik', 'air', 'internet', 'pulsa', 'token', 'wifi', 'paket', 'langganan', 'bpjs', 'tokenlistrik', 'token_listrik', 'bill', 'payment', 'ulang', 'iuran', 'bulanan'],
+  'Gaji': ['gaji', 'salary', 'thr', 'bonus', 'income', 'pendapatan', 'upah', 'fee', 'komisi', 'receh', 'uang masuk'],
+  'Investasi': ['invest', 'saham', 'reksadana', 'crypto', 'deposito', 'obligasi', 'investasi', 'trading', 'btc', 'eth', 'saham', 'idx'],
   'Lainnya': []
 };
 
-const INCOME_KEYWORDS = ['gaji', 'masuk', 'terima', 'dapat', 'uang masuk', 'saldo', 'transfer masuk', 'bonus', 'commission', 'fee', 'thr', 'pendapatan'];
+const INCOME_KEYWORDS = ['gaji', 'masuk', 'terima', 'dapat', 'uang masuk', 'saldo', 'transfer masuk', 'bonus', 'thr', 'pendapatan', 'upah', 'fee', 'komisi', 'receh'];
+const EXPENSE_KEYWORDS = ['beli', 'bayar', 'kirim', 'keluar', 'spent', 'belanja', 'jajan', 'lunas', 'cicil', 'tunai'];
 
 /**
  * Parse amount from Indonesian text
@@ -40,12 +39,19 @@ function parseAmount(text) {
   const lower = text.toLowerCase().replace(/\s+/g, ' ');
 
   const patterns = [
+    // Decimal juta: 1.5jt, 1,5jt
     /(\d+)[.,](\d+)\s*(?:jt|juta)/i,
+    // juta: 1jt, 2juta, 15jt
     /(\d+)\s*(?:jt|juta)/i,
+    // ribu: 35rb, 35ribu, 35rbu
     /(\d+)\s*(?:rb|rbu|ribu)/i,
+    // k with space: 35k, 100k
     /(\d+)\s*k\b/i,
+    // k without space: 25k, 30k
     /(\d+)k\b/i,
+    // Formatted: 1.500.000 or 1,500,000
     /(?:rp\.?\s*)?(\d{1,3}(?:[.,]\d{3})+)(?!\d)/i,
+    // Raw number >= 1000
     /(\d{4,})/,
   ];
 
@@ -112,190 +118,167 @@ function detectType(text) {
 }
 
 /**
- * Detect category from text
+ * Detect category from text keywords
  */
 function detectCategory(text, type = 'expense') {
   const lower = text.toLowerCase();
+  
+  // Check keywords
   for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
     if (keywords.length === 0) continue;
-    if (keywords.some(kw => lower.includes(kw))) {
-      return category;
+    for (const kw of keywords) {
+      if (lower.includes(kw)) {
+        return category;
+      }
     }
   }
+  
+  // Default
   return type === 'income' ? 'Gaji' : 'Lainnya';
 }
 
 /**
- * Clean and extract description
+ * Extract description - clean up
  */
-function extractDescription(text) {
-  let desc = text
-    .replace(/(\d+)[.,]?(\d*)\s*(?:jt|juta|rb|rbu|ribu|k)\b/gi, '')
-    .replace(/(?:rp\.?\s*)?\d{1,3}(?:[.,]\d{3})+/gi, '')
-    .replace(/\b\d{4,}\b/g, '')
-    .replace(/^\s*[-–]\s*/, '')
-    .replace(/\s+/g, ' ')
-    .replace(/^abis dari\s+/i, '')
-    .replace(/^beli\s+/i, '')
+function extractDescription(text, amount) {
+  let desc = text;
+  
+  // Remove amount patterns
+  const amountPatterns = [
+    /(\d+)[.,]?(\d*)\s*(?:jt|juta|rb|rbu|ribu|k)\b/gi,
+    /(?:rp\.?\s*)?\d{1,3}(?:[.,]\d{3})+/gi,
+    /\b\d{4,}\b/g,
+  ];
+  
+  for (const pattern of amountPatterns) {
+    desc = desc.replace(pattern, '');
+  }
+  
+  // Clean up common patterns
+  desc = desc
+    .replace(/^abis\s+/i, '')
     .replace(/^dari\s+/i, '')
-    .replace(/,+$\s*/, '')
+    .replace(/^beli\s+/i, '')
+    .replace(/^ke\s+/i, '')
+    .replace(/,\s*,/g, ',')
+    .replace(/^\s*[-–:,]\s*/, '')
+    .replace(/\s+/g, ' ')
     .trim();
   
   if (desc) {
     desc = desc.charAt(0).toUpperCase() + desc.slice(1);
   }
-  return desc || text.trim();
+  
+  return desc || 'Transaksi';
 }
 
 /**
- * Regex-based parser
+ * Main regex parser - handles 80% of cases
  */
 function regexParse(message) {
   const singleAmount = parseAmount(message);
   const allAmounts = parseAllAmounts(message);
   const type = detectType(message);
 
-  // If multiple amounts
+  // === Multiple Transactions ===
   if (allAmounts.length > 1) {
     const uniqueAmounts = [...new Set(allAmounts)];
     
+    // Single unique amount → single transaction
     if (uniqueAmounts.length === 1) {
       return [{
         type,
         amount: uniqueAmounts[0],
         category: detectCategory(message, type),
-        description: extractDescription(message),
+        description: extractDescription(message, uniqueAmounts[0]),
         date: new Date().toISOString().split('T')[0],
         parsedBy: 'regex'
       }];
     }
 
+    // Multiple unique amounts → parse each
     const transactions = [];
-    for (let i = 0; i < uniqueAmounts.length; i++) {
-      const amount = uniqueAmounts[i];
-      let amountStr = amount >= 1000000 
-        ? (amount / 1000000) + 'jt'
-        : (amount / 1000) + 'k';
+    const lowerMsg = message.toLowerCase();
+    
+    // Sort by position in message
+    const amountPositions = uniqueAmounts.map(amt => {
+      let amtStr = amt >= 1000000 ? (amt / 1000000) + 'jt' : (amt / 1000) + 'k';
+      const pos = lowerMsg.indexOf(amtStr);
+      return { amount: amt, pos: pos >= 0 ? pos : 999 };
+    }).sort((a, b) => a.pos - b.pos);
+
+    for (let i = 0; i < amountPositions.length; i++) {
+      const { amount, pos } = amountPositions[i];
       
-      // Find position and extract context around this amount
-      const lowerMsg = message.toLowerCase();
-      const pos = lowerMsg.indexOf(amountStr);
-      
-      let contextMsg = '';
-      if (pos > 0) {
-        // Get context before this amount
-        const beforeStart = Math.max(0, pos - 30);
-        const beforeText = message.substring(beforeStart, pos).trim();
-        
-        // Get context after this amount (but not overlapping with next amount)
-        let afterEnd = message.length;
-        if (i < uniqueAmounts.length - 1) {
-          const nextAmount = uniqueAmounts[i + 1];
-          const nextAmountStr = nextAmount >= 1000000 
-            ? (nextAmount / 1000000) + 'jt'
-            : (nextAmount / 1000) + 'k';
-          const nextPos = lowerMsg.indexOf(nextAmountStr);
-          if (nextPos > pos) {
-            afterEnd = nextPos;
-          }
-        }
-        
-        const afterText = message.substring(pos + amountStr.length, afterEnd).trim();
-        
-        // Combine before text as context
-        contextMsg = beforeText;
-        
-        // Create description from what comes BEFORE the amount
-        // For "beli kopi 10k, rokok 30k" → "Kopi" and "Rokok"
-        let desc = beforeText
-          .replace(/^abis dari\s+/i, '')
-          .replace(/^dari\s+/i, '')
-          .replace(/^beli\s+/i, '')
-          .replace(/,\s*$/, '')
-          .trim();
-        
-        if (!desc) {
-          // Try to get text from after if before is empty
-          desc = afterText
-            .replace(/,.*$/, '')
-            .replace(/^beli\s+/i, '')
-            .trim();
-        }
-        
-        if (desc) {
-          desc = desc.charAt(0).toUpperCase() + desc.slice(1);
-        }
-        
-        transactions.push({
-          type,
-          amount,
-          category: detectCategory(contextMsg, type),
-          description: desc || 'Transaksi',
-          date: new Date().toISOString().split('T')[0],
-          parsedBy: 'regex'
-        });
-      } else {
-        transactions.push({
-          type,
-          amount,
-          category: detectCategory(message, type),
-          description: extractDescription(message),
-          date: new Date().toISOString().split('T')[0],
-          parsedBy: 'regex'
-        });
+      // Get text before this amount
+      let contextBefore = '';
+      if (pos > 0 && pos < message.length) {
+        contextBefore = message.substring(0, pos).trim();
       }
+      
+      // Clean up the description
+      let desc = contextBefore
+        .replace(/^abis\s+/i, '')
+        .replace(/^dari\s+/i, '')
+        .replace(/^beli\s+/i, '')
+        .replace(/,\s*$/, '')
+        .trim();
+      
+      if (!desc) {
+        // Fallback: use detected category as description
+        desc = detectCategory(contextBefore, type);
+      }
+      
+      if (desc) {
+        desc = desc.charAt(0).toUpperCase() + desc.slice(1);
+      }
+      
+      transactions.push({
+        type,
+        amount,
+        category: detectCategory(contextBefore, type),
+        description: desc || `Transaksi ${i + 1}`,
+        date: new Date().toISOString().split('T')[0],
+        parsedBy: 'regex'
+      });
     }
+    
     return transactions;
   }
 
-  // Single transaction
+  // === Single Transaction ===
   if (singleAmount === 0) return null;
-  
+
   return [{
     type,
     amount: singleAmount,
     category: detectCategory(message, type),
-    description: extractDescription(message),
+    description: extractDescription(message, singleAmount),
     date: new Date().toISOString().split('T')[0],
     parsedBy: 'regex'
   }];
 }
 
 /**
- * Gemini AI Parser - lebih baik untuk parsing kompleks
+ * Gemini AI - FALLBACK ONLY for complex cases
  */
-async function geminiParse(message) {
+async function geminiFallback(message) {
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    console.warn('GEMINI_API_KEY not set, skipping AI parse');
-    return null;
-  }
+  if (!apiKey) return null;
 
   const today = new Date().toISOString().split('T')[0];
 
-  const prompt = `Kamu adalah parser transaksi keuangan untuk aplikasi Indonesia.
+  const prompt = `Parse transaksi keuangan Indonesia ke JSON.
 
 KATEGORI: ${CATEGORIES.join(', ')}
 
-TUGAS: Ekstrak semua transaksi dari pesan berikut.
-
-ATURAN:
-1. Deteksi tipe: "income" atau "expense"
-2. Parse amount: 25rb=25000, 1jt=1000000, 50k=50000, 25000=25000
-3. Kategori: gunakan konteks (kopi/rokok->Makanan & Minuman, bensin->Transportasi, dlL)
-4. Jika multiple transaksi (dipisahkan koma/dan), buat array transaksi
-5. Date: ${today} jika tidak disebutkan
-
-CONTOH:
-Input: "beli kopi 25rb, rokok 30rb"
-Output: [{"type":"expense","amount":25000,"category":"Makanan & Minuman","description":"Kopi","date":"${today}"},{"type":"expense","amount":30000,"category":"Makanan & Minuman","description":"Rokok","date":"${today}"}]
-
-Input: "gaji masuk 5jt"
-Output: [{"type":"income","amount":5000000,"category":"Gaji","description":"Gaji","date":"${today}"}]
-
 PESAN: "${message}"
 
-Jawab HANYA JSON valid, tanpa markdown:`;
+Format:
+- Jika 1 transaksi: {"type":"expense/income","amount":number,"category":"kategori","description":"deskripsi","date":"${today}"}
+- Jika multi: [{"type":"expense","amount":25000,"category":"Makanan & Minuman","description":"Kopi","date":"${today}"}]
+
+Jawab JSON saja, tanpa markdown.`;
 
   try {
     const model = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
@@ -308,16 +291,13 @@ Jawab HANYA JSON valid, tanpa markdown:`;
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
           temperature: 0.1,
-          maxOutputTokens: 1024,
+          maxOutputTokens: 512,
           responseMimeType: 'application/json'
         }
       })
     });
 
-    if (!response.ok) {
-      console.error('Gemini API error:', response.status);
-      return null;
-    }
+    if (!response.ok) return null;
 
     const data = await response.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -328,8 +308,7 @@ Jawab HANYA JSON valid, tanpa markdown:`;
 
     if (!parsed || (Array.isArray(parsed) && parsed.length === 0)) return null;
 
-    // Validate and normalize each transaction
-    const transactions = (Array.isArray(parsed) ? parsed : [parsed]).filter(tx => tx.amount > 0).map(tx => ({
+    return (Array.isArray(parsed) ? parsed : [parsed]).filter(tx => tx.amount > 0).map(tx => ({
       type: tx.type || 'expense',
       amount: tx.amount,
       category: CATEGORIES.includes(tx.category) ? tx.category : detectCategory(tx.description || message, tx.type),
@@ -338,45 +317,40 @@ Jawab HANYA JSON valid, tanpa markdown:`;
       parsedBy: 'gemini'
     }));
 
-    return transactions.length > 0 ? transactions : null;
-
   } catch (error) {
-    console.error('Gemini parse error:', error.message);
     return null;
   }
 }
 
 /**
- * Main parser: Use Gemini AI for better parsing (especially for multiple transactions)
+ * Main parser: Regex first (80%) → AI fallback (20%)
  */
 export async function parseTransaction(message) {
   if (!message || typeof message !== 'string' || message.trim().length === 0) {
     return null;
   }
 
-  // Always try Gemini first for better results (especially for multiple transactions)
-  console.log(`🤖 Trying Gemini AI: "${message}"`);
-  const geminiResult = await geminiParse(message);
-  if (geminiResult) {
-    const isArray = Array.isArray(geminiResult);
-    const firstTx = isArray ? geminiResult[0] : geminiResult;
-    console.log(`✅ Parsed by Gemini: ${message} → ${firstTx?.amount} (${firstTx?.category})${isArray ? ` [${geminiResult.length} transactions]` : ''}`);
-    return geminiResult;
-  }
-
-  // Fallback to regex if Gemini fails
-  console.log('🔍 Gemini failed, trying regex...');
+  // === TIER 1: Regex (80% cases) ===
   const regexResult = regexParse(message);
-  console.log('🔍 DEBUG regexResult:', JSON.stringify(regexResult));
-  if (regexResult) {
+  if (regexResult && regexResult.length > 0) {
     const isArray = Array.isArray(regexResult);
     const firstTx = isArray ? regexResult[0] : regexResult;
-    console.log(`✅ Parsed by regex: ${message} → ${firstTx?.amount} (${firstTx?.category})${isArray ? ` [${regexResult.length} transactions]` : ''}`);
+    console.log(`✅ Regex: "${message}" → ${firstTx.amount} (${firstTx.category})${isArray ? ` [${regexResult.length}]` : ''}`);
     return regexResult;
   }
 
-  console.log(`❌ Could not parse: "${message}"`);
+  // === TIER 2: AI Fallback (20% complex cases) ===
+  console.log(`🤖 Regex failed, trying Gemini: "${message}"`);
+  const aiResult = await geminiFallback(message);
+  if (aiResult && aiResult.length > 0) {
+    const isArray = Array.isArray(aiResult);
+    const firstTx = isArray ? aiResult[0] : aiResult;
+    console.log(`✅ Gemini: "${message}" → ${firstTx.amount} (${firstTx.category})${isArray ? ` [${aiResult.length}]` : ''}`);
+    return aiResult;
+  }
+
+  console.log(`❌ Parse failed: "${message}"`);
   return null;
 }
 
-export { CATEGORIES, CATEGORY_KEYWORDS, regexParse, geminiParse };
+export { CATEGORIES, CATEGORY_KEYWORDS };
