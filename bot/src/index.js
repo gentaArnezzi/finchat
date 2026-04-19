@@ -40,6 +40,10 @@ const CATEGORY_ICONS = {
   'Lainnya': '📦'
 };
 
+const getCategoryIcon = (categoryName) => {
+  return CATEGORY_ICONS[categoryName] || '📦';
+};
+
 const formatRupiah = (amount) => {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
