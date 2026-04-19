@@ -1100,18 +1100,22 @@ bot.on('message:text', async (ctx) => {
 
     const parsed = await parseTransaction(text);
     
-    if (!parsed || !parsed.amount) {
+    // Handle array or single object response
+    const txList = Array.isArray(parsed) ? parsed : (parsed ? [parsed] : []);
+    const firstTx = txList[0];
+    
+    if (!firstTx || !firstTx.amount) {
       return await ctx.reply(
         '❓ Maaf, saya tidak bisa memahami pesan ini.\n\nContoh penulisan yang benar:\n• "Beli kopi 25rb"\n• "Makan siang 45000"\n• "Gaji 5jt"'
       );
     }
 
-    const icon = CATEGORY_ICONS[parsed.category] || '📦';
-    const typeLabel = parsed.type === 'income' ? 'Pemasukan' : 'Pengeluaran';
+    const icon = CATEGORY_ICONS[firstTx.category] || '📦';
+    const typeLabel = firstTx.type === 'income' ? 'Pemasukan' : 'Pengeluaran';
     
     ctx.session.pendingTransaction = {
       message: text,
-      parsed
+      parsed  // Store full array
     };
 
     // Handle multiple transactions display
@@ -1138,7 +1142,7 @@ bot.on('message:text', async (ctx) => {
       );
     } else {
       await ctx.reply(
-        `📝 Saya akan mencatat:\n\n${icon} ${parsed.description || 'Transaksi'}\n💰 ${formatRupiah(parsed.amount)} (${typeLabel})\n📂 ${parsed.category}\n📅 ${new Date(parsed.date).toLocaleDateString('id-ID')}`,
+        `📝 Saya akan mencatat:\n\n${icon} ${firstTx.description || 'Transaksi'}\n💰 ${formatRupiah(firstTx.amount)} (${typeLabel})\n📂 ${firstTx.category}\n📅 ${new Date(firstTx.date).toLocaleDateString('id-ID')}`,
         {
           reply_markup: {
             inline_keyboard: [
