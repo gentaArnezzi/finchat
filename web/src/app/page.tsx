@@ -822,9 +822,7 @@ export default function LandingPage() {
             {/* Left: Text & Copy */}
             <div className="lg:w-[45%]">
               <FadeIn>
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-bold uppercase tracking-widest mb-6">
-                  <ShieldCheck size={14} /> Keamanan Terenkripsi
-                </div>
+                
                 <h2 className="text-4xl md:text-5xl font-black text-white mb-6 tracking-tight leading-[1.1]">
                   Infrastruktur <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Keamanan Kelas Bank.</span>
                 </h2>
