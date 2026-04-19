@@ -1,0 +1,10 @@
+# Caddyfile — Production
+
+kollexy.com, www.kollexy.com {
+	reverse_proxy api:4000
+	file_server
+}
+
+finchat.tspdigital.id, api.finchat.tspdigital.id {
+	reverse_proxy finchat-api:3001
+}
