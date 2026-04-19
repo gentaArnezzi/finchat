@@ -118,23 +118,66 @@ function detectType(text) {
 }
 
 /**
- * Detect category from text keywords
+ * Detect category from text keywords - improved with position awareness
  */
 function detectCategory(text, type = 'expense') {
   const lower = text.toLowerCase();
   
-  // Check keywords
+  // Parse amount to get its position (for context-aware detection)
+  const amount = parseAmount(text);
+  let amountPos = -1;
+  if (amount > 0) {
+    const amountStr = amount >= 1000000 
+      ? (amount / 1000000) + 'jt'
+      : (amount / 1000) + 'k';
+    amountPos = lower.indexOf(amountStr);
+    if (amountPos === -1) {
+      amountPos = lower.indexOf(amount.toString());
+    }
+  }
+  
+  // Find all matched keywords with their positions
+  const matches = [];
   for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
     if (keywords.length === 0) continue;
     for (const kw of keywords) {
-      if (lower.includes(kw)) {
-        return category;
+      const pos = lower.indexOf(kw);
+      if (pos !== -1) {
+        matches.push({
+          category,
+          keyword: kw,
+          position: pos,
+          // Calculate distance to amount (if present)
+          distance: amountPos !== -1 ? Math.abs(pos - amountPos) : 0
+        });
       }
     }
   }
   
-  // Default
-  return type === 'income' ? 'Gaji' : 'Lainnya';
+  if (matches.length === 0) {
+    return type === 'income' ? 'Gaji' : 'Lainnya';
+  }
+  
+  // Sort by priority:
+  // 1. Keywords closer to amount are more relevant
+  // 2. Longer keywords are more specific
+  // 3. Transportasi keywords like "parkir" are high priority for expense
+  const priorityKeywords = ['bensin', 'parkir', 'tol', 'ojek', 'gojek', 'grab'];
+  
+  matches.sort((a, b) => {
+    // High priority keywords always win for expense type
+    const aPriority = priorityKeywords.includes(a.keyword) ? 0 : 1;
+    const bPriority = priorityKeywords.includes(b.keyword) ? 0 : 1;
+    if (aPriority !== bPriority) return aPriority - bPriority;
+    
+    // Then by distance to amount
+    if (a.distance !== b.distance) return a.distance - b.distance;
+    
+    // Then by keyword length (longer = more specific)
+    return b.keyword.length - a.keyword.length;
+  });
+  
+  return matches[0].category;
 }
 
 /**
