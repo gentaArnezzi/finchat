@@ -30,8 +30,21 @@ const CATEGORY_KEYWORDS = {
   'Lainnya': []
 };
 
-// Income indicator words
-const INCOME_KEYWORDS = ['gaji', 'salary', 'terima', 'masuk', 'income', 'pendapatan', 'bonus', 'thr', 'freelance', 'honor', 'dividen', 'komisi', 'fee', 'dapat', 'dapet', 'transfer masuk', 'tunjangan', 'upah'];
+// Income indicator words - comprehensive list
+const INCOME_KEYWORDS = [
+  // Direct income words
+  'gaji', 'salary', 'terima', 'masuk', 'income', 'pendapatan', 
+  'bonus', 'thr', 'freelance', 'honor', 'dividen', 'komisi', 'fee', 
+  'dapat', 'dapet', 'transfer masuk', 'tunjangan', 'upah',
+  // Indonesian variations
+  'uang masuk', 'uang yang masuk', 'penerimaan', 'pemasukan',
+  'dapat uang', 'dapet uang', 'nenerima uang', 'uang terima',
+  'dibayar', 'dapat payment', 'dapat bayaran', 'fee proyek',
+  'penjualan', 'jual', 'laku', 'terjual',
+  // English
+  'received', 'earned', 'get paid', 'payment received',
+  'profit', 'revenue', 'sale proceeds'
+];
 
 /**
  * Parse amount from Indonesian text
@@ -92,9 +105,26 @@ function parseAmount(text) {
  */
 function detectType(text) {
   const lower = text.toLowerCase();
+  
+  // Check for income keywords FIRST
   for (const keyword of INCOME_KEYWORDS) {
     if (lower.includes(keyword)) return 'income';
   }
+  
+  // Check for expense keywords
+  const EXPENSE_KEYWORDS = [
+    'beli', 'bayar', 'kirim', 'transfer', 'keluar', 'spent',
+    'belanja', 'jajan', 'beli', 'bayar', 'lunas', 'cicil',
+    'uang', 'tunai', 'kartu', 'debit', 'kredit'
+  ];
+  
+  // Only return expense if we find strong expense keywords
+  // NOT just "uang" alone
+  for (const keyword of EXPENSE_KEYWORDS) {
+    if (keyword === 'uang' && !lower.includes('uang masuk')) continue;
+    if (lower.includes(keyword)) return 'expense';
+  }
+  
   return 'expense';
 }
 

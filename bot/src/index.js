@@ -172,28 +172,56 @@ bot.command('start', async (ctx) => {
   try {
     const token = await loginAndGetToken(from.id, userName, from.username);
     const dashboardUrl = WEB_URL + "/dashboard?token=" + token;
-    await ctx.reply(
-      "👋 Halo " + userName + "! Selamat datang di FinChat! 🎉\n\n" +
-      "Kamu sudah login! Klik tombol di bawah untuk masuk dashboard:\n",
-      { 
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: '🌐 Buka Dashboard', url: dashboardUrl }]
-          ]
-        }
+    
+    const welcomeMessage = `👋 Halo ${userName}! Selamat datang di *FinChat*! 🎉
+
+💰 *Aplikasi Keuangan ala AI Telegram*
+
+📝 *Yang bisa kamu lakukan:*
+
+✅ *Catat Pemasukan/Pengeluaran*
+   Ketik: "Beli kopi 25rb" atau "Gaji masuk 5jt"
+
+📊 *Lihat Laporan*
+   Ketik: "pengeluaran bulan ini" atau langsung:
+   • /ringkasan - hari ini
+   • /bulanini - bulan ini
+   • /minggu - minggu ini  
+   • /tahun - tahun ini
+   • /statistik - detail per kategori
+
+💎 *Kelola Budget*
+   • /budget - lihat budget per kategori
+   • /upgrade - upgrade plan
+
+🎯 *Tips:*
+   • Ketik natural: "saya dapat uang 10jt" untuk Pemasukan
+   • Ketik "pengeluaran minggu ini" untuk lihat laporan
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ ketik /bantuan untuk panduan lengkap 👇`;
+
+    await ctx.reply(welcomeMessage, { 
+      parse_mode: 'Markdown',
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '🌐 Buka Dashboard', url: dashboardUrl }],
+          [{ text: '📚 Panduan Lengkap', callback_data: 'show_help' }]
+        ]
       }
-    );
+    });
     return;
   } catch (error) {
     console.error('Registration error:', error);
   }
 
+  // First time user - onboarding
   ctx.session.onboarding = true;
   ctx.session.onboardingStep = 1;
 
   const welcomeMessage = "👋 Halo " + userName + "! Selamat datang di *FinChat*! 🎉\n\n" +
     "Saya akan membantu kamu mencatat keuangan dengan mudah.\n\n" +
-    "Sebelum mulai, mari atur preferensi kamu:\n\n" +
     "🕐 *Pilih zona waktu:*";
 
   await ctx.reply(welcomeMessage, {
@@ -223,21 +251,63 @@ bot.command('bantuan', async (ctx) => {
 
   const helpMessage = `📚 *Daftar Command FinChat:*
 
-📝 *Pencatatan:*
+📝 *Pencatatan Transaksi:*
 Ketik pesan natural seperti:
-"Beli makan 30rb"
-"Gaji masuk 5jt"
+• "Beli kopi 25rb"
+• "Gaji masuk 5jt"
+• "Saya dapat uang 10jt"
 
-📋 *Command:*
-/start - Memulai bot
-/ringkasan - Ringkasan hari ini
-/bulanini - Laporan bulan ini
-/budget - Lihat budget per kategori
-/hapus - Hapus transaksi terakhir
-/dashboard - Buka web dashboard
-/bantuan - Daftar command ini
+📊 *Laporan & Statistik:*
+• /ringkasan - Ringkasan hari ini
+• /bulanini - Ringkasan bulan ini
+• /minggu - Ringkasan minggu ini
+• /tahun - Ringkasan tahun ini
+• /statistik - Detail per kategori
 
-💡 _Tips: Kamu bisa catat transaksi langsung tanpa command!_`;
+💰 *Lainnya:*
+• /budget - Lihat budget per kategori
+• /hapus - Hapus transaksi terakhir
+• /dashboard - Buka web dashboard
+• /upgrade - Upgrade plan
+• /bantuan - Daftar command ini
+
+💡 *Tips:*
+• Ketik "pengeluaran bulan ini" untuk lihat laporan
+• Ketik "pendapatan minggu lalu" untuk lihat Pemasukan
+• Langsung catat tanpa command juga bisa!
+
+ ketik /start untuk mulai! 👇`;
+
+  await ctx.reply(helpMessage, { 
+    parse_mode: 'Markdown',
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: '🌐 Buka Dashboard', url: dashboardLink }]
+      ]
+    }
+  });
+});
+
+bot.command('help', async (ctx) => {
+  const from = ctx.from;
+  let token;
+  try {
+    token = await loginAndGetToken(from.id, from.first_name, from.username);
+  } catch (e) {}
+  const dashboardLink = token ? `${WEB_URL}/dashboard?token=${token}` : `${WEB_URL}/dashboard`;
+
+  const helpMessage = `📚 *Panduan FinChat - ketik /bantuan untuk lebih lengkap*
+
+📝 *Pencatatan:*
+Ketik natural: "Beli kopi 25rb" atau "Gaji 5jt"
+
+📊 *Laporan:*
+• /ringkasan - Hari ini
+• /bulanini - Bulan ini  
+• /minggu - Minggu ini
+• /tahun - Tahun ini
+
+💡 ketik /bantuan untuk panduan lengkap! 👇`;
 
   await ctx.reply(helpMessage, { 
     parse_mode: 'Markdown',
@@ -293,6 +363,108 @@ bot.command('bulanini', async (ctx) => {
 
 ${stats.expense?.count ? `📝 ${stats.expense.count} transaksi pengeluaran` : ''}
 ${stats.income?.count ? `💵 ${stats.income.count} transaksi pemasukan` : ''}`;
+
+    await ctx.reply(message, { parse_mode: 'Markdown' });
+  } catch (error) {
+    await ctx.reply('Maaf, ada masalah mengambil data. Coba lagi nanti.');
+  }
+});
+
+bot.command('minggu', async (ctx) => {
+  const from = ctx.from;
+  if (!from) return;
+
+  try {
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - dayOfWeek);
+    const startDate = startOfWeek.toISOString().split('T')[0];
+    const endDate = now.toISOString().split('T')[0];
+
+    const stats = await getUserStats(from.id, startDate, endDate);
+    const expense = stats.expense?.total || 0;
+    const income = stats.income?.total || 0;
+
+    const message = `📊 *Ringkasan Minggu Ini* (${startOfWeek.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} - ${now.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })})
+
+💰 Pemasukan: ${formatRupiah(income)}
+💸 Pengeluaran: ${formatRupiah(expense)}
+📈 Saldo: ${formatRupiah(income - expense)}
+
+📝 ${stats.expense?.count || 0} transaksi pengeluaran
+💵 ${stats.income?.count || 0} transaksi pemasukan`;
+
+    await ctx.reply(message, { parse_mode: 'Markdown' });
+  } catch (error) {
+    await ctx.reply('Maaf, ada masalah mengambil data. Coba lagi nanti.');
+  }
+});
+
+bot.command('tahun', async (ctx) => {
+  const from = ctx.from;
+  if (!from) return;
+
+  try {
+    const now = new Date();
+    const year = now.getFullYear();
+    const startDate = `${year}-01-01`;
+    const endDate = `${year}-12-31`;
+
+    const stats = await getUserStats(from.id, startDate, endDate);
+    const expense = stats.expense?.total || 0;
+    const income = stats.income?.total || 0;
+
+    const message = `📊 *Ringkasan Tahun ${year}*
+
+💰 Total Pemasukan: ${formatRupiah(income)}
+💸 Total Pengeluaran: ${formatRupiah(expense)}
+📈 Total Saldo: ${formatRupiah(income - expense)}
+
+📝 ${stats.expense?.count || 0} transaksi pengeluaran
+💵 ${stats.income?.count || 0} transaksi pemasukan
+
+💡 Gunakan /statistik untuk detail breakdown per kategori`;
+
+    await ctx.reply(message, { parse_mode: 'Markdown' });
+  } catch (error) {
+    await ctx.reply('Maaf, ada masalah mengambil data. Coba lagi nanti.');
+  }
+});
+
+bot.command('statistik', async (ctx) => {
+  const from = ctx.from;
+  if (!from) return;
+
+  try {
+    const token = await loginAndGetToken(from.id);
+    const now = new Date();
+    const year = now.getFullYear();
+
+    const res = await getFromAPI(
+      `/api/transactions/monthly/${year}/${now.getMonth() + 1}`,
+      token
+    );
+
+    if (!res.stats || res.stats.length === 0) {
+      return await ctx.reply(
+        `📈 *Statistik Bulan Ini*\n\nBelum ada data transaksi bulan ini.`,
+        { parse_mode: 'Markdown' }
+      );
+    }
+
+    let message = `📈 *Statistik Pengeluaran per Kategori* (${now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })})\n\n`;
+
+    const sortedStats = res.stats.sort((a, b) => parseFloat(b.total) - parseFloat(a.total));
+
+    for (const stat of sortedStats) {
+      if (stat.type !== 'expense') continue;
+      const icon = getCategoryIcon(stat.category);
+      const percent = (parseFloat(stat.total) / sortedStats.reduce((sum, s) => s.type === 'expense' ? sum + parseFloat(s.total) : sum, 0)) * 100;
+      message += `${icon} ${stat.category}: ${formatRupiah(parseFloat(stat.total))} (${percent.toFixed(0)}%)\n`;
+    }
+
+    message += `\n💡 Ketik /budget untuk melihat budget per kategori`;
 
     await ctx.reply(message, { parse_mode: 'Markdown' });
   } catch (error) {
@@ -581,6 +753,70 @@ bot.on('message:text', async (ctx) => {
 
   // Parse new transaction
   try {
+    // Check if it's a query request (not a transaction)
+    const lowerText = text.toLowerCase();
+    const isQuery = lowerText.includes('pengeluaran') || 
+                    lowerText.includes('pendapatan') || 
+                    lowerText.includes('total') ||
+                    lowerText.includes('laporan');
+    
+    if (isQuery) {
+      // Handle query requests
+      const now = new Date();
+      let startDate, endDate, periodName;
+      
+      if (lowerText.includes('bulan ini') || lowerText === 'pengeluaran bulan ini') {
+        startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+        endDate = now.toISOString().split('T')[0];
+        periodName = 'Bulan Ini';
+      } else if (lowerText.includes('minggu ini')) {
+        const dayOfWeek = now.getDay();
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - dayOfWeek);
+        startDate = startOfWeek.toISOString().split('T')[0];
+        endDate = now.toISOString().split('T')[0];
+        periodName = 'Minggu Ini';
+      } else if (lowerText.includes('bulan lalu')) {
+        const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        startDate = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}-01`;
+        const lastDay = new Date(lastMonth.getFullYear(), lastMonth.getMonth() + 1, 0).getDate();
+        endDate = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}-${lastDay}`;
+        periodName = 'Bulan Lalu';
+      } else if (lowerText.includes('tahun ini')) {
+        startDate = `${now.getFullYear()}-01-01`;
+        endDate = `${now.getFullYear()}-12-31`;
+        periodName = 'Tahun Ini';
+      } else {
+        // Default to this month
+        startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+        endDate = now.toISOString().split('T')[0];
+        periodName = 'Bulan Ini';
+      }
+      
+      try {
+        const stats = await getUserStats(from.id, startDate, endDate);
+        const expense = stats.expense?.total || 0;
+        const income = stats.income?.total || 0;
+        
+        let response = `📊 *Laporan ${periodName}*\n\n`;
+        
+        if (lowerText.includes('pengeluaran')) {
+          response += `💸 Total Pengeluaran: ${formatRupiah(expense)}\n📝 ${stats.expense?.count || 0} transaksi`;
+        } else if (lowerText.includes('pendapatan') || lowerText.includes('pemasukan')) {
+          response += `💰 Total Pemasukan: ${formatRupiah(income)}\n💵 ${stats.income?.count || 0} transaksi`;
+        } else {
+          response += `💰 Pemasukan: ${formatRupiah(income)}\n💸 Pengeluaran: ${formatRupiah(expense)}\n📈 Saldo: ${formatRupiah(income - expense)}`;
+        }
+        
+        response += `\n\nGunakan /ringkasan, /bulanini, /minggu, /tahun untuk detail!`;
+        
+        await ctx.reply(response, { parse_mode: 'Markdown' });
+        return;
+      } catch (err) {
+        console.error('Query stats error:', err);
+      }
+    }
+    
     // Check transaction limit for free plan
     const limitCheck = await checkTransactionLimit(from.id);
     if (!limitCheck.allowed) {
@@ -637,6 +873,53 @@ bot.on('callback_query', async (ctx) => {
   if (!from) return;
 
   const callbackData = ctx.callbackQuery.data;
+
+  // Show help from start command
+  if (callbackData === 'show_help') {
+    let token;
+    try {
+      token = await loginAndGetToken(from.id, from.first_name, from.username);
+    } catch (e) {}
+    const dashboardLink = token ? `${WEB_URL}/dashboard?token=${token}` : `${WEB_URL}/dashboard`;
+
+    const helpMessage = `📚 *Panduan Lengkap FinChat:*
+
+📝 *Pencatatan Transaksi:*
+Ketik pesan natural seperti:
+• "Beli kopi 25rb"
+• "Gaji masuk 5jt"
+• "Saya dapat uang 10jt"
+
+📊 *Laporan & Statistik:*
+• /ringkasan - Ringkasan hari ini
+• /bulanini - Ringkasan bulan ini
+• /minggu - Ringkasan minggu ini
+• /tahun - Ringkasan tahun ini
+• /statistik - Detail per kategori
+
+💰 *Kelola Budget:*
+• /budget - Lihat budget per kategori
+
+💎 *Plan & Upgrade:*
+• /upgrade - Upgrade plan
+• /dashboard - Web dashboard
+
+💡 *Tips Query:*
+Ketik "pengeluaran bulan ini" untuk lihat laporan!
+
+ ketik /bantuan untuk command list 👇`;
+
+    await ctx.editMessageText(helpMessage, {
+      parse_mode: 'Markdown',
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '🌐 Buka Dashboard', url: dashboardLink }]
+        ]
+      }
+    });
+    await ctx.answerCallbackQuery();
+    return;
+  }
 
   // Onboarding timezone selection
   if (callbackData?.startsWith('tz_')) {
