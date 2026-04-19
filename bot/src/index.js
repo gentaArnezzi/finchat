@@ -1123,7 +1123,13 @@ bot.on('message:text', async (ctx) => {
       let msg = `📝 Saya akan mencatat ${parsed.length} transaksi:\n\n`;
       parsed.forEach((tx, i) => {
         const txIcon = CATEGORY_ICONS[tx.category] || '📦';
-        msg += `${i + 1}. ${txIcon} ${tx.description || tx.category}\n   💰 ${formatRupiah(tx.amount)}\n`;
+        let desc = tx.description || tx.category;
+        // Clean up description
+        desc = desc.replace(/^abis dari\s+/i, '')
+                   .replace(/^dari\s+/i, '')
+                   .replace(/^beli\s+/i, '')
+                   .trim();
+        msg += `${i + 1}. ${txIcon} ${desc}\n   💰 ${formatRupiah(tx.amount)}\n`;
       });
       msg += `\n📅 ${new Date(parsed[0].date).toLocaleDateString('id-ID')}`;
       

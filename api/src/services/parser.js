@@ -295,14 +295,25 @@ Jawab HANYA JSON valid, tanpa markdown:`;
 }
 
 /**
- * Main parser: Use regex first, fallback to Gemini
+ * Main parser: Use Gemini AI for better parsing (especially for multiple transactions)
  */
 export async function parseTransaction(message) {
   if (!message || typeof message !== 'string' || message.trim().length === 0) {
     return null;
   }
 
-  // Tier 1: Regex parsing
+  // Always try Gemini first for better results (especially for multiple transactions)
+  console.log(`🤖 Trying Gemini AI: "${message}"`);
+  const geminiResult = await geminiParse(message);
+  if (geminiResult) {
+    const isArray = Array.isArray(geminiResult);
+    const firstTx = isArray ? geminiResult[0] : geminiResult;
+    console.log(`✅ Parsed by Gemini: ${message} → ${firstTx?.amount} (${firstTx?.category})${isArray ? ` [${geminiResult.length} transactions]` : ''}`);
+    return geminiResult;
+  }
+
+  // Fallback to regex if Gemini fails
+  console.log('🔍 Gemini failed, trying regex...');
   const regexResult = regexParse(message);
   console.log('🔍 DEBUG regexResult:', JSON.stringify(regexResult));
   if (regexResult) {
@@ -310,16 +321,6 @@ export async function parseTransaction(message) {
     const firstTx = isArray ? regexResult[0] : regexResult;
     console.log(`✅ Parsed by regex: ${message} → ${firstTx?.amount} (${firstTx?.category})${isArray ? ` [${regexResult.length} transactions]` : ''}`);
     return regexResult;
-  }
-
-  // Tier 2: Gemini AI (for complex cases)
-  console.log(`🤖 Regex failed, trying Gemini AI: "${message}"`);
-  const geminiResult = await geminiParse(message);
-  if (geminiResult) {
-    const isArray = Array.isArray(geminiResult);
-    const firstTx = isArray ? geminiResult[0] : geminiResult;
-    console.log(`✅ Parsed by Gemini: ${message} → ${firstTx?.amount} (${firstTx?.category})${isArray ? ` [${geminiResult.length} transactions]` : ''}`);
-    return geminiResult;
   }
 
   console.log(`❌ Could not parse: "${message}"`);

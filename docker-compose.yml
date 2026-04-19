@@ -28,6 +28,7 @@ services:
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
     restart: unless-stopped
     depends_on:
       db:
