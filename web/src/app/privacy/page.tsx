@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { ArrowLeft } from 'lucide-react';
 import type { Metadata } from 'next';
 import NavbarPublic from '@/components/NavbarPublic';
+import FooterPublic from '@/components/FooterPublic';
 
 export const metadata: Metadata = {
   title: 'Kebijakan Privasi — FinChat',
@@ -174,16 +175,7 @@ export default function PrivacyPage() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200 py-8 mt-8">
-        <div className="max-w-4xl mx-auto px-6 flex justify-between items-center text-sm text-slate-400">
-          <p>© {new Date().getFullYear()} FinChat</p>
-          <div className="flex gap-4">
-            <Link href="/terms" className="hover:text-slate-700 transition-colors">Syarat</Link>
-            <Link href="/" className="hover:text-slate-700 transition-colors">Beranda</Link>
-          </div>
-        </div>
-      </footer>
+      <FooterPublic showCTA={false} />
     </div>
   );
 }

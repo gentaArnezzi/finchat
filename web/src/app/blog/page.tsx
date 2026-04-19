@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { Send, ArrowRight, Clock, Tag } from 'lucide-react';
 import type { Metadata } from 'next';
 import NavbarPublic from '@/components/NavbarPublic';
+import FooterPublic from '@/components/FooterPublic';
 
 export const metadata: Metadata = {
   title: 'Blog Keuangan — FinChat | Tips Atur Keuangan Pribadi',
@@ -161,45 +162,7 @@ export default function BlogPage() {
         </div>
       </section>
 
-      {/* NEWSLETTER / CTA SECTION */}
-      <section className="py-16 bg-white border-y border-slate-100">
-        <div className="max-w-3xl mx-auto px-6 text-center">
-          <div className="inline-flex items-center gap-2 mb-4 text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full text-xs font-semibold">
-            <Tag size={12} />
-            Coba FinChat Sekarang
-          </div>
-          <h2 className="text-2xl font-bold text-slate-900 mb-3">
-            Teori saja tidak cukup — praktikkan langsung!
-          </h2>
-          <p className="text-slate-500 mb-8 text-sm leading-relaxed max-w-lg mx-auto">
-            Terapkan semua tips di artikel ini dengan FinChat. Catat pengeluaran langsung dari Telegram dalam hitungan detik, lalu pantau perkembangan di dashboard.
-          </p>
-          <a
-            href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME || 'finchatme_bot'}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-7 py-3.5 bg-slate-900 text-white font-semibold rounded-full hover:bg-slate-700 transition-colors text-sm"
-          >
-            <Send size={15} />
-            Mulai Gratis via Telegram
-          </a>
-        </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer className="bg-white border-t border-slate-200 py-8">
-        <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-slate-400">
-          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <img src="/Logofinchat-transparent.png" alt="FinChat Logo" className="h-6 md:h-7 w-auto object-contain" />
-          </Link>
-          <div className="flex items-center gap-6">
-            <Link href="/pricing" className="hover:text-slate-700 transition-colors">Pricing</Link>
-            <Link href="/privacy" className="hover:text-slate-700 transition-colors">Privasi</Link>
-            <Link href="/terms" className="hover:text-slate-700 transition-colors">Syarat</Link>
-          </div>
-          <p>© {new Date().getFullYear()} FinChat. All rights reserved.</p>
-        </div>
-      </footer>
+      <FooterPublic />
     </div>
   );
 }

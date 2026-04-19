@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { ArrowLeft, Clock, Tag, Send, ArrowRight } from 'lucide-react';
 import type { Metadata } from 'next';
 import NavbarPublic from '@/components/NavbarPublic';
+import FooterPublic from '@/components/FooterPublic';
 
 // In a real app, this would come from a CMS or MDX
 const articles: Record<string, any> = {
@@ -227,22 +228,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           })}
         </article>
 
-        {/* CTA Box */}
-        <div className="mt-14 bg-gradient-to-br from-indigo-600 to-slate-900 rounded-2xl p-8 text-white text-center relative overflow-hidden">
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay pointer-events-none" />
-          <div className="relative z-10">
-            <p className="text-indigo-200 text-sm mb-2 font-medium">Sudah siap memulai?</p>
-            <h3 className="text-2xl font-bold mb-3">Terapkan Tips Ini dengan FinChat</h3>
-            <p className="text-indigo-200 text-sm mb-6 max-w-sm mx-auto">Catat keuangan langsung dari Telegram. Gratis untuk 50 transaksi pertama setiap bulan.</p>
-            <a
-              href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME || 'finchatme_bot'}`}
-              target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-7 py-3.5 bg-white text-slate-900 font-bold rounded-full hover:scale-105 transition-transform text-sm shadow-xl"
-            >
-              <Send size={15} /> Mulai Gratis via Telegram
-            </a>
-          </div>
-        </div>
+
 
         {/* Related Posts */}
         {article.relatedPosts && (
@@ -275,20 +261,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200 py-8 bg-white">
-        <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-slate-400">
-          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <img src="/Logofinchat-transparent.png" alt="FinChat Logo" className="h-6 md:h-7 w-auto object-contain" />
-          </Link>
-          <div className="flex items-center gap-6">
-            <Link href="/pricing" className="hover:text-slate-700 transition-colors">Pricing</Link>
-            <Link href="/privacy" className="hover:text-slate-700 transition-colors">Privasi</Link>
-            <Link href="/terms" className="hover:text-slate-700 transition-colors">Syarat</Link>
-          </div>
-          <p>© {new Date().getFullYear()} FinChat</p>
-        </div>
-      </footer>
+      <FooterPublic />
     </div>
   );
 }
