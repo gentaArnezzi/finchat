@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { BudgetSpending, Category } from '@/types';
-import { Plus, Wallet, Target, LayoutTemplate, Lock, Pencil, Trash2, Copy } from 'lucide-react';
+import { Plus, Wallet, Target, LayoutTemplate, Lock, Pencil, Trash2, Copy, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 const getCategoryIcon = (categoryName: string) => {
@@ -33,11 +33,21 @@ export default function BudgetPage() {
   const [editingBudget, setEditingBudget] = useState<{ id: string; category: string; amount: number } | null>(null);
   const [newBudget, setNewBudget] = useState({ category_id: '', amount: '' });
   const [hasBudgetAccess, setHasBudgetAccess] = useState<boolean | null>(null);
+  const [showCopyHint, setShowCopyHint] = useState(false);
 
   useEffect(() => {
     loadData();
     checkBudgetAccess();
   }, [selectedMonth, selectedYear]);
+
+  // Show copy hint when spending is empty and user has access
+  useEffect(() => {
+    if (!loading && spending.length === 0 && hasBudgetAccess !== false) {
+      setShowCopyHint(true);
+    } else {
+      setShowCopyHint(false);
+    }
+  }, [loading, spending.length, hasBudgetAccess]);
 
   const checkBudgetAccess = async () => {
     try {
@@ -178,13 +188,14 @@ export default function BudgetPage() {
             </Link>
           ) : (
             <div className="flex gap-2">
-              <button
-                onClick={handleCopyFromLastMonth}
-                className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-colors font-medium text-sm"
-                title="Copy budget dari bulan sebelumnya"
-              >
-                <Copy size={16} /> Copy
-              </button>
+              {showCopyHint && (
+                <button
+                  onClick={handleCopyFromLastMonth}
+                  className="flex items-center gap-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-xl hover:bg-indigo-200 transition-colors font-medium text-sm"
+                >
+                  <Copy size={16} /> Copy Budget
+                </button>
+              )}
               <button
                 onClick={() => setShowModal(true)}
                 className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-sm font-medium text-sm"
