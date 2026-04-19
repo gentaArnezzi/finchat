@@ -3,6 +3,17 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+declare global {
+  interface Window {
+    Telegram?: {
+      WebApp?: {
+        initData?: string;
+        ready?: () => void;
+      };
+    };
+  }
+}
+
 export default function MiniAppPage() {
   const [status, setStatus] = useState('Menghubungkan...');
   const [error, setError] = useState('');
@@ -11,12 +22,10 @@ export default function MiniAppPage() {
   useEffect(() => {
     const init = async () => {
       try {
-        // Get initData from Telegram WebApp
-        const (window as any).Telegram?.WebApp?.ready();
-        const initData = (window as any).Telegram?.WebApp?.initData;
+        const tg = window.Telegram?.WebApp;
+        const initData = tg?.initData;
         
         if (!initData) {
-          // Fallback: check URL params
           const urlParams = new URLSearchParams(window.location.search);
           const token = urlParams.get('token');
           
@@ -30,7 +39,8 @@ export default function MiniAppPage() {
           return;
         }
 
-        // Send to API for verification
+        tg?.ready();
+
         const res = await fetch('/api/users/telegram-auth', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -51,7 +61,7 @@ export default function MiniAppPage() {
     };
 
     init();
-  }, []);
+  }, [router]);
 
   if (error) {
     return (
