@@ -171,27 +171,79 @@ function regexParse(message) {
     }
 
     const transactions = [];
-    for (const amount of uniqueAmounts) {
+    for (let i = 0; i < uniqueAmounts.length; i++) {
+      const amount = uniqueAmounts[i];
       let amountStr = amount >= 1000000 
         ? (amount / 1000000) + 'jt'
         : (amount / 1000) + 'k';
       
-      const pos = message.toLowerCase().indexOf(amountStr);
-      let contextMsg = message;
-      if (pos > 0) {
-        const start = Math.max(0, pos - 40);
-        const end = Math.min(message.length, pos + 40);
-        contextMsg = message.substring(start, end).trim();
-      }
+      // Find position and extract context around this amount
+      const lowerMsg = message.toLowerCase();
+      const pos = lowerMsg.indexOf(amountStr);
       
-      transactions.push({
-        type,
-        amount,
-        category: detectCategory(contextMsg, type),
-        description: extractDescription(contextMsg) || 'Transaksi',
-        date: new Date().toISOString().split('T')[0],
-        parsedBy: 'regex'
-      });
+      let contextMsg = '';
+      if (pos > 0) {
+        // Get context before this amount
+        const beforeStart = Math.max(0, pos - 30);
+        const beforeText = message.substring(beforeStart, pos).trim();
+        
+        // Get context after this amount (but not overlapping with next amount)
+        let afterEnd = message.length;
+        if (i < uniqueAmounts.length - 1) {
+          const nextAmount = uniqueAmounts[i + 1];
+          const nextAmountStr = nextAmount >= 1000000 
+            ? (nextAmount / 1000000) + 'jt'
+            : (nextAmount / 1000) + 'k';
+          const nextPos = lowerMsg.indexOf(nextAmountStr);
+          if (nextPos > pos) {
+            afterEnd = nextPos;
+          }
+        }
+        
+        const afterText = message.substring(pos + amountStr.length, afterEnd).trim();
+        
+        // Combine before text as context
+        contextMsg = beforeText;
+        
+        // Create description from what comes BEFORE the amount
+        // For "beli kopi 10k, rokok 30k" → "Kopi" and "Rokok"
+        let desc = beforeText
+          .replace(/^abis dari\s+/i, '')
+          .replace(/^dari\s+/i, '')
+          .replace(/^beli\s+/i, '')
+          .replace(/,\s*$/, '')
+          .trim();
+        
+        if (!desc) {
+          // Try to get text from after if before is empty
+          desc = afterText
+            .replace(/,.*$/, '')
+            .replace(/^beli\s+/i, '')
+            .trim();
+        }
+        
+        if (desc) {
+          desc = desc.charAt(0).toUpperCase() + desc.slice(1);
+        }
+        
+        transactions.push({
+          type,
+          amount,
+          category: detectCategory(contextMsg, type),
+          description: desc || 'Transaksi',
+          date: new Date().toISOString().split('T')[0],
+          parsedBy: 'regex'
+        });
+      } else {
+        transactions.push({
+          type,
+          amount,
+          category: detectCategory(message, type),
+          description: extractDescription(message),
+          date: new Date().toISOString().split('T')[0],
+          parsedBy: 'regex'
+        });
+      }
     }
     return transactions;
   }
