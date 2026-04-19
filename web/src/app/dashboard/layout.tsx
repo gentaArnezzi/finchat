@@ -59,11 +59,10 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
               >
                 {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-white overflow-hidden flex items-center justify-center border border-slate-100">
-                  <Image src="/finchat-logo.png" alt="FinChat Logo" width={32} height={32} className="w-full h-full object-cover" />
+              <div className="flex items-center">
+                <div className="flex items-center justify-center">
+                  <Image src="/Logo2finchat.webp" alt="FinChat Logo" width={120} height={30} className="h-7 md:h-8 w-auto object-contain" priority />
                 </div>
-                <span className="text-xl font-bold tracking-tight text-slate-900">FinChat</span>
               </div>
               <div className="hidden md:flex ml-10 space-x-8">
                 {navLinks.map((link) => {

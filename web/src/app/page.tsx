@@ -215,11 +215,10 @@ export default function LandingPage() {
       {/* HEADER: Minimalist & Transparent -> Solid */}
       <header className={`fixed top-0 w-full z-50 transition-all duration-500 border-b ${isScrolled ? 'bg-white/90 backdrop-blur-md border-slate-200/60 shadow-sm py-4' : 'bg-transparent border-transparent py-6'}`}>
         <div className="max-w-6xl mx-auto px-6 sm:px-8 flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-white overflow-hidden flex items-center justify-center transition-transform group-hover:scale-105">
-              <Image src="/finchat-logo.png" alt="FinChat Logo" width={32} height={32} className="w-full h-full object-cover" />
+          <Link href="/" className="flex items-center group">
+            <div className="flex items-center justify-center transition-transform group-hover:scale-105">
+              <Image src="/Logo2finchat.webp" alt="FinChat Logo" width={160} height={40} className="h-8 md:h-10 w-auto object-contain" priority />
             </div>
-            <span className="text-xl font-bold tracking-tight text-slate-900">FinChat</span>
           </Link>
           
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-500">
@@ -1085,11 +1084,10 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 sm:px-8">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-16">
             <div className="col-span-2">
-              <Link href="/" className="flex items-center gap-2.5 mb-4 max-w-fit cursor-pointer group">
-                <div className="w-8 h-8 rounded-lg bg-white overflow-hidden flex items-center justify-center transition-transform group-hover:scale-105 border border-slate-100 shadow-sm">
-                  <Image src="/finchat-logo.png" alt="FinChat Logo" width={32} height={32} className="w-full h-full object-cover" />
+              <Link href="/" className="flex items-center mb-4 max-w-fit cursor-pointer group">
+                <div className="flex items-center justify-center transition-transform group-hover:scale-105">
+                  <Image src="/Logo2finchat.webp" alt="FinChat Logo" width={160} height={40} className="h-8 md:h-10 w-auto object-contain" priority />
                 </div>
-                <span className="text-xl font-bold tracking-tight text-slate-900">FinChat</span>
               </Link>
               <p className="text-slate-500 text-sm max-w-xs leading-relaxed mb-6">
                 Redefinisi pengalaman pencatatan dana pribadi. Karena mengelola uang Anda seharusnya semudah *"Beli Kopi 25rb"*.

@@ -141,9 +141,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             Blog
           </Link>
           <div className="h-4 w-px bg-slate-200" />
-          <Link href="/" className="flex items-center gap-2">
-            <Image src="/finchat-logo.png" alt="FinChat" width={22} height={22} className="rounded" />
-            <span className="font-bold text-slate-900 text-sm">FinChat</span>
+          <Link href="/" className="flex items-center">
+            <Image src="/Logo2finchat.webp" alt="FinChat Logo" width={80} height={20} className="h-5 md:h-6 w-auto object-contain" />
           </Link>
         </div>
       </header>
@@ -290,9 +289,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       {/* Footer */}
       <footer className="border-t border-slate-200 py-8 bg-white">
         <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-slate-400">
-          <Link href="/" className="flex items-center gap-2 hover:text-slate-700 transition-colors">
-            <Image src="/finchat-logo.png" alt="FinChat" width={20} height={20} className="rounded" />
-            <span className="font-semibold text-slate-600">FinChat</span>
+          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+            <Image src="/Logo2finchat.webp" alt="FinChat Logo" width={100} height={24} className="h-6 md:h-7 w-auto object-contain" />
           </Link>
           <div className="flex items-center gap-6">
             <Link href="/pricing" className="hover:text-slate-700 transition-colors">Pricing</Link>

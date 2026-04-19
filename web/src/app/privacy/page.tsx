@@ -19,9 +19,8 @@ export default function PrivacyPage() {
             Kembali ke FinChat
           </Link>
           <div className="h-4 w-px bg-slate-200" />
-          <Link href="/" className="flex items-center gap-2">
-            <Image src="/finchat-logo.png" alt="FinChat" width={24} height={24} className="rounded" />
-            <span className="font-bold text-slate-900 text-sm">FinChat</span>
+          <Link href="/" className="flex items-center">
+            <Image src="/Logo2finchat.webp" alt="FinChat Logo" width={80} height={20} className="h-5 md:h-6 w-auto object-contain" />
           </Link>
         </div>
       </header>
