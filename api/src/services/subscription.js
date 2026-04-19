@@ -128,25 +128,6 @@ export async function checkTransactionLimit(userId) {
   };
 }
 
-  const now = new Date();
-  const startOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
-  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const endOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
-
-  const result = await query(
-    'SELECT COUNT(*) as count FROM transactions WHERE user_id = $1 AND date >= $2 AND date <= $3',
-    [userId, startOfMonth, endOfMonth]
-  );
-
-  const count = parseInt(result.rows[0].count);
-  return {
-    allowed: count < planConfig.txLimit,
-    count,
-    limit: planConfig.txLimit,
-    plan
-  };
-}
-
 /**
  * Create payment order via Midtrans Snap
  */

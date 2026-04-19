@@ -1341,7 +1341,11 @@ Ketik pesan natural seperti:
     ctx.session.awaitingCategory = true;
     ctx.session.awaitingAmount = false;
   } else if (callbackData === 'cancel_transaction') {
-    await ctx.editMessageText('❌ Transaksi dibatalkan.');
+    try {
+      await ctx.editMessageText('❌ Transaksi dibatalkan.');
+    } catch (e) {
+      // Message might be the same
+    }
     ctx.session.pendingTransaction = undefined;
     ctx.session.awaitingAmount = false;
     ctx.session.awaitingCategory = false;
