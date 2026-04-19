@@ -59,12 +59,12 @@ const plans = [
   },
   {
     id: 'premium',
-    name: 'Premium',
+    name: 'Business',
     price: 79000,
     priceAnnual: 49167,
     badge: null,
     description: 'Untuk freelancer & usaha kecil yang butuh lebih',
-    cta: 'Mulai Premium',
+    cta: 'Mulai Business',
     ctaHref: '/dashboard/upgrade',
     ctaExternal: false,
     highlight: false,
@@ -89,7 +89,7 @@ const faqs = [
     a: 'Tidak sama sekali. Harga yang tertera adalah harga final — tidak ada setup fee, tidak ada biaya tambahan. Anda hanya bayar sesuai plan yang dipilih.',
   },
   {
-    q: 'Bagaimana cara upgrade ke Pro atau Premium?',
+    q: 'Bagaimana cara upgrade ke Pro atau Business?',
     a: 'Login ke dashboard FinChat, buka menu "Upgrade Plan", pilih plan, lalu lakukan pembayaran via Midtrans. Setelah pembayaran berhasil dikonfirmasi, plan langsung aktif otomatis.',
   },
   {
@@ -300,7 +300,7 @@ export default function PricingPage() {
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-6 text-sm text-slate-500">
           <div className="flex items-center gap-2">
             <ShieldCheck size={18} className="text-emerald-500" />
-            <span>Garansi uang kembali 7 hari untuk Pro & Premium</span>
+            <span>Garansi uang kembali 7 hari untuk Pro & Business</span>
           </div>
           <div className="hidden sm:block w-1 h-1 rounded-full bg-slate-300" />
           <div className="flex items-center gap-2">

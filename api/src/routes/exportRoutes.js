@@ -12,7 +12,7 @@ router.get('/pdf', authenticateToken, async (req, res) => {
     // Check plan access
     const hasAccess = await checkFeatureAccess(userId, 'export');
     if (!hasAccess) {
-      return res.status(403).json({ error: 'Fitur Export hanya tersedia untuk plan Pro dan Premium. Upgrade sekarang!' });
+      return res.status(403).json({ error: 'Fitur Export hanya tersedia untuk plan Pro dan Business. Upgrade sekarang!' });
     }
     
     const { startDate, endDate, category } = req.query;
@@ -32,7 +32,7 @@ router.get('/excel', authenticateToken, async (req, res) => {
     // Check plan access
     const hasAccess = await checkFeatureAccess(userId, 'export');
     if (!hasAccess) {
-      return res.status(403).json({ error: 'Fitur Export hanya tersedia untuk plan Pro dan Premium. Upgrade sekarang!' });
+      return res.status(403).json({ error: 'Fitur Export hanya tersedia untuk plan Pro dan Business. Upgrade sekarang!' });
     }
     
     const { startDate, endDate, category } = req.query;

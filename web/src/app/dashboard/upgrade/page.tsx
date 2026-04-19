@@ -189,7 +189,7 @@ export default function UpgradePage() {
           </div>
           <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
             <h3 className="font-semibold text-slate-900">Bisa downgrade?</h3>
-            <p className="text-sm text-slate-600 mt-2 leading-relaxed">Plan otomatis kembali ke Free setelah masa aktif premium berakhir (1 bulan).</p>
+            <p className="text-sm text-slate-600 mt-2 leading-relaxed">Plan otomatis kembali ke Free setelah masa aktif Business berakhir (1 bulan).</p>
           </div>
           <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
             <h3 className="font-semibold text-slate-900">Metode pembayaran apa saja?</h3>

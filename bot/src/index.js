@@ -638,7 +638,7 @@ bot.command('upgrade', async (ctx) => {
       `━━━━━━━━━━━━━━━━━━━━\n\n` +
       `🆓 *Free* - Gratis\n• 50 transaksi/bulan\n• Dashboard basic\n\n` +
       `🚀 *Pro* - Rp 29.000/bulan\n• Unlimited transaksi\n• Export PDF/Excel\n• Budget alerts\n• 10 kategori custom\n\n` +
-      `💎 *Premium* - Rp 79.000/bulan\n• Semua fitur Pro\n• Kategori unlimited\n• Data unlimited\n• Priority support\n\n` +
+      `💎 *Business* - Rp 79.000/bulan\n• Semua fitur Pro\n• Kategori unlimited\n• Data unlimited\n• Priority support\n\n` +
       `━━━━━━━━━━━━━━━━━━━━\n\n` +
       `Upgrade sekarang di dashboard! 👇`,
       {
@@ -674,7 +674,7 @@ bot.command('export', async (ctx) => {
 
     if (plan !== 'pro' && plan !== 'premium') {
       await ctx.reply(
-        `🔒 *Export Tidak Tersedia*\n\nFitur Export PDF/Excel hanya tersedia untuk plan *Pro* dan *Premium*.\n\n` +
+        `🔒 *Export Tidak Tersedia*\n\nFitur Export PDF/Excel hanya tersedia untuk plan *Pro* dan *Business*.\n\n` +
         `📊 Plan saat ini: *${sub.planName}*\n\n` +
         `Upgrade untuk akses fitur ini!`,
         {
@@ -719,37 +719,25 @@ bot.command('export', async (ctx) => {
   }
 });
 
-// === KATEGORI COMMAND (Premium Only) ===
-bot.command('kategori', async (ctx) => {
-  const from = ctx.from;
-  if (!from) return;
+// === KATEGORI COMMAND (Business Only) ===
 
-  try {
-    const token = await loginAndGetToken(from.id, from.first_name, from.username);
-    const { data: subData } = await axios.get(`${API_URL}/api/subscription/status`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    const sub = subData.subscription;
-    const plan = sub.plan;
-
-    if (plan !== 'premium') {
-      await ctx.reply(
-        `🔒 *Custom Categories*\n\nFitur kategori custom hanya tersedia untuk plan *Premium*.\n\n` +
+  if (plan !== 'premium') {
+    await ctx.reply(
+      `🔒 *Custom Categories*\n\nFitur kategori custom hanya tersedia untuk plan *Business*.\n\n` +
         `📊 Plan saat ini: *${sub.planName}*\n\n` +
-        `Upgrade ke Premium untuk unlimited custom categories!`,
-        {
-          parse_mode: 'Markdown',
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: '💎 Upgrade ke Premium', callback_data: 'show_upgrade' }]
-            ]
+`Upgrade ke Business untuk unlimited custom categories!`,
+              {
+                reply_markup: {
+                  inline_keyboard: [
+                    [{ text: '💎 Upgrade ke Business', callback_data: 'show_upgrade' }]
+                  ]
+                }
+              }
+            );
+            return;
           }
-        }
-      );
-      return;
-    }
 
-    // Get custom categories
+          // Get custom categories
     const { data: catData } = await axios.get(`${API_URL}/api/categories`, {
       headers: { Authorization: `Bearer ${token}` }
     });
@@ -803,7 +791,7 @@ bot.on('message:text', async (ctx) => {
       });
 
       if (subData.subscription.plan !== 'premium') {
-        await ctx.reply('🔒 Custom categories hanya untuk plan Premium. Upgrade di /upgrade');
+        await ctx.reply('🔒 Custom categories hanya untuk plan Business. Upgrade di /upgrade');
         return;
       }
 
@@ -840,7 +828,7 @@ bot.on('message:text', async (ctx) => {
       });
 
       if (subData.subscription.plan !== 'premium') {
-        await ctx.reply('🔒 Custom categories hanya untuk plan Premium. Upgrade di /upgrade');
+        await ctx.reply('🔒 Custom categories hanya untuk plan Business. Upgrade di /upgrade');
         return;
       }
 
@@ -1367,7 +1355,7 @@ Ketik pesan natural seperti:
       '💎 *Upgrade FinChat Plan*\n\n' +
       '📊 Plan saat ini: Free\n\n' +
       '🚀 *Pro* - Rp 29.000/bulan\n• Unlimited transaksi\n• Export PDF/Excel\n• Budget alerts\n• 10 kategori custom\n\n' +
-      '💎 *Premium* - Rp 59.000/bulan\n• Semua fitur Pro\n• Kategori unlimited\n• Data unlimited\n• Priority support\n\n━━━━━━━━━━━━━━━━━━━━\n\nBuka dashboard untuk upgrade:',
+      '💎 *Business* - Rp 79.000/bulan\n• Semua fitur Pro\n• Kategori unlimited\n• Data unlimited\n• Priority support\n\n━━━━━━━━━━━━━━━━━━━━\n\nBuka dashboard untuk upgrade:',
       {
         parse_mode: 'Markdown',
         reply_markup: {

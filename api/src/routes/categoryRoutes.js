@@ -28,7 +28,7 @@ router.post('/', authenticateToken, async (req, res) => {
     // Check plan access for custom categories
     const hasAccess = await checkFeatureAccess(userId, 'custom_categories');
     if (!hasAccess) {
-      return res.status(403).json({ error: 'Fitur Custom Categories hanya tersedia untuk plan Premium. Upgrade sekarang!' });
+      return res.status(403).json({ error: 'Fitur Custom Categories hanya tersedia untuk plan Business. Upgrade sekarang!' });
     }
 
     const category = await categoryController.createCategory(userId, { name, icon, color });

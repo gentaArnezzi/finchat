@@ -81,7 +81,7 @@ export default function SettingsPage() {
         setNewCatName('');
       }
     } catch (e: any) {
-      if (e.message?.includes('Custom Categories') || e.message?.includes('Premium')) {
+      if (e.message?.includes('Custom Categories') || e.message?.includes('Business')) {
         alert(e.message);
       } else {
         alert("Gagal menambahkan kategori.");
@@ -309,9 +309,9 @@ export default function SettingsPage() {
           {hasCategoryAccess === false ? (
             <div className="text-center py-8">
               <Lock size={32} className="mx-auto text-slate-300 mb-3" />
-<p className="text-slate-500 text-sm mb-4">Fitur Custom Categories hanya tersedia di plan <b>Premium</b>.</p>
+<p className="text-slate-500 text-sm mb-4">Fitur Custom Categories hanya tersedia di plan <b>Business</b>.</p>
                 
-                Upgrade ke Premium
+                Upgrade ke Business
               </Link>
             </div>
           ) : (

@@ -1012,7 +1012,7 @@ export default function LandingPage() {
               </div>
             </FadeIn>
 
-            {/* Premium */}
+            {/* Business */}
             <FadeIn delay={400}>
               <div className="bg-white border text-slate-900 border-slate-200 rounded-[2.5rem] p-8 md:p-10 shadow-sm hover:shadow-lg transition-all duration-300 h-full flex flex-col hover:-translate-y-1">
                 <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 bg-slate-100 w-fit px-3 py-1.5 rounded-md">Ultimate</div>
@@ -1026,7 +1026,7 @@ export default function LandingPage() {
                 </ul>
                 <div className="mt-auto">
                   <Link href="/pricing" className="block w-full py-4 text-center rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold transition-all shadow-sm active:scale-95">
-                    Lihat Paket Premium
+                    Lihat Paket Business
                   </Link>
                 </div>
               </div>

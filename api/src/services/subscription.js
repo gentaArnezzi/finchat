@@ -22,7 +22,7 @@ export const PLANS = {
     features: ['Unlimited transaksi', 'Export PDF/Excel', 'Budget alerts', 'Dashboard lengkap', 'AI categorization'],
   },
   premium: {
-    name: 'Premium',
+    name: 'Business',
     price: 79000,
     txLimit: Infinity,
     features: ['Semua fitur Pro', 'Custom categories unlimited', 'Priority support', 'Data unlimited'],
