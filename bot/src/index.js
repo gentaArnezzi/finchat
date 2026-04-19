@@ -652,18 +652,209 @@ bot.command('upgrade', async (ctx) => {
   }
 });
 
-// === TEXT MESSAGE HANDLER ===
+// === EXPORT COMMAND ===
+bot.command('export', async (ctx) => {
+  const from = ctx.from;
+  if (!from) return;
 
+  try {
+    const token = await loginAndGetToken(from.id, from.first_name, from.username);
+    const { data: subData } = await axios.get(`${API_URL}/api/subscription/status`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const sub = subData.subscription;
+    const plan = sub.plan;
+
+    if (plan !== 'pro' && plan !== 'premium') {
+      await ctx.reply(
+        `🔒 *Export Tidak Tersedia*\n\nFitur Export PDF/Excel hanya tersedia untuk plan *Pro* dan *Premium*.\n\n` +
+        `📊 Plan saat ini: *${sub.planName}*\n\n` +
+        `Upgrade untuk akses fitur ini!`,
+        {
+          parse_mode: 'Markdown',
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: '💎 Lihat Plan', callback_data: 'show_upgrade' }]
+            ]
+          }
+        }
+      );
+      return;
+    }
+
+    // Show export options
+    await ctx.reply(
+      `📊 *Export Laporan Keuangan*\n\nPilih format export:\n\n` +
+      `📄 PDF - Laporan lengkap\n📊 Excel - Data spreadsheet\n\n` +
+      `Atau langsung export periode tertentu:`,
+      {
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: '📄 Export PDF', callback_data: 'export_pdf' },
+              { text: '📊 Export Excel', callback_data: 'export_excel' }
+            ],
+            [
+              { text: '📅 Bulan Ini (PDF)', callback_data: 'export_pdf_this_month' },
+              { text: '📅 Bulan Ini (Excel)', callback_data: 'export_excel_this_month' }
+            ],
+            [
+              { text: '◀️ Kembali', callback_data: 'cancel_export' }
+            ]
+          ]
+        }
+      }
+    );
+  } catch (error) {
+    console.error('Export command error:', error);
+    await ctx.reply('❌ Terjadi kesalahan. Silakan coba lagi.');
+  }
+});
+
+// === KATEGORI COMMAND (Premium Only) ===
+bot.command('kategori', async (ctx) => {
+  const from = ctx.from;
+  if (!from) return;
+
+  try {
+    const token = await loginAndGetToken(from.id, from.first_name, from.username);
+    const { data: subData } = await axios.get(`${API_URL}/api/subscription/status`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const sub = subData.subscription;
+    const plan = sub.plan;
+
+    if (plan !== 'premium') {
+      await ctx.reply(
+        `🔒 *Custom Categories*\n\nFitur kategori custom hanya tersedia untuk plan *Premium*.\n\n` +
+        `📊 Plan saat ini: *${sub.planName}*\n\n` +
+        `Upgrade ke Premium untuk unlimited custom categories!`,
+        {
+          parse_mode: 'Markdown',
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: '💎 Upgrade ke Premium', callback_data: 'show_upgrade' }]
+            ]
+          }
+        }
+      );
+      return;
+    }
+
+    // Get custom categories
+    const { data: catData } = await axios.get(`${API_URL}/api/categories`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const customCategories = catData.categories?.filter(c => c.is_custom) || [];
+
+    let message = `📂 *Custom Categories*\n\n`;
+    message += `Kategori yang kamu buat:\n\n`;
+
+    if (customCategories.length === 0) {
+      message += `Belum ada custom categories.\n\n`;
+      message += `Ketik: /kategori tambah [nama] untuk menambah.`;
+    } else {
+      customCategories.forEach((cat, i) => {
+        message += `${i + 1}. ${cat.name}\n`;
+      });
+      message += `\nTotal: ${customCategories.length}/∞`;
+    }
+
+    message += `\n\n━━━━━━━━━━━━━━━━━━━━\n`;
+    message += `📝 *Aksi:*\n`;
+    message += `/kategori tambah [nama] - Tambah\n`;
+    message += `/kategori hapus [nama] - Hapus`;
+
+    await ctx.reply(message, { parse_mode: 'Markdown' });
+  } catch (error) {
+    console.error('Kategori command error:', error);
+    await ctx.reply('❌ Terjadi kesalahan. Silakan coba lagi.');
+  }
+});
+
+// === KATEGORI TAMBAH/HAPUS HANDLER ===
 bot.on('message:text', async (ctx) => {
   const from = ctx.from;
   if (!from) return;
 
   const text = ctx.message.text;
-  
-  if (text.startsWith('/')) return;
 
-  // Handle onboarding responses
-  if (ctx.session.onboarding) return;
+  // Handle /kategori tambah [nama]
+  if (text.toLowerCase().startsWith('/kategori tambah ')) {
+    const categoryName = text.replace('/kategori tambah ', '').trim();
+    if (!categoryName) {
+      await ctx.reply('❌ Nama kategori tidak boleh kosong.\n\nContoh: /kategori tambah Investasi');
+      return;
+    }
+
+    try {
+      const token = await loginAndGetToken(from.id, from.first_name, from.username);
+      const { data: subData } = await axios.get(`${API_URL}/api/subscription/status`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (subData.subscription.plan !== 'premium') {
+        await ctx.reply('🔒 Custom categories hanya untuk plan Premium. Upgrade di /upgrade');
+        return;
+      }
+
+      await axios.post(
+        `${API_URL}/api/categories`,
+        { name: categoryName, is_custom: true },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      await ctx.reply(`✅ Kategori "${categoryName}" berhasil ditambahkan!`);
+    } catch (error) {
+      if (error.response?.status === 409) {
+        await ctx.reply('❌ Kategori sudah ada.');
+      } else {
+        console.error('Kategori tambah error:', error);
+        await ctx.reply('❌ Gagal menambah kategori. Silakan coba lagi.');
+      }
+    }
+    return;
+  }
+
+  // Handle /kategori hapus [nama]
+  if (text.toLowerCase().startsWith('/kategori hapus ')) {
+    const categoryName = text.replace('/kategori hapus ', '').trim();
+    if (!categoryName) {
+      await ctx.reply('❌ Nama kategori tidak boleh kosong.\n\nContoh: /kategori hapus Investasi');
+      return;
+    }
+
+    try {
+      const token = await loginAndGetToken(from.id, from.first_name, from.username);
+      const { data: subData } = await axios.get(`${API_URL}/api/subscription/status`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (subData.subscription.plan !== 'premium') {
+        await ctx.reply('🔒 Custom categories hanya untuk plan Premium. Upgrade di /upgrade');
+        return;
+      }
+
+      await axios.delete(
+        `${API_URL}/api/categories/${encodeURIComponent(categoryName)}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      await ctx.reply(`✅ Kategori "${categoryName}" berhasil dihapus!`);
+    } catch (error) {
+      if (error.response?.status === 404) {
+        await ctx.reply('❌ Kategori tidak ditemukan.');
+      } else {
+        console.error('Kategori hapus error:', error);
+        await ctx.reply('❌ Gagal menghapus kategori. Silakan coba lagi.');
+      }
+    }
+    return;
+  }
+
+  // === TEXT MESSAGE HANDLER ===
 
   // Handle "ya"/"tidak" for text-based confirmations
   if (text.toLowerCase() === 'ya' || text.toLowerCase() === 'y') {
@@ -1090,10 +1281,75 @@ Ketik pesan natural seperti:
   } else if (callbackData === 'cancel_delete') {
     await ctx.editMessageText('Hapus transaksi dibatalkan.');
     ctx.session.pendingDelete = undefined;
+  } else if (callbackData === 'show_upgrade') {
+    await ctx.editMessageText(
+      '💎 *Upgrade FinChat Plan*\n\n' +
+      '📊 Plan saat ini: Free\n\n' +
+      '🚀 *Pro* - Rp 29.000/bulan\n• Unlimited transaksi\n• Export PDF/Excel\n• Budget alerts\n• 10 kategori custom\n\n' +
+      '💎 *Premium* - Rp 59.000/bulan\n• Semua fitur Pro\n• Kategori unlimited\n• Data unlimited\n• Priority support\n\n━━━━━━━━━━━━━━━━━━━━\n\nBuka dashboard untuk upgrade:',
+      {
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: '💎 Upgrade di Dashboard', url: `${WEB_URL}/dashboard/upgrade` }]
+          ]
+        }
+      }
+    );
+  } else if (callbackData === 'export_pdf' || callbackData === 'export_excel' ||
+             callbackData === 'export_pdf_this_month' || callbackData === 'export_excel_this_month') {
+    await handleExport(ctx, callbackData);
+  } else if (callbackData === 'cancel_export') {
+    await ctx.editMessageText('❌ Export dibatalkan.');
   }
 
   await ctx.answerCallbackQuery();
 });
+
+async function handleExport(ctx, callbackData) {
+  const from = ctx.from;
+  if (!from) return;
+
+  const isExcel = callbackData.includes('excel');
+  const isThisMonth = callbackData.includes('this_month');
+  
+  await ctx.answerCallbackQuery('⏳ Mengambil data...', { timeout: 5 });
+
+  try {
+    const token = await loginAndGetToken(from.id, from.first_name, from.username);
+    
+    const now = new Date();
+    let startDate, endDate;
+    
+    if (isThisMonth) {
+      startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+      endDate = now.toISOString().split('T')[0];
+    } else {
+      startDate = `${now.getFullYear()}-01-01`;
+      endDate = now.toISOString().split('T')[0];
+    }
+
+    const format = isExcel ? 'excel' : 'pdf';
+    const exportUrl = `${API_URL}/api/export/${format}?startDate=${startDate}&endDate=${endDate}`;
+
+    await ctx.editMessageText(
+      `📥 *Download ${isExcel ? 'Excel' : 'PDF'}*\n\n` +
+      `📅 Periode: ${isThisMonth ? 'Bulan Ini' : 'Tahun Ini'}\n\n` +
+      `Klik button di bawah untuk download:`,
+      {
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: `📥 Download ${isExcel ? 'Excel' : 'PDF'}`, url: `${exportUrl}&token=${token}` }]
+          ]
+        }
+      }
+    );
+  } catch (error) {
+    console.error('Export error:', error);
+    await ctx.editMessageText('❌ Gagal membuat export. Silakan coba lagi.');
+  }
+}
 
 console.log('🤖 FinChat Bot starting...');
 
