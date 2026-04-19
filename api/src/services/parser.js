@@ -370,8 +370,11 @@ export async function parseTransaction(message) {
 
   // Tier 1: Try regex parsing
   const regexResult = regexParse(message);
+  console.log('🔍 DEBUG regexResult:', JSON.stringify(regexResult));
   if (regexResult) {
-    console.log(`✅ Parsed by regex: ${message} → ${regexResult.amount} (${regexResult.category})`);
+    const isArray = Array.isArray(regexResult);
+    const firstTx = isArray ? regexResult[0] : regexResult;
+    console.log(`✅ Parsed by regex: ${message} → ${firstTx?.amount} (${firstTx?.category})${isArray ? ` [${regexResult.length} transactions]` : ''}`);
     return regexResult;
   }
 
