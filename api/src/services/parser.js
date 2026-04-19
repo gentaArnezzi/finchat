@@ -206,8 +206,18 @@ function extractDescription(text) {
     .replace(/(?:rp\.?\s*)?\d{1,3}(?:[.,]\d{3})+/gi, '')
     .replace(/\b\d{4,}\b/g, '')
     .replace(/^\s*[-–]\s*/, '')
+    .replace(/\s+/g, ' ')
     .trim();
-
+  
+  // Clean up common patterns
+  desc = desc
+    .replace(/^abis dari\s+/i, '')
+    .replace(/^beli\s+/i, '')
+    .replace(/^dari\s+/i, '')
+    .replace(/,+$\s*/, '')
+    .replace(/,\s*,/g, ',')
+    .trim();
+  
   // Capitalize first letter
   if (desc) {
     desc = desc.charAt(0).toUpperCase() + desc.slice(1);
@@ -231,27 +241,51 @@ function regexParse(message) {
   if (allAmounts.length > 1) {
     console.log(`📊 Detected multiple transactions: ${allAmounts.length} amounts found`);
     
+    // Get unique amounts only
+    const uniqueAmounts = [...new Set(allAmounts)];
+    console.log(`📊 Unique amounts: ${uniqueAmounts.length}`);
+    
+    if (uniqueAmounts.length === 1) {
+      // Only one unique amount - treat as single transaction
+      const type = detectType(message);
+      const category = detectCategory(message, type);
+      const description = extractDescription(message);
+      return [{
+        type,
+        amount: uniqueAmounts[0],
+        category,
+        description,
+        date: new Date().toISOString().split('T')[0],
+        parsedBy: 'regex'
+      }];
+    }
+    
     // Parse each amount individually to get proper category/description
     const transactions = [];
     const type = detectType(message);
     
-    for (const amount of allAmounts) {
+    for (const amount of uniqueAmounts) {
       // Find the amount in the original message to get context for category
-      const amountStr = amount >= 1000000 
-        ? (amount / 1000000) + 'jt'
-        : (amount / 1000) + 'rb';
+      let amountStr;
+      if (amount >= 1000000) {
+        amountStr = (amount / 1000000) + 'jt';
+      } else if (amount >= 1000) {
+        amountStr = (amount / 1000) + 'k';
+      } else {
+        amountStr = amount.toString();
+      }
       
       // Find the position to extract description around this amount
       const pos = message.toLowerCase().indexOf(amountStr);
       let contextMsg = message;
       if (pos > 0) {
-        const start = Math.max(0, pos - 30);
-        const end = Math.min(message.length, pos + 30);
-        contextMsg = message.substring(start, end);
+        const start = Math.max(0, pos - 40);
+        const end = Math.min(message.length, pos + 40);
+        contextMsg = message.substring(start, end).trim();
       }
       
       const category = detectCategory(contextMsg, type);
-      const description = extractDescription(contextMsg) || 'Multi-transaksi';
+      const description = extractDescription(contextMsg) || 'Transaksi';
       
       transactions.push({
         type,
