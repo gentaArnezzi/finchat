@@ -89,7 +89,7 @@ export default function BlogPage() {
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-emerald-100/50 via-transparent to-transparent pointer-events-none blur-3xl z-0"></div>
         <div className="max-w-6xl mx-auto px-6 relative z-10">
           <div className="max-w-2xl">
-            <span className="text-xs font-bold uppercase tracking-widest text-indigo-600 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-full shadow-sm">Blog FinChat</span>
+
             <h1 className="text-4xl md:text-6xl font-black text-slate-900 mt-6 mb-4 tracking-tight leading-[1.1]">
               Literasi Keuangan<br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-indigo-500">Orang Indonesia.</span>
             </h1>

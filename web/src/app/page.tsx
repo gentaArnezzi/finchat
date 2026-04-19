@@ -313,9 +313,7 @@ export default function LandingPage() {
             {/* Left: Copy */}
             <div className="lg:w-[45%]">
               <FadeIn>
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-indigo-100 bg-indigo-50 text-indigo-600 text-xs font-bold uppercase tracking-widest mb-6">
-                  <Smartphone size={14} /> Sinkronisasi Real-Time
-                </div>
+
                 <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight leading-[1.1]">
                   Pencatatan Semudah <span className="text-indigo-600">Chatting Ke Teman.</span>
                 </h2>
@@ -402,9 +400,7 @@ export default function LandingPage() {
             {/* Right: Copy (reverse flex) */}
             <div className="lg:w-[45%]">
               <FadeIn>
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-400 text-xs font-bold uppercase tracking-widest mb-6 border-b-2">
-                  <Zap size={14} className="animate-pulse"/> NLP Engine
-                </div>
+
                 <h2 className="text-4xl md:text-5xl font-black text-white mb-6 tracking-tight leading-[1.1]">
                   Autentikasi AI <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 drop-shadow-sm">Sangat Cerdas.</span>
                 </h2>
@@ -461,9 +457,7 @@ export default function LandingPage() {
       <section className="py-32 relative overflow-hidden bg-[#fafafa]">
         <FadeIn className="max-w-5xl mx-auto px-6 sm:px-8 relative z-10">
           <div className="text-center mb-16">
-             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-indigo-200 bg-white text-indigo-600 text-xs font-bold uppercase tracking-widest mb-6 shadow-sm">
-                <PieChart size={14} /> Sinkronisasi Otomatis
-             </div>
+
              <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight leading-[1.1]">Rekap Otomatis di <br className="hidden md:block"/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-emerald-500">Web Dashboard.</span></h2>
              <p className="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto">Data rapi, keputusan tepat. Visualisasikan setiap pergerakan finansial Anda dengan antarmuka grafis kelas atas.</p>
           </div>
@@ -759,9 +753,7 @@ export default function LandingPage() {
             {/* Right: Copy */}
             <div className="lg:w-[55%]">
               <FadeIn delay={200}>
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-rose-200/80 bg-rose-50 text-rose-600 text-xs font-bold uppercase tracking-widest mb-6 border-b-2">
-                  <ShieldCheck size={14} /> Pengawal Kantong
-                </div>
+
                 <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight leading-[1.1]">
                   Cegah Kebocoran Berkat <br/><span className="text-rose-500">Pengingat Proaktif.</span>
                 </h2>
