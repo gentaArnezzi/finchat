@@ -39,7 +39,9 @@ export default function MiniAppPage() {
           return;
         }
 
-        tg?.ready();
+        if (tg && tg.ready) {
+          tg.ready();
+        }
 
         const res = await fetch('/api/users/telegram-auth', {
           method: 'POST',
