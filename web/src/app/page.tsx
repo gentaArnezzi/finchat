@@ -21,13 +21,33 @@ declare global {
 }
 
 const faqs = [
-  { q: 'Apakah FinChat aman?', a: 'Sangat aman. Kami menggunakan enkripsi end-to-end dan tidak pernah menyimpan data finansial Anda di server pihak ketiga. Semua data terikat dengan ID Telegram Anda.' },
-  { q: 'Bagaimana cara memulainya?', a: 'Cukup kirim pesan ke bot FinChat di Telegram (@finchatme_bot), lalu mulai catat transaksi dengan bahasa sehari-hari.' },
-  { q: 'Apakah ada biaya tersembunyi?', a: 'Tidak ada biaya tersembunyi. Plan Free gratis selamanya. Upgrade ke Pro atau Business hanya jika Anda butuh fitur lebih.' },
-  { q: 'Apakah data saya bisa dihapus?', a: 'Ya, Anda bisa meminta penghapusan data kapan saja melalui menu pengaturan di dashboard.' },
+  {
+    q: 'Apakah ada biaya tersembunyi?',
+    a: 'Tidak sama sekali. Harga yang tertera adalah harga final — tidak ada setup fee, tidak ada biaya tambahan. Anda hanya bayar sesuai plan yang dipilih.',
+  },
+  {
+    q: 'Bagaimana cara memulai?',
+    a: 'Cukup kirim pesan ke bot FinChat di Telegram (@finchatme_bot), lalu mulai catat transaksi dengan bahasa sehari-hari. Gratis, tanpa biaya.',
+  },
+  {
+    q: 'Metode pembayaran apa saja yang tersedia?',
+    a: 'Kami mendukung transfer bank (semua bank besar), e-wallet (GoPay, OVO, DANA, ShopeePay), kartu kredit/debit, QRIS, dan pembayaran di minimarket (Indomaret, Alfamart).',
+  },
+  {
+    q: 'Bisakah downgrade kembali ke Free?',
+    a: 'Plan berbayar bersifat bulanan. Setelah masa aktif berakhir, akun otomatis kembali ke Free. Tidak perlu cancel manual — tidak ada kontrak jangka panjang.',
+  },
+  {
+    q: 'Apakah data saya aman?',
+    a: 'Ya. Data Anda dienkripsi dan hanya terikat pada ID Telegram Anda. Kami tidak pernah meminta password, PIN, atau informasi rekening bank.',
+  },
+  {
+    q: 'Apa yang terjadi dengan data saya jika tidak perpanjang?',
+    a: 'Jika kembali ke Free, data transaksi Anda tetap aman. Anda hanya bisa mengakses riwayat 3 bulan terakhir. Jika upgrade lagi, seluruh riwayat dapat diakses kembali.',
+  },
 ];
 
-function FAQItem({ question, answer }: { question: string, answer: string }) {
+function FAQItem({ q, a }: { q: string; a: string }) {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div className="border-b border-slate-200 py-5">
@@ -35,7 +55,7 @@ function FAQItem({ question, answer }: { question: string, answer: string }) {
         onClick={() => setIsOpen(!isOpen)}
         className="w-full text-left flex justify-between items-center focus:outline-none"
       >
-        <h4 className="text-lg font-medium text-slate-900">{question}</h4>
+        <h4 className="text-lg font-medium text-slate-900">{q}</h4>
         <ChevronDown 
           size={20} 
           className={`text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} 
@@ -44,7 +64,7 @@ function FAQItem({ question, answer }: { question: string, answer: string }) {
       <div 
         className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-48 opacity-100 mt-4' : 'max-h-0 opacity-0'}`}
       >
-        <p className="text-slate-600 leading-relaxed">{answer}</p>
+        <p className="text-slate-600 leading-relaxed">{a}</p>
       </div>
     </div>
   );
@@ -972,7 +992,7 @@ export default function LandingPage() {
           <h2 className="text-3xl font-bold text-slate-900 text-center mb-12">Pertanyaan Umum</h2>
           <div className="bg-white rounded-2xl border border-slate-200 px-6 md:px-8">
             {faqs.map((faq, i) => (
-              <FAQItem key={i} question={faq.q} answer={faq.a} />
+              <FAQItem key={i} q={faq.q} a={faq.a} />
             ))}
           </div>
         </div>
