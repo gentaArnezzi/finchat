@@ -4,17 +4,16 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
+import { WebSocketProvider, useWebSocket } from '@/context/WebSocketContext';
 import { LayoutDashboard, ReceiptText, TrendingUp, Wallet, Zap, LogOut, Settings, Menu, X } from 'lucide-react';
 import Image from 'next/image';
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function DashboardContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userId, setUserId] = useState<string>('');
+  const { socket } = useWebSocket(userId || undefined);
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -30,6 +29,14 @@ export default function DashboardLayout({
     const token = api.getToken();
     if (!token) {
       router.push('/');
+    } else {
+      // Decode token to get user ID
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setUserId(payload.id);
+      } catch (e) {
+        console.error('Failed to decode token');
+      }
     }
   }, [router]);
 
@@ -141,5 +148,17 @@ export default function DashboardLayout({
         {children}
       </main>
     </div>
+  );
+}
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <WebSocketProvider>
+      <DashboardContent>{children}</DashboardContent>
+    </WebSocketProvider>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '@/lib/api';
+import { useWebSocket } from '@/context/WebSocketContext';
 import { Transaction } from '@/types';
 import MonthlyBarChart from '@/components/charts/BarChart';
 import ExportButton from '@/components/ExportButton';
@@ -38,6 +39,7 @@ export default function DashboardPage() {
   const [monthlyData, setMonthlyData] = useState<{ month: string; income: number; expense: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const { socket } = useWebSocket();
 
   const loadData = useCallback(async () => {
     try {
@@ -90,6 +92,20 @@ export default function DashboardPage() {
     }, 5000);
     return () => clearInterval(interval);
   }, [loadData]);
+
+  // Listen for real-time transaction updates via WebSocket
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on('transaction-created', (transaction) => {
+      console.log('New transaction via WebSocket:', transaction);
+      loadData(); // Refresh data immediately when new transaction comes in
+    });
+
+    return () => {
+      socket.off('transaction-created');
+    };
+  }, [socket, loadData]);
 
   const totalIncome = stats?.income?.total || 0;
   const totalExpense = stats?.expense?.total || 0;

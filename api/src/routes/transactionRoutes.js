@@ -45,6 +45,10 @@ router.post('/', authenticateToken, async (req, res) => {
       date: date || new Date().toISOString().split('T')[0]
     });
 
+    // Emit real-time update to the user
+    const io = req.app.get('io');
+    io.to(`user-${userId}`).emit('transaction-created', transaction);
+
     res.json({ success: true, transaction });
   } catch (error) {
     console.error('Create transaction error:', error);
