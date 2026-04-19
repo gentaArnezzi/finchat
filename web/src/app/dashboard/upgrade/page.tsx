@@ -87,27 +87,28 @@ export default function UpgradePage() {
 
   return (
     <div className="space-y-8">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900">Upgrade Plan</h1>
-        <p className="text-gray-500 mt-2">Pilih plan yang sesuai kebutuhanmu</p>
+      <div className="text-center px-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Upgrade Plan</h1>
+        <p className="text-gray-500 mt-2 text-sm sm:text-base">Pilih plan yang sesuai kebutuhanmu</p>
       </div>
 
       {/* Annual Toggle */}
       {plans.some(p => p.price > 0) && (
-        <div className="flex justify-center">
-          <div className="inline-flex items-center gap-3 p-1 rounded-full bg-slate-100 border border-slate-200">
+        <div className="flex justify-center px-4">
+          <div className="inline-flex items-center gap-1 sm:gap-3 p-1 rounded-full bg-slate-100 border border-slate-200 w-full sm:w-auto">
             <button
               onClick={() => setAnnual(false)}
-              className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${!annual ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+              className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all ${!annual ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
             >
               Bulanan
             </button>
             <button
               onClick={() => setAnnual(true)}
-              className={`px-4 py-2 rounded-full text-sm font-semibold transition-all flex items-center gap-2 ${annual ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+              className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-1 ${annual ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
             >
-              Tahunan
-              <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded-full">Hemat 17%</span>
+              <span className="hidden sm:inline">Tahunan</span>
+              <span className="sm:hidden">Thn</span>
+              <span className="bg-emerald-100 text-emerald-700 text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 rounded-full whitespace-nowrap">Hemat 17%</span>
             </button>
           </div>
         </div>
@@ -134,7 +135,7 @@ export default function UpgradePage() {
       </div>
 
       {/* Plans Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 px-4 sm:px-0">
         {plans.map((plan) => {
           const isCurrent = plan.id === currentPlan;
           const isPopular = plan.id === 'pro';
@@ -142,12 +143,12 @@ export default function UpgradePage() {
           return (
             <div
               key={plan.id}
-              className={`relative bg-white rounded-2xl shadow-sm border p-8 flex flex-col transition-all hover:shadow-xl ${
-                isPopular ? 'border-indigo-600 ring-1 ring-indigo-600 scale-[1.02]' : 'border-slate-200 hover:border-slate-300'
+              className={`relative bg-white rounded-2xl shadow-sm border p-4 sm:p-6 md:p-8 flex flex-col transition-all hover:shadow-xl ${
+                isPopular ? 'border-indigo-600 ring-1 ring-indigo-600 sm:scale-[1.02]' : 'border-slate-200 hover:border-slate-300'
               } ${isCurrent ? 'bg-slate-50' : ''}`}
             >
               {isPopular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-xs font-bold px-4 py-1.5 rounded-full flex items-center gap-1 shadow-sm">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-xs font-bold px-3 sm:px-4 py-1.5 rounded-full flex items-center gap-1 shadow-sm">
                   <Zap size={14} /> POPULER
                 </div>
               )}
@@ -156,26 +157,26 @@ export default function UpgradePage() {
                 <h3 className="text-xl font-bold text-slate-900">{plan.name}</h3>
                 <div className="mt-4">
                   {plan.price === 0 ? (
-                    <span className="text-4xl font-extrabold text-slate-900">Gratis</span>
+                    <span className="text-3xl sm:text-4xl font-extrabold text-slate-900">Gratis</span>
                   ) : annual && plan.priceAnnual ? (
                     <div className="flex flex-col items-center">
-                      <span className="text-4xl font-extrabold text-slate-900">{formatRupiah(plan.priceAnnual)}</span>
+                      <span className="text-3xl sm:text-4xl font-extrabold text-slate-900">{formatRupiah(plan.priceAnnual)}</span>
                       <span className="text-slate-500 text-sm">/tahun</span>
                       <span className="text-xs text-emerald-600 font-medium mt-1">Hemat {formatRupiah(plan.price * 12 - plan.priceAnnual)}/tahun</span>
                     </div>
                   ) : (
                     <div className="flex items-baseline justify-center gap-1">
-                      <span className="text-4xl font-extrabold text-slate-900">{formatRupiah(plan.price)}</span>
+                      <span className="text-3xl sm:text-4xl font-extrabold text-slate-900">{formatRupiah(plan.price)}</span>
                       <span className="text-slate-500 font-medium">/bln</span>
                     </div>
                   )}
                 </div>
               </div>
 
-              <ul className="space-y-4 flex-grow mb-8">
+              <ul className="space-y-2 sm:space-y-4 flex-grow mb-6 sm:mb-8">
                 {plan.features.map((feature, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm text-slate-600 leading-snug">
-                    <Check size={18} className="text-indigo-600 shrink-0 mt-0.5" />
+                  <li key={i} className="flex items-start gap-2 sm:gap-3 text-xs sm:text-sm text-slate-600 leading-snug">
+                    <Check size={16} className="text-indigo-600 shrink-0 mt-0.5" />
                     <span>{feature}</span>
                   </li>
                 ))}
