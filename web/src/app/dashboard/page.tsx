@@ -83,11 +83,11 @@ export default function DashboardPage() {
     loadData();
   }, [loadData]);
 
-  // Auto-refresh every 30 seconds
+  // Auto-refresh every 5 seconds for near real-time updates
   useEffect(() => {
     const interval = setInterval(() => {
       loadData();
-    }, 30000);
+    }, 5000);
     return () => clearInterval(interval);
   }, [loadData]);
 
