@@ -45,6 +45,8 @@ export default function UpgradePage() {
   };
 
   const handleUpgrade = async (planId: string) => {
+    if (planId === 'free') return;
+    
     setProcessingPlan(planId);
     try {
       const res = await api.createPayment(planId);
@@ -52,10 +54,10 @@ export default function UpgradePage() {
 
       if (payment.snapUrl) {
         // Production: redirect to Midtrans payment page
-        window.open(payment.snapUrl, '_blank');
+        window.location.href = payment.snapUrl;
       } else if (payment.mode === 'development') {
-        // Dev mode: offer direct activation
-        if (confirm(`Midtrans belum dikonfigurasi. Aktifkan plan ${planId} secara langsung? (Dev only)`)) {
+        // Only show this if Midtrans is truly not configured
+        if (confirm(`Midtrans belum dikonfigurasi. Aktifkan plan ${planId} secara langsung?`)) {
           await api.devActivatePlan(planId);
           alert(`✅ Plan ${planId} berhasil diaktifkan!`);
           loadData();

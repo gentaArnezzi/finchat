@@ -90,13 +90,14 @@ router.post('/webhook', async (req, res) => {
  * POST /api/subscription/dev-activate - Dev only: activate plan without payment
  */
 router.post('/dev-activate', authenticateToken, async (req, res) => {
-  if (process.env.NODE_ENV === 'production') {
-    return res.status(403).json({ error: 'Not available in production' });
+  // Only allow if Midtrans is NOT configured
+  if (process.env.MIDTRANS_SERVER_KEY) {
+    return res.status(403).json({ error: 'Payment system active. Please pay via Midtrans.' });
   }
 
   try {
     const { plan } = req.body;
-    if (!plan || !['pro', 'business'].includes(plan)) {
+    if (!plan || !['pro', 'premium'].includes(plan)) {
       return res.status(400).json({ error: 'Invalid plan' });
     }
 
