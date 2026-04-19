@@ -15,7 +15,10 @@ router.post('/parse', async (req, res) => {
 
     const parsed = await parser.parseTransaction(message);
     
-    if (!parsed || parsed.amount === 0) {
+    // Handle array (single or multiple transactions)
+    const txList = Array.isArray(parsed) ? parsed : (parsed ? [parsed] : []);
+    
+    if (txList.length === 0 || txList[0].amount === 0) {
       return res.status(400).json({ 
         error: 'Could not parse transaction. Please specify the amount clearly.' 
       });
