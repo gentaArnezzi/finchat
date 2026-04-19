@@ -80,6 +80,13 @@ class ApiClient {
     return this.request<{ success: boolean; user: any }>('/api/users/me');
   }
 
+  async updateUser(data: { timezone?: string }) {
+    return this.request<{ success: boolean; user: any }>('/api/users/me', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
   async getTransactions(filters?: {
     startDate?: string;
     endDate?: string;

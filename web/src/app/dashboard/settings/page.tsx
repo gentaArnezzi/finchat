@@ -18,6 +18,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [timezone, setTimezone] = useState('Asia/Jakarta');
 
   // Category State
   const [categories, setCategories] = useState<any[]>([]);
@@ -28,14 +29,20 @@ export default function SettingsPage() {
 
   const loadPreferences = useCallback(async () => {
     try {
-      const res = await api.getPreferences();
-      if (res.preferences) {
+      const [userRes, prefsRes] = await Promise.all([
+        api.getMe(),
+        api.getPreferences(),
+      ]);
+      if (userRes.user) {
+        setTimezone(userRes.user.timezone || 'Asia/Jakarta');
+      }
+      if (prefsRes.preferences) {
         setPrefs({
-          daily_reminder: res.preferences.daily_reminder || false,
-          reminder_time: res.preferences.reminder_time || '21:00',
-          weekly_summary: res.preferences.weekly_summary || false,
-          monthly_report: res.preferences.monthly_report || false,
-          budget_alerts: res.preferences.budget_alerts !== false, // default true
+          daily_reminder: prefsRes.preferences.daily_reminder || false,
+          reminder_time: prefsRes.preferences.reminder_time || '21:00',
+          weekly_summary: prefsRes.preferences.weekly_summary || false,
+          monthly_report: prefsRes.preferences.monthly_report || false,
+          budget_alerts: prefsRes.preferences.budget_alerts !== false, // default true
         });
       }
     } catch (error) {
@@ -121,7 +128,10 @@ export default function SettingsPage() {
     setSaving(true);
     setSavedSuccess(false);
     try {
-      await api.updatePreferences(prefs);
+      await Promise.all([
+        api.updatePreferences(prefs),
+        api.updateUser({ timezone }),
+      ]);
       setSavedSuccess(true);
       setTimeout(() => setSavedSuccess(false), 3000);
     } catch (error) {
@@ -200,6 +210,25 @@ export default function SettingsPage() {
               </select>
             </div>
           )}
+
+          {/* Timezone */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h3 className="font-medium text-slate-900">Zona Waktu</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                Untuk perhitungan jam pengingat yang akurat.
+              </p>
+            </div>
+            <select
+              value={timezone}
+              onChange={(e) => setTimezone(e.target.value)}
+              className="bg-white border border-slate-200 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block px-3 py-1.5 outline-none font-medium"
+            >
+              <option value="Asia/Jakarta">WIB (UTC+7)</option>
+              <option value="Asia/Makassar">WITA (UTC+8)</option>
+              <option value="Asia/Jayapura">WIT (UTC+9)</option>
+            </select>
+          </div>
 
           <hr className="border-slate-100" />
 
