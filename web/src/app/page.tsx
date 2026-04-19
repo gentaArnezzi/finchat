@@ -784,35 +784,97 @@ export default function LandingPage() {
       </section>
 
       {/* FEATURE 5: SECURITY */}
-      <section className="py-28 bg-[#fafafa] border-b border-slate-200">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <FadeIn>
-            <div className="inline-block relative">
-               <div className="absolute inset-0 bg-emerald-200 blur-xl rounded-full opacity-60"></div>
-               <div className="w-20 h-20 relative bg-white rounded-full flex items-center justify-center mx-auto mb-8 shadow-md border border-slate-200 hover:scale-110 transition-transform duration-500">
-                 <ShieldCheck className="text-emerald-500" size={36} />
-               </div>
+      {/* FEATURE 5: SECURITY */}
+      <section className="py-28 bg-[#0a0f1d] relative overflow-hidden border-y border-slate-800">
+        <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-emerald-500/10 blur-[100px] rounded-full pointer-events-none"></div>
+        <div className="absolute bottom-[-100px] left-1/4 w-[400px] h-[400px] bg-indigo-500/10 blur-[100px] rounded-full pointer-events-none"></div>
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05] mix-blend-overlay pointer-events-none"></div>
+        
+        <div className="max-w-6xl mx-auto px-6 sm:px-8 relative z-10">
+          <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
+            {/* Left: Text & Copy */}
+            <div className="lg:w-[45%]">
+              <FadeIn>
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-bold uppercase tracking-widest mb-6">
+                  <ShieldCheck size={14} /> Privasi Prioritas Utama
+                </div>
+                <h2 className="text-4xl md:text-5xl font-black text-white mb-6 tracking-tight leading-[1.1]">
+                  Infrastruktur <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Keamanan Kelas Bank.</span>
+                </h2>
+                <p className="text-slate-400 text-lg md:text-xl leading-relaxed mb-8">
+                  Tidur lebih nyenyak. FinChat dibangun dengan arsitektur privasi-pertama. Data finansial Anda tetap menjadi milik Anda sepenuhnya—tanpa iklan, tanpa akses pihak ketiga.
+                </p>
+                <div className="space-y-6">
+                  {/* Item 1 */}
+                  <div className="flex gap-5 items-start">
+                    <div className="w-14 h-14 rounded-2xl bg-slate-800/80 border border-slate-700 flex items-center justify-center shrink-0 shadow-inner">
+                       <Zap className="text-emerald-400" size={24}/>
+                    </div>
+                    <div>
+                      <h4 className="text-white font-bold mb-1.5 tracking-tight text-lg">Tanpa Akses Rekening</h4>
+                      <p className="text-slate-400 text-sm leading-relaxed">Kami tidak akan pernah menanyakan PIN, koneksi internet banking, atau password. Risiko uang dicuri nol persen.</p>
+                    </div>
+                  </div>
+                  {/* Item 2 */}
+                  <div className="flex gap-5 items-start">
+                    <div className="w-14 h-14 rounded-2xl bg-slate-800/80 border border-slate-700 flex items-center justify-center shrink-0 shadow-inner">
+                       <ShieldCheck className="text-cyan-400" size={24}/>
+                    </div>
+                    <div>
+                      <h4 className="text-white font-bold mb-1.5 tracking-tight text-lg">Enkripsi E2E Telegram</h4>
+                      <p className="text-slate-400 text-sm leading-relaxed">Mekanisme log-in hanya menggunakan ekosistem bot internal yang terenkripsi dan langsung terikat pada ID statis Anda.</p>
+                    </div>
+                  </div>
+                  {/* Item 3 */}
+                  <div className="flex gap-5 items-start">
+                    <div className="w-14 h-14 rounded-2xl bg-slate-800/80 border border-slate-700 flex items-center justify-center shrink-0 shadow-inner">
+                       <Lock className="text-indigo-400" size={24}/>
+                    </div>
+                    <div>
+                      <h4 className="text-white font-bold mb-1.5 tracking-tight text-lg">Proteksi Zero-Retention</h4>
+                      <p className="text-slate-400 text-sm leading-relaxed">Datamu, hakmu. Transaksi dievaluasi oleh mesin internal kami sesaat dengan komitmen tidak disimpan dalam cache bahasa model.</p>
+                    </div>
+                  </div>
+                </div>
+              </FadeIn>
             </div>
-            <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-6 tracking-tight">Keamanan Privasi Tingkat Bank.</h2>
-            <p className="text-slate-500 text-lg md:text-xl mb-12 max-w-2xl mx-auto">Tidur lebih nyenyak. Kami membangun FinChat di atas infrastruktur dengan jaminan perlindungan privasi nomor satu.</p>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="bg-white p-8 rounded-3xl border border-slate-200/60 shadow-sm text-left hover:-translate-y-1 transition-transform">
-                <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center mb-4 border border-emerald-100"><Zap className="text-emerald-600" size={20}/></div>
-                <p className="font-bold text-slate-900 mb-2 text-lg tracking-tight">Tanpa Rekening</p>
-                <p className="text-sm text-slate-500 leading-relaxed">Kami tidak akan pernah menanyakan PIN, koneksi internet banking, atau password. Tidak ada risiko uang dicuri.</p>
-              </div>
-              <div className="bg-white p-8 rounded-3xl border border-slate-200/60 shadow-sm text-left hover:-translate-y-1 transition-transform">
-                <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center mb-4 border border-emerald-100"><ShieldCheck className="text-emerald-600" size={20}/></div>
-                <p className="font-bold text-slate-900 mb-2 text-lg tracking-tight">E2E Enkripsi Telegram</p>
-                <p className="text-sm text-slate-500 leading-relaxed">Mekanisme log-in hanya menggunakan ekosistem bot internal yang terenkripsi dan langsung terikat pada ID Anda.</p>
-              </div>
-              <div className="bg-white p-8 rounded-3xl border border-slate-200/60 shadow-sm text-left hover:-translate-y-1 transition-transform">
-                <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center mb-4 border border-emerald-100"><MessageSquare className="text-emerald-600" size={20}/></div>
-                <p className="font-bold text-slate-900 mb-2 text-lg tracking-tight">Akses Transparansi</p>
-                <p className="text-sm text-slate-500 leading-relaxed">Datamu, hakmu. Transaksi dievaluasi oleh LLM sesaat dengan *zero-retention policy*. Tidak ada iklan, tidak dijual ke pihak ketiga.</p>
-              </div>
+            
+            {/* Right: Security Visual Hub */}
+            <div className="lg:w-[55%] w-full flex justify-center py-10 lg:py-0">
+              <FadeIn delay={200} className="relative w-full max-w-[450px]">
+                 {/* Decorative background circle */}
+                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] border border-slate-700/50 rounded-full"></div>
+                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] border border-slate-700/20 rounded-full border-dashed hidden md:block"></div>
+
+                 {/* Center Main Node */}
+                 <div className="relative z-20 w-32 h-32 md:w-40 md:h-40 bg-gradient-to-tr from-emerald-500 to-cyan-400 rounded-full flex items-center justify-center mx-auto shadow-[0_0_80px_-15px_rgba(52,211,153,0.3)] border-4 border-[#0a0f1d] hover:scale-105 transition-transform duration-500">
+                   <ShieldCheck className="text-white md:w-16 md:h-16 w-12 h-12" />
+                 </div>
+
+                 {/* Floating Cards around the center */}
+                 <div className="absolute top-0 md:top-4 left-0 bg-[#0c1222]/90 backdrop-blur-md border border-slate-700/80 p-4 md:p-5 rounded-2xl shadow-2xl z-30 transform -translate-x-2 md:-translate-x-8 hover:scale-105 transition-transform duration-300">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center"><Check className="text-emerald-400" size={18}/></div>
+                      <div className="text-left">
+                        <p className="text-[10px] uppercase font-bold tracking-widest text-emerald-400 mb-0.5">Verified</p>
+                        <p className="text-sm font-bold text-white tracking-tight">Cloud Encrypted</p>
+                      </div>
+                    </div>
+                 </div>
+
+                 <div className="absolute bottom-0 md:bottom-8 right-0 bg-[#0c1222]/90 backdrop-blur-md border border-slate-700/80 p-4 md:p-5 rounded-2xl shadow-2xl z-30 transform translate-x-2 md:translate-x-8 hover:scale-105 transition-transform duration-300">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center"><Lock className="text-indigo-400" size={18}/></div>
+                      <div className="text-left">
+                        <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400 mb-0.5">Data Policy</p>
+                        <p className="text-sm font-bold text-white tracking-tight">Zero Third-Party</p>
+                      </div>
+                    </div>
+                 </div>
+                 
+              </FadeIn>
             </div>
-          </FadeIn>
+          </div>
         </div>
       </section>
 
