@@ -1115,6 +1115,7 @@ bot.on('message:text', async (ctx) => {
     }
 
     const icon = CATEGORY_ICONS[firstTx.category] || '📦';
+    const typeEmoji = firstTx.type === 'income' ? '💰' : '💸';
     const typeLabel = firstTx.type === 'income' ? 'Pemasukan' : 'Pengeluaran';
     
     ctx.session.pendingTransaction = {
@@ -1124,7 +1125,9 @@ bot.on('message:text', async (ctx) => {
 
     // Handle multiple transactions display
     if (Array.isArray(parsed)) {
-      let msg = `📝 Saya akan mencatat ${parsed.length} transaksi:\n\n`;
+      const typeEmoji = firstTx.type === 'income' ? '💰' : '💸';
+      const typeLabel = firstTx.type === 'income' ? 'Pemasukan' : 'Pengeluaran';
+      let msg = `📝 Saya akan mencatat ${parsed.length} transaksi:\n\n${typeEmoji} ${typeLabel}\n\n`;
       parsed.forEach((tx, i) => {
         const txIcon = CATEGORY_ICONS[tx.category] || '📦';
         let desc = tx.description || tx.category;
