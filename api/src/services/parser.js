@@ -61,8 +61,10 @@ function parseAmount(text) {
     /(\d+)\s*(?:jt|juta)/i,
     // 35rb, 35ribu, 35rbu, 100rb
     /(\d+)\s*(?:rb|rbu|ribu)/i,
-    // 35k, 100k
+    // 35k, 100k (with or without space)
     /(\d+)\s*k\b/i,
+    // 25k, 30k (no space)
+    /(\d+)k\b/i,
     // Raw numbers >= 1000 (likely IDR)
     /(?:rp\.?\s*)?(\d{1,3}(?:[.,]\d{3})+)(?!\d)/i,
     // Raw numbers >= 1000
@@ -84,8 +86,8 @@ function parseAmount(text) {
         // ribu: 35rb = 35,000
         return parseInt(match[1]) * 1000;
       }
-      if (pattern === patterns[3]) {
-        // k: 35k = 35,000
+      if (pattern === patterns[3] || pattern === patterns[4]) {
+        // k: 35k = 35,000 (with or without space)
         return parseInt(match[1]) * 1000;
       }
       if (pattern === patterns[4]) {
