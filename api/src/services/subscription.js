@@ -100,7 +100,9 @@ export async function checkTransactionLimit(userId) {
   const resetAt = userResult.rows[0]?.monthly_reset_at;
   
   // If new month, reset count from actual transactions
-  if (!resetAt || new Date(resetAt) < new Date(currentMonth)) {
+  const resetDate = resetAt ? new Date(resetAt) : null;
+  const monthStart = new Date(currentMonth);
+  if (!resetDate || resetDate < monthStart) {
     const startOfMonth = currentMonth;
     const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
     const endOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;

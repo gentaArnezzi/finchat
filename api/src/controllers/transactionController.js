@@ -154,7 +154,7 @@ export const getTransactionStats = async (userId, startDate, endDate) => {
        SUM(amount) as total,
        COUNT(*) as count
      FROM transactions 
-     WHERE user_id = $1 AND date >= $2 AND date <= $3
+     WHERE user_id = $1 AND date >= $2 AND date <= $3 AND is_deleted IS NOT TRUE
      GROUP BY type`,
     [userId, startDate, endDate]
   );
@@ -189,8 +189,8 @@ export const getMonthlyStats = async (userId, year, month) => {
        COUNT(*) as count
      FROM transactions t
      LEFT JOIN categories c ON t.category_id = c.id
-     WHERE t.user_id = $1 AND t.date >= $2 AND t.date <= $3
-     GROUP BY c.name, c.icon, c.color, t.type
+WHERE t.user_id = $1 AND t.date >= $2 AND t.date <= $3 AND t.is_deleted IS NOT TRUE
+      GROUP BY c.name, c.icon, c.color, t.type
      ORDER BY total DESC`,
     [userId, startDate, endDate]
   );
@@ -205,8 +205,8 @@ export const getLastNMonthsStats = async (userId, n = 6) => {
        type,
        SUM(amount) as total
      FROM transactions
-     WHERE user_id = $1 AND date >= CURRENT_DATE - INTERVAL '${n} months'
-     GROUP BY DATE_TRUNC('month', date), type
+WHERE user_id = $1 AND date >= CURRENT_DATE - INTERVAL '${n} months' AND is_deleted IS NOT TRUE
+      GROUP BY DATE_TRUNC('month', date), type
      ORDER BY month`,
     [userId]
   );
@@ -226,13 +226,13 @@ export const getComparisonStats = async (userId) => {
   const [thisMonthRes, prevMonthRes] = await Promise.all([
     query(
       `SELECT type, SUM(amount) as total, COUNT(*) as count
-       FROM transactions WHERE user_id = $1 AND date >= $2 AND date <= $3
+       FROM transactions WHERE user_id = $1 AND date >= $2 AND date <= $3 AND is_deleted IS NOT TRUE
        GROUP BY type`,
       [userId, thisMonthStart, thisMonthEnd]
     ),
     query(
       `SELECT type, SUM(amount) as total, COUNT(*) as count
-       FROM transactions WHERE user_id = $1 AND date >= $2 AND date <= $3
+       FROM transactions WHERE user_id = $1 AND date >= $2 AND date <= $3 AND is_deleted IS NOT TRUE
        GROUP BY type`,
       [userId, prevMonthStart, prevMonthEnd]
     )
@@ -272,8 +272,8 @@ export const getDailyTrend = async (userId, days = 30) => {
        type,
        SUM(amount) as total
      FROM transactions
-     WHERE user_id = $1 AND date >= CURRENT_DATE - INTERVAL '${days} days'
-     GROUP BY date, type
+WHERE user_id = $1 AND date >= CURRENT_DATE - INTERVAL '${days} days' AND is_deleted IS NOT TRUE
+      GROUP BY date, type
      ORDER BY date`,
     [userId]
   );
