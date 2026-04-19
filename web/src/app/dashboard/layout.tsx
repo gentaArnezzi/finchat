@@ -13,7 +13,6 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userId, setUserId] = useState<string>('');
-  const { socket } = useWebSocket(userId || undefined);
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -30,7 +29,6 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     if (!token) {
       router.push('/');
     } else {
-      // Decode token to get user ID
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         setUserId(payload.id);
@@ -105,7 +103,6 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden bg-white border-b border-slate-200">
             <div className="px-4 py-4 space-y-2">
@@ -156,8 +153,22 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const [userId, setUserId] = useState<string>('');
+
+  useEffect(() => {
+    const token = api.getToken();
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setUserId(payload.id);
+      } catch (e) {
+        console.error('Failed to decode token');
+      }
+    }
+  }, []);
+
   return (
-    <WebSocketProvider>
+    <WebSocketProvider userId={userId || undefined}>
       <DashboardContent>{children}</DashboardContent>
     </WebSocketProvider>
   );

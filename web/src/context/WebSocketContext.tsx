@@ -40,10 +40,6 @@ export function WebSocketProvider({ children, userId }: WebSocketProviderProps) 
     socketInstance.on('connect', () => {
       console.log('WebSocket connected');
       setIsConnected(true);
-      
-      if (userId) {
-        socketInstance.emit('join-user', userId);
-      }
     });
 
     socketInstance.on('disconnect', () => {
@@ -56,7 +52,13 @@ export function WebSocketProvider({ children, userId }: WebSocketProviderProps) 
     return () => {
       socketInstance.disconnect();
     };
-  }, [userId]);
+  }, [wsUrl]);
+
+  useEffect(() => {
+    if (socket && userId) {
+      socket.emit('join-user', userId);
+    }
+  }, [socket, userId]);
 
   return (
     <WebSocketContext.Provider value={{ socket, isConnected }}>
