@@ -190,15 +190,6 @@ export default function LandingPage() {
       }
       headerContainer.appendChild(btn);
     }
-
-    // Add same button to mobile menu
-    if (headerMobileContainer) {
-      headerMobileContainer.innerHTML = '';
-      const btn = headerContainer?.querySelector('a')?.cloneNode(true);
-      if (btn) {
-        headerMobileContainer.appendChild(btn);
-      }
-    }
     
     // Also load telegram widget script for auth callback
     const widgetBotName = process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME;
@@ -266,7 +257,19 @@ export default function LandingPage() {
               <Link href="/blog" className="block py-2 text-slate-600 hover:text-slate-900" onClick={() => setMobileMenuOpen(false)}>Blog</Link>
               <a href="#faq" className="block py-2 text-slate-600 hover:text-slate-900" onClick={() => setMobileMenuOpen(false)}>FAQ</a>
               <div className="pt-3 border-t border-slate-100">
-                <div id="telegram-widget-header-mobile" className="flex justify-center"></div>
+                {process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME && process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME !== 'your_bot_username' ? (
+                  <a
+                    href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME}?start=auth`}
+                    className="flex items-center justify-center gap-2 w-full py-2 bg-[#54a9eb] text-white text-sm font-medium rounded-lg"
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="white">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.19-.08-.05-.19-.02-.27 0-.11.03-1.84 1.18-5.2 3.45-.49.34-.94.5-1.35.49-.45-.01-1.32-.26-1.96-.46-.79-.26-1.42-.4-1.36-.84.03-.23.35-.47.96-.73 3.77-1.64 6.29-2.73 7.55-3.25 3.59-1.48 4.34-1.74 4.83-1.75.11 0 .35.03.48.14.11.08.14.2.15.28.02.04.02.16.01.27z"/>
+                    </svg>
+                    Login with Telegram
+                  </a>
+                ) : (
+                  <div className="text-center text-sm text-slate-400">Bot belum dikonfigurasi</div>
+                )}
               </div>
             </div>
           </div>
