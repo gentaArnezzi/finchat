@@ -148,7 +148,7 @@ export default function PricingPage() {
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center group">
             <div className="flex items-center justify-center transition-transform group-hover:scale-105">
-              <Image src="/Logo2finchat.webp" alt="FinChat Logo" width={160} height={40} className="h-8 md:h-10 w-auto object-contain" priority />
+              <img src="/Logo2finchat.webp" alt="FinChat Logo" className="w-[140px] h-[44px] md:w-[180px] md:h-[54px] object-cover object-center rounded-lg shadow-sm" />
             </div>
           </Link>
           <nav className="flex items-center gap-6 md:gap-8 text-sm font-semibold text-slate-500">
@@ -386,7 +386,7 @@ export default function PricingPage() {
       <footer className="bg-white border-t border-slate-200 py-8">
         <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-slate-400">
           <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <Image src="/Logo2finchat.webp" alt="FinChat Logo" width={100} height={24} className="h-6 md:h-7 w-auto object-contain" />
+            <img src="/Logo2finchat.webp" alt="FinChat Logo" className="w-[100px] h-[32px] md:w-[120px] md:h-[36px] object-cover object-center rounded-md" />
           </Link>
           <div className="flex items-center gap-6">
             <Link href="/privacy" className="hover:text-slate-700 transition-colors">Privasi</Link>

@@ -19,8 +19,8 @@ export default function TermsPage() {
             Kembali ke FinChat
           </Link>
           <div className="h-4 w-px bg-slate-200" />
-          <Link href="/" className="flex items-center">
-            <Image src="/Logo2finchat.webp" alt="FinChat Logo" width={80} height={20} className="h-5 md:h-6 w-auto object-contain" />
+          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+            <img src="/Logo2finchat.webp" alt="FinChat Logo" className="w-[120px] h-[36px] md:w-[140px] md:h-[42px] object-cover object-center rounded-md shadow-sm" />
           </Link>
         </div>
       </header>

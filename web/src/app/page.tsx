@@ -217,7 +217,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 sm:px-8 flex justify-between items-center">
           <Link href="/" className="flex items-center group">
             <div className="flex items-center justify-center transition-transform group-hover:scale-105">
-              <Image src="/Logo2finchat.webp" alt="FinChat Logo" width={160} height={40} className="h-8 md:h-10 w-auto object-contain" priority />
+              <img src="/Logo2finchat.webp" alt="FinChat Logo" className="w-[140px] h-[44px] md:w-[180px] md:h-[54px] object-cover object-center rounded-lg shadow-sm" />
             </div>
           </Link>
           
@@ -1084,9 +1084,9 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 sm:px-8">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-16">
             <div className="col-span-2">
-              <Link href="/" className="flex items-center mb-4 max-w-fit cursor-pointer group">
+              <Link href="/" className="flex items-center mb-5 max-w-fit cursor-pointer group">
                 <div className="flex items-center justify-center transition-transform group-hover:scale-105">
-                  <Image src="/Logo2finchat.webp" alt="FinChat Logo" width={160} height={40} className="h-8 md:h-10 w-auto object-contain" priority />
+                  <img src="/Logo2finchat.webp" alt="FinChat Logo" className="w-[140px] h-[44px] md:w-[180px] md:h-[54px] object-cover object-center rounded-lg shadow-sm" />
                 </div>
               </Link>
               <p className="text-slate-500 text-sm max-w-xs leading-relaxed mb-6">
