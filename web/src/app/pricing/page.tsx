@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import NavbarPublic from '@/components/NavbarPublic';
 import {
   Check, X, Zap, ShieldCheck, Send, ArrowRight,
   HelpCircle, ChevronDown, Star, Sparkles, CheckCircle2
@@ -143,30 +144,7 @@ export default function PricingPage() {
       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay pointer-events-none z-0"></div>
       <div className="absolute top-[-10%] sm:max-md:left-[-10%] md:left-1/2 md:-translate-x-1/2 w-full max-w-[1200px] h-[600px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-100/60 via-transparent to-transparent pointer-events-none blur-3xl z-0"></div>
 
-      {/* NAVBAR */}
-      <header className="border-b border-slate-200/60 bg-white/60 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center group">
-            <div className="flex items-center justify-center transition-transform group-hover:scale-105">
-              <img src="/Logo2finchat.webp" alt="FinChat Logo" className="w-[140px] h-[44px] md:w-[180px] md:h-[54px] object-cover object-center rounded-lg shadow-sm" />
-            </div>
-          </Link>
-          <nav className="flex items-center gap-6 md:gap-8 text-sm font-semibold text-slate-500">
-            <Link href="/#solusi" className="hover:text-slate-900 transition-colors hidden md:block">Fitur</Link>
-            <Link href="/pricing" className="hover:text-slate-900 transition-colors hidden md:block text-slate-900">Harga</Link>
-            <Link href="/blog" className="hover:text-slate-900 transition-colors hidden md:block">Blog</Link>
-            <Link href="/#faq" className="hover:text-slate-900 transition-colors hidden md:block">FAQ</Link>
-            <div className="hidden md:block w-[1px] h-4 bg-slate-200 mx-1"></div>
-            <a
-              href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME || 'finchatme_bot'}`}
-              target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-5 py-2.5 bg-slate-900 text-white rounded-full text-xs font-bold hover:bg-slate-800 transition-colors shadow-md active:scale-95"
-            >
-              <Send size={13} /> Mulai Gratis
-            </a>
-          </nav>
-        </div>
-      </header>
+      <NavbarPublic />
 
       {/* HERO */}
       <section className="pt-24 pb-16 text-center px-6 relative z-10">

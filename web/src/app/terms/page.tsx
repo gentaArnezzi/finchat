@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft } from 'lucide-react';
 import type { Metadata } from 'next';
+import NavbarPublic from '@/components/NavbarPublic';
 
 export const metadata: Metadata = {
   title: 'Syarat & Ketentuan — FinChat',
@@ -11,19 +12,7 @@ export const metadata: Metadata = {
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-[#fafafa] font-sans text-slate-800">
-      {/* NAV */}
-      <header className="border-b border-slate-200 bg-white sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto px-6 h-14 flex items-center gap-4">
-          <Link href="/" className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors text-sm">
-            <ArrowLeft size={16} />
-            Kembali ke FinChat
-          </Link>
-          <div className="h-4 w-px bg-slate-200" />
-          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <img src="/Logo2finchat.webp" alt="FinChat Logo" className="w-[120px] h-[36px] md:w-[140px] md:h-[42px] object-cover object-center rounded-md shadow-sm" />
-          </Link>
-        </div>
-      </header>
+      <NavbarPublic />
 
       {/* CONTENT */}
       <main className="max-w-3xl mx-auto px-6 py-16">
