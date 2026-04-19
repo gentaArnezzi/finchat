@@ -207,18 +207,18 @@ export default function BudgetPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 md:grid-cols-3 gap-3 md:gap-5">
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 md:p-6 flex flex-col justify-between">
-          <p className="text-xs md:text-sm font-semibold text-slate-500 mb-1 md:mb-2">Total Budget</p>
-          <p className="text-xl md:text-2xl font-bold text-slate-900">{formatRupiah(totalBudget)}</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-5">
+        <div className="bg-white rounded-xl md:rounded-2xl shadow-sm border border-slate-100 p-4 md:p-6 flex flex-col justify-between">
+          <p className="text-xs md:text-sm font-semibold text-slate-500 mb-1">Total Budget</p>
+          <p className="text-lg md:text-2xl font-bold text-slate-900">{formatRupiah(totalBudget)}</p>
         </div>
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 md:p-6 flex flex-col justify-between">
-          <p className="text-xs md:text-sm font-semibold text-slate-500 mb-1 md:mb-2">Terpakai</p>
-          <p className="text-xl md:text-2xl font-bold text-indigo-600">{formatRupiah(totalSpent)}</p>
+        <div className="bg-white rounded-xl md:rounded-2xl shadow-sm border border-slate-100 p-4 md:p-6 flex flex-col justify-between">
+          <p className="text-xs md:text-sm font-semibold text-slate-500 mb-1">Terpakai</p>
+          <p className="text-lg md:text-2xl font-bold text-indigo-600">{formatRupiah(totalSpent)}</p>
         </div>
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 md:p-6 flex flex-col justify-between">
-          <p className="text-xs md:text-sm font-semibold text-slate-500 mb-1 md:mb-2">Sisa Keseluruhan</p>
-          <p className="text-xl md:text-2xl font-bold text-emerald-600">{formatRupiah(totalBudget - totalSpent)}</p>
+        <div className="bg-white rounded-xl md:rounded-2xl shadow-sm border border-slate-100 p-4 md:p-6 flex flex-col justify-between">
+          <p className="text-xs md:text-sm font-semibold text-slate-500 mb-1">Sisa Keseluruhan</p>
+          <p className="text-lg md:text-2xl font-bold text-emerald-600">{formatRupiah(totalBudget - totalSpent)}</p>
         </div>
       </div>
 
@@ -244,26 +244,26 @@ export default function BudgetPage() {
               const remaining = item.remaining || 0;
               
               return (
-                <div key={item.budget_id} className="p-4 sm:p-6 transition-colors hover:bg-slate-50/50">
-                  <div className="flex items-start justify-between mb-3 sm:mb-4 gap-2">
-                    <div className="flex items-center gap-3 sm:gap-4">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-indigo-50/50 rounded-xl flex items-center justify-center border border-indigo-100/50 shrink-0">
+                <div key={item.budget_id} className="p-4 md:p-6 transition-colors hover:bg-slate-50/50">
+                  <div className="flex items-start justify-between mb-3 md:mb-4 gap-2">
+                    <div className="flex items-center gap-3 md:gap-4">
+                      <div className="w-10 h-10 md:w-12 md:h-12 bg-indigo-50/50 rounded-xl flex items-center justify-center border border-indigo-100/50 shrink-0">
                         {getCategoryIcon(item.category_name)}
                       </div>
                       <div>
-                        <h3 className="font-bold text-slate-900 text-sm sm:text-base">{item.category_name}</h3>
-                        <p className="text-xs sm:text-sm text-slate-500 mt-0.5">{monthName}</p>
+                        <h3 className="font-bold text-slate-900 text-sm md:text-base">{item.category_name}</h3>
+                        <p className="text-xs md:text-sm text-slate-500 mt-0.5">{monthName}</p>
                       </div>
                     </div>
                     <div className="text-right flex flex-col items-end">
-                      <span className={`px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs rounded-md font-medium border shrink-0 ${percent >= 100 ? 'bg-red-50 text-red-700 border-red-100' : percent >= 80 ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'}`}>
+                      <span className={`px-2 py-0.5 md:py-1 text-[10px] md:text-xs rounded-md font-medium border shrink-0 ${percent >= 100 ? 'bg-red-50 text-red-700 border-red-100' : percent >= 80 ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'}`}>
                         {getStatusText(percent)}
                       </span>
                     </div>
                   </div>
                   
-                  <div className="mt-3 sm:mt-4">
-                    <div className="flex justify-between text-xs sm:text-sm mb-2 font-medium">
+                  <div className="mt-3 md:mt-4">
+                    <div className="flex justify-between text-xs md:text-sm mb-2 font-medium">
                       <span className="text-slate-600">Terpakai: {formatRupiah(item.spent)}</span>
                       <span className="text-slate-900">Target: {formatRupiah(item.budget_amount)}</span>
                     </div>
