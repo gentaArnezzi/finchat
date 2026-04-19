@@ -16,7 +16,7 @@ const getTransactionsForExport = async (userId, filters = {}) => {
     SELECT t.*, c.name as category_name, c.icon as category_icon
     FROM transactions t
     LEFT JOIN categories c ON t.category_id = c.id
-    WHERE t.user_id = $1
+    WHERE t.user_id = $1 AND t.is_deleted IS NOT TRUE
   `;
   const params = [userId];
   let paramCount = 1;
