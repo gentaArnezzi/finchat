@@ -902,10 +902,14 @@ bot.on('message:text', async (ctx) => {
 
           const stats = await getTodaySummary(from.id);
           const expense = stats.expense?.total || 0;
+          const income = stats.income?.total || 0;
 
           const icon = CATEGORY_ICONS[parsed.category] || '📦';
+          const typeEmoji = parsed.type === 'income' ? '💰' : '💸';
+          const typeLabel = parsed.type === 'income' ? 'Pemasukan' : 'Pengeluaran';
+          
           await ctx.reply(
-            `✅ Tersimpan! ${icon}\n\n${parsed.description}\n${formatRupiah(parsed.amount)} (${parsed.category})\n\n💸 Total hari ini: ${formatRupiah(expense)}`
+            `✅ Tersimpan! ${typeEmoji}\n\n${typeLabel}\n${icon} ${parsed.description}\n💰 ${formatRupiah(parsed.amount)} (${parsed.category})\n\n💸 Pengeluaran hari ini: ${formatRupiah(expense)}\n💰 Pemasukan hari ini: ${formatRupiah(income)}`
           );
         }
       } catch (error) {
@@ -1147,8 +1151,10 @@ bot.on('message:text', async (ctx) => {
         }
       );
     } else {
+      const typeEmoji = firstTx.type === 'income' ? '💰' : '💸';
+      const typeLabel = firstTx.type === 'income' ? 'Pemasukan' : 'Pengeluaran';
       await ctx.reply(
-        `📝 Saya akan mencatat:\n\n${icon} ${firstTx.description || 'Transaksi'}\n💰 ${formatRupiah(firstTx.amount)} (${typeLabel})\n📂 ${firstTx.category}\n📅 ${new Date(firstTx.date).toLocaleDateString('id-ID')}`,
+        `📝 Saya akan mencatat:\n\n${typeEmoji} ${typeLabel}\n${icon} ${firstTx.description || 'Transaksi'}\n💰 ${formatRupiah(firstTx.amount)}\n📂 ${firstTx.category}\n📅 ${new Date(firstTx.date).toLocaleDateString('id-ID')}`,
         {
           reply_markup: {
             inline_keyboard: [

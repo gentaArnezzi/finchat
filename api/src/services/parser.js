@@ -18,7 +18,7 @@ const CATEGORIES = [
 ];
 
 const CATEGORY_KEYWORDS = {
-  'Makanan & Minuman': ['makan', 'minum', 'kopi', 'teh', 'soto', 'nasi', 'ayam', 'mie', 'bakso', 'pizza', 'burger', 'snack', 'roti', 'kue', 'es', 'jus', 'susu', 'indomaret', 'alfamart', 'convenience', 'makan', 'sarapan', 'siang', 'malam', 'lapar', 'food', 'cafe', 'restaurant'],
+  'Makanan & Minuman': ['makan', 'minum', 'kopi', 'teh', 'soto', 'nasi', 'ayam', 'mie', 'bakso', 'pizza', 'burger', 'snack', 'roti', 'kue', 'es', 'jus', 'susu', 'indomaret', 'alfamart', 'convenience', 'makan', 'sarapan', 'siang', 'malam', 'lapar', 'food', 'cafe', 'restaurant', 'rokok', 'sigaret', 'cigarette', 'gas', 'galon', 'air galon'],
   'Transportasi': ['bensin', 'parkir', 'tol', 'ojek', 'gojek', 'grab', 'taxi', 'bus', 'kereta', 'metro', 'bbm', 'sulfuel', 'parkir', 'taxi', 'grab', 'gojek', 'angkot', 'travel', 'gas', 'fuel', 'pertamina'],
   'Belanja': ['beli', 'shopping', 'toko', 'market', 'supermarket', 'tokopedia', 'shopee', 'lazada', 'ecommerce', 'belanja', 'barang', 'shopping', 'zara', 'unilever'],
   'Hiburan': ['nonton', 'film', 'bioskop', 'game', 'konser', 'musik', 'netflix', 'spotify', 'disney', 'hbo', 'youtube', 'spotify', 'tiket', 'bioskop', 'bola', 'match'],
