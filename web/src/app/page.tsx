@@ -7,7 +7,7 @@ import {
   Wallet, Send, BarChart3, Zap, ShieldCheck, 
   ArrowRight, Smartphone, CheckCircle2, MessageSquare, 
   ChevronRight, ChevronDown, Sparkles, Globe, Clock, PieChart,
-  LayoutDashboard, List, LogIn
+  LayoutDashboard, List, LogIn, Lock, Check
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
