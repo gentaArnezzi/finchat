@@ -75,6 +75,7 @@ export default function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [chatStep, setChatStep] = useState(0);
   const [dashboardTab, setDashboardTab] = useState('ringkasan');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -148,6 +149,7 @@ export default function LandingPage() {
     window.onTelegramAuth = handleTelegramAuth;
     
     const headerContainer = document.getElementById('telegram-widget-header');
+    const headerMobileContainer = document.getElementById('telegram-widget-header-mobile');
     if (headerContainer) {
       headerContainer.innerHTML = '';
       const btn = document.createElement('a');
@@ -187,6 +189,15 @@ export default function LandingPage() {
         };
       }
       headerContainer.appendChild(btn);
+    }
+
+    // Add same button to mobile menu
+    if (headerMobileContainer) {
+      headerMobileContainer.innerHTML = '';
+      const btn = headerContainer?.querySelector('a')?.cloneNode(true);
+      if (btn) {
+        headerMobileContainer.appendChild(btn);
+      }
     }
     
     // Also load telegram widget script for auth callback
@@ -228,7 +239,38 @@ export default function LandingPage() {
             <div className="w-[1px] h-4 bg-slate-300 mx-2"></div>
             <div id="telegram-widget-header" className="h-[38px] flex items-center justify-center overflow-hidden rounded-lg"></div>
           </nav>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 text-slate-500 hover:text-slate-900"
+          >
+            {mobileMenuOpen ? (
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            ) : (
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            )}
+          </button>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-slate-200 shadow-lg">
+            <div className="px-6 py-4 space-y-3">
+              <a href="#solusi" className="block py-2 text-slate-600 hover:text-slate-900" onClick={() => setMobileMenuOpen(false)}>Fitur</a>
+              <Link href="/pricing" className="block py-2 text-slate-600 hover:text-slate-900" onClick={() => setMobileMenuOpen(false)}>Harga</Link>
+              <Link href="/blog" className="block py-2 text-slate-600 hover:text-slate-900" onClick={() => setMobileMenuOpen(false)}>Blog</Link>
+              <a href="#faq" className="block py-2 text-slate-600 hover:text-slate-900" onClick={() => setMobileMenuOpen(false)}>FAQ</a>
+              <div className="pt-3 border-t border-slate-100">
+                <div id="telegram-widget-header-mobile" className="flex justify-center"></div>
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* HERO: Elegant & Typographic Focus */}
