@@ -193,7 +193,7 @@ export default function PricingPage() {
               {/* Header Badge */}
               <div className="flex justify-between items-center mb-6 relative z-10 w-full">
                 <div className={`text-[10px] font-black uppercase tracking-widest w-fit px-3 py-1.5 rounded-md ${plan.highlight ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-100 text-slate-400'}`}>
-                   {plan.id === 'free' ? 'Coba-Coba' : (plan.id === 'pro' ? 'Pro Series' : 'Ultimate')}
+                   {plan.id === 'free' ? 'Coba-Coba' : (plan.id === 'pro' ? 'Pro Series' : 'Business')}
                 </div>
                 {plan.badge && (
                   <div className="bg-indigo-500 text-white text-[9px] font-black tracking-widest px-3 py-1.5 rounded-full uppercase shadow-md shadow-indigo-500/30">

@@ -939,8 +939,8 @@ export default function LandingPage() {
             {/* Business */}
             <FadeIn delay={400}>
               <div className="bg-white border text-slate-900 border-slate-200 rounded-[2.5rem] p-8 md:p-10 shadow-sm hover:shadow-lg transition-all duration-300 h-full flex flex-col hover:-translate-y-1">
-                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 bg-slate-100 w-fit px-3 py-1.5 rounded-md">Ultimate</div>
-                <h3 className="text-4xl font-black text-slate-900 mb-3 tracking-tight">Rp 59k <span className="text-xl text-slate-500 font-bold tracking-normal">/bln</span></h3>
+                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 bg-slate-100 w-fit px-3 py-1.5 rounded-md">Business</div>
+                <h3 className="text-4xl font-black text-slate-900 mb-3 tracking-tight">Rp 29,9k <span className="text-xl text-slate-500 font-bold tracking-normal">/bln</span></h3>
                 <p className="text-slate-500 text-[15px] mb-8 border-b border-slate-100 pb-8 leading-relaxed">Ditujukan untuk usahawan mikro, freelancer, & kebutuhan tanpa batas.</p>
                 <ul className="space-y-4 mb-10 text-[14px] font-semibold text-slate-700 flex-1">
                   <li className="flex gap-3.5 items-start"><CheckCircle2 className="text-emerald-500 shrink-0 mt-0.5" size={20}/> <span>Semua Fitur di Paket <b>Pro</b></span></li>
