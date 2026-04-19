@@ -279,7 +279,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       <footer className="border-t border-slate-200 py-8 bg-white">
         <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-slate-400">
           <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <img src="/Logofinchatwhite.png" alt="FinChat Logo" className="h-6 md:h-7 w-auto object-contain" />
+            <img src="/Logofinchat-transparent.png" alt="FinChat Logo" className="h-6 md:h-7 w-auto object-contain" />
           </Link>
           <div className="flex items-center gap-6">
             <Link href="/pricing" className="hover:text-slate-700 transition-colors">Pricing</Link>

@@ -114,7 +114,7 @@ export default function NavbarPublic() {
       <div className="max-w-6xl mx-auto px-6 sm:px-8 flex justify-between items-center">
         <Link href="/" className="flex items-center group">
           <div className="flex items-center justify-center transition-transform group-hover:scale-105">
-            <img src="/Logofinchatwhite.png" alt="FinChat Logo" className="h-8 md:h-9 w-auto object-contain" />
+            <img src="/Logofinchat-transparent.png" alt="FinChat Logo" className="h-8 md:h-9 w-auto object-contain" />
           </div>
         </Link>
         
