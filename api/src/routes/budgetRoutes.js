@@ -51,7 +51,7 @@ router.post('/', authenticateToken, async (req, res) => {
     // Check plan access for budget alerts
     const hasAccess = await checkFeatureAccess(userId, 'budget_alerts');
     if (!hasAccess) {
-      return res.status(403).json({ error: 'Fitur Budget hanya tersedia untuk plan Pro dan Business. Upgrade sekarang!' });
+      return res.status(403).json({ error: 'Fitur Budget hanya tersedia untuk plan Pro dan Premium. Upgrade sekarang!' });
     }
 
     const budget = await budgetController.createOrUpdateBudget(

@@ -48,7 +48,7 @@ export default function ExportButton({ apiUrl, token }: ExportButtonProps) {
       );
 
       if (response.status === 403) {
-        alert('Fitur Export hanya tersedia untuk plan Pro dan Business. Upgrade sekarang!');
+        alert('Fitur Export hanya tersedia untuk plan Pro dan Premium. Upgrade sekarang!');
         setShowModal(false);
         return;
       }
