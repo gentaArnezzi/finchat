@@ -309,8 +309,8 @@ export default function SettingsPage() {
           {hasCategoryAccess === false ? (
             <div className="text-center py-8">
               <Lock size={32} className="mx-auto text-slate-300 mb-3" />
-<p className="text-slate-500 text-sm mb-4">Fitur Custom Categories hanya tersedia di plan <b>Business</b>.</p>
-                
+              <p className="text-slate-500 text-sm mb-4">Fitur Custom Categories hanya tersedia di plan <b>Business</b>.</p>
+              <Link href="/dashboard/upgrade" className="inline-flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors text-sm font-semibold shadow-sm">
                 Upgrade ke Business
               </Link>
             </div>
