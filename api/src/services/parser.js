@@ -43,8 +43,8 @@ function parseAmount(text) {
     /(\d+)[.,](\d+)\s*(?:jt|juta)/i,
     // juta: 1jt, 2juta, 15jt
     /(\d+)\s*(?:jt|juta)/i,
-    // ribu: 35rb, 35ribu, 35rbu
-    /(\d+)\s*(?:rb|rbu|ribu)/i,
+    // ribu: 35rb, 35ribu, 35rbu, 35rebu
+    /(\d+)\s*(?:rb|rbu|ribu|rebu)/i,
     // k with space: 35k, 100k
     /(\d+)\s*k\b/i,
     // k without space: 25k, 30k
@@ -78,7 +78,7 @@ function parseAllAmounts(text) {
 
   const patterns = [
     /(\d+)\s*(?:jt|juta)/gi,
-    /(\d+)\s*(?:rb|rbu|ribu)/gi,
+    /(\d+)\s*(?:rb|rbu|ribu|rebu)/gi,
     /(\d+)\s*k\b/gi,
     /(\d+)k\b/gi,
     /(\d{4,})/g,
