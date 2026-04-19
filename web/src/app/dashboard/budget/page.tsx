@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { BudgetSpending, Category } from '@/types';
-import { Plus, Wallet, Target, LayoutTemplate, Lock } from 'lucide-react';
+import { Plus, Wallet, Target, LayoutTemplate, Lock, Pencil, Trash2, Copy } from 'lucide-react';
 import Link from 'next/link';
 
 const getCategoryIcon = (categoryName: string) => {
@@ -29,6 +29,8 @@ export default function BudgetPage() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [showModal, setShowModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingBudget, setEditingBudget] = useState<{ id: string; category: string; amount: number } | null>(null);
   const [newBudget, setNewBudget] = useState({ category_id: '', amount: '' });
   const [hasBudgetAccess, setHasBudgetAccess] = useState<boolean | null>(null);
 
@@ -80,6 +82,37 @@ export default function BudgetPage() {
       } else {
         alert('Gagal membuat budget');
       }
+    }
+  };
+
+  const handleEditBudget = async () => {
+    if (!editingBudget || !editingBudget.amount) return;
+    try {
+      await api.updateBudget(editingBudget.id, editingBudget.amount);
+      setShowEditModal(false);
+      setEditingBudget(null);
+      loadData();
+    } catch (error: any) {
+      alert(error.message || 'Gagal update budget');
+    }
+  };
+
+  const handleDeleteBudget = async (id: string) => {
+    if (!confirm('Yakin hapus budget ini?')) return;
+    try {
+      await api.deleteBudget(id);
+      loadData();
+    } catch (error: any) {
+      alert(error.message || 'Gagal hapus budget');
+    }
+  };
+
+  const handleCopyFromLastMonth = async () => {
+    try {
+      await api.copyBudgetsFromLastMonth(selectedMonth, selectedYear);
+      loadData();
+    } catch (error: any) {
+      alert(error.message || 'Gagal copy budget');
     }
   };
 
@@ -144,12 +177,21 @@ export default function BudgetPage() {
               <Lock size={16} /> Tambah Budget <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-semibold">PRO</span>
             </Link>
           ) : (
-            <button
-              onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-sm font-medium text-sm"
-            >
-              <Plus size={16} /> Tambah Budget
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={handleCopyFromLastMonth}
+                className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-colors font-medium text-sm"
+                title="Copy budget dari bulan sebelumnya"
+              >
+                <Copy size={16} /> Copy
+              </button>
+              <button
+                onClick={() => setShowModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-sm font-medium text-sm"
+              >
+                <Plus size={16} /> Tambah Budget
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -226,6 +268,30 @@ export default function BudgetPage() {
                       </span>
                       <span className="text-slate-500 bg-slate-100 px-2 py-0.5 rounded text-xs">{percent.toFixed(1)}%</span>
                     </div>
+                    
+                    {hasBudgetAccess !== false && (
+                      <div className="flex gap-2 mt-4 pt-4 border-t border-slate-100">
+                        <button
+                          onClick={() => {
+                            setEditingBudget({
+                              id: item.budget_id,
+                              category: item.category_name,
+                              amount: item.budget_amount
+                            });
+                            setShowEditModal(true);
+                          }}
+                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium"
+                        >
+                          <Pencil size={14} /> Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteBudget(item.budget_id)}
+                          className="flex items-center justify-center gap-2 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium"
+                        >
+                          <Trash2 size={14} /> Hapus
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -280,6 +346,57 @@ export default function BudgetPage() {
                 className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium transition-colors shadow-sm shadow-indigo-200"
               >
                 Simpan Budget
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showEditModal && editingBudget && (
+        <div className="fixed inset-0 bg-slate-900/40 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border border-slate-100">
+            <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+              <Pencil size={20} className="text-indigo-600" /> Edit Budget
+            </h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Kategori</label>
+                <input
+                  type="text"
+                  value={editingBudget.category}
+                  disabled
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 text-slate-500"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Jumlah Target (IDR)</label>
+                <input
+                  type="number"
+                  value={editingBudget.amount}
+                  onChange={(e) => setEditingBudget({ ...editingBudget, amount: parseFloat(e.target.value) || 0 })}
+                  placeholder="Contoh: 500000"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none transition-shadow"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-8">
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingBudget(null);
+                }}
+                className="flex-1 px-4 py-3 border border-slate-200 rounded-xl hover:bg-slate-50 font-medium text-slate-700 transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleEditBudget}
+                className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium transition-colors shadow-sm shadow-indigo-200"
+              >
+                Simpan Perubahan
               </button>
             </div>
           </div>

@@ -217,6 +217,26 @@ class ApiClient {
     });
   }
 
+  async updateBudget(id: string, amount: number) {
+    return this.request<{ success: boolean; budget: any }>(`/api/budgets/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ amount }),
+    });
+  }
+
+  async deleteBudget(id: string) {
+    return this.request<{ success: boolean; message: string }>(`/api/budgets/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async copyBudgetsFromLastMonth(month: number, year: number) {
+    return this.request<{ success: boolean; budgets: any[] }>('/api/budgets/copy', {
+      method: 'POST',
+      body: JSON.stringify({ month, year }),
+    });
+  }
+
   async getPreferences() {
     return this.request<{ success: boolean; preferences: any }>('/api/users/preferences');
   }

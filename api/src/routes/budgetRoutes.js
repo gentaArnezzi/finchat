@@ -72,23 +72,66 @@ router.put('/:id', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const { id } = req.params;
-    const { amount } = req.body;
+    const { amount, month, year } = req.body;
 
     if (!amount) {
       return res.status(400).json({ error: 'amount is required' });
     }
 
-    const budget = await budgetController.createOrUpdateBudget(
-      userId,
-      id,
-      parseFloat(amount),
-      new Date().getMonth() + 1,
-      new Date().getFullYear()
+    const result = await query(
+      `UPDATE budgets SET amount = $1, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $2 AND user_id = $3 RETURNING *`,
+      [parseFloat(amount), id, userId]
     );
-    res.json({ success: true, budget });
+
+    if (!result.rows[0]) {
+      return res.status(404).json({ error: 'Budget not found' });
+    }
+
+    res.json({ success: true, budget: result.rows[0] });
   } catch (error) {
     console.error('Update budget error:', error);
     res.status(500).json({ error: 'Failed to update budget' });
+  }
+});
+
+router.post('/copy', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { month, year } = req.body;
+
+    const targetMonth = parseInt(month);
+    const targetYear = parseInt(year);
+
+    let sourceMonth = targetMonth - 1;
+    let sourceYear = targetYear;
+
+    if (sourceMonth < 1) {
+      sourceMonth = 12;
+      sourceYear -= 1;
+    }
+
+    const sourceBudgets = await budgetController.getBudgets(userId, sourceMonth, sourceYear);
+
+    const newBudgets = [];
+    for (const b of sourceBudgets) {
+      const existing = await budgetController.getBudgetByCategory(userId, b.category_id, targetMonth, targetYear);
+      if (!existing) {
+        const budget = await budgetController.createOrUpdateBudget(
+          userId,
+          b.category_id,
+          b.amount,
+          targetMonth,
+          targetYear
+        );
+        newBudgets.push(budget);
+      }
+    }
+
+    res.json({ success: true, budgets: newBudgets });
+  } catch (error) {
+    console.error('Copy budgets error:', error);
+    res.status(500).json({ error: 'Failed to copy budgets' });
   }
 });
 
