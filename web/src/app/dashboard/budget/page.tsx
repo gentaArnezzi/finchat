@@ -152,17 +152,17 @@ export default function BudgetPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Budget Bulanan</h1>
           <p className="text-slate-500 mt-1">Kelola target anggaran per kategori</p>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-2 sm:gap-3">
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-            className="border border-slate-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white text-sm font-medium"
+            className="border border-slate-200 rounded-xl px-3 sm:px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white text-sm font-medium"
           >
             {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
               <option key={m} value={m}>
@@ -173,7 +173,7 @@ export default function BudgetPage() {
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-            className="border border-slate-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white text-sm font-medium"
+            className="border border-slate-200 rounded-xl px-3 sm:px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white text-sm font-medium"
           >
             {[2024, 2025, 2026].map(y => (
               <option key={y} value={y}>{y}</option>
@@ -182,25 +182,25 @@ export default function BudgetPage() {
           {hasBudgetAccess === false ? (
             <Link
               href="/dashboard/upgrade"
-              className="flex items-center gap-2 px-4 py-2 bg-slate-200 text-slate-500 rounded-xl hover:bg-slate-300 transition-colors font-medium text-sm"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-slate-200 text-slate-500 rounded-xl hover:bg-slate-300 transition-colors font-medium text-xs sm:text-sm"
             >
-              <Lock size={16} /> Tambah Budget <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-semibold">PRO</span>
+              <Lock size={14} className="sm:size-16" /> <span className="hidden sm:inline">Tambah Budget </span><span className="text-xs bg-indigo-100 text-indigo-700 px-1.5 sm:px-2 py-0.5 rounded-full font-semibold">PRO</span>
             </Link>
           ) : (
             <div className="flex gap-2">
               {showCopyHint && (
                 <button
                   onClick={handleCopyFromLastMonth}
-                  className="flex items-center gap-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-xl hover:bg-indigo-200 transition-colors font-medium text-sm"
+                  className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-indigo-100 text-indigo-700 rounded-xl hover:bg-indigo-200 transition-colors font-medium text-xs sm:text-sm"
                 >
-                  <Copy size={16} /> Copy Budget
+                  <Copy size={14} className="sm:size-16" /> <span className="hidden sm:inline">Copy Budget</span>
                 </button>
               )}
               <button
                 onClick={() => setShowModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-sm font-medium text-sm"
+                className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-sm font-medium text-xs sm:text-sm"
               >
-                <Plus size={16} /> Tambah Budget
+                <Plus size={14} className="sm:size-16" /> <span className="hidden sm:inline">Tambah Budget</span>
               </button>
             </div>
           )}
