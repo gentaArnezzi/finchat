@@ -175,7 +175,8 @@ bot.command('start', async (ctx) => {
   // Regular /start - auto register and show dashboard link
   try {
     const token = await loginAndGetToken(from.id, userName, from.username);
-    const dashboardUrl = WEB_URL + "/dashboard?token=" + token;
+    const webDashboardUrl = WEB_URL + "/dashboard?token=" + token;
+const miniAppUrl = WEB_URL + "/dashboard/app";
     
     const welcomeMessage = `👋 Halo ${userName}! Selamat datang di *FinChat*! 🎉
 
@@ -216,7 +217,8 @@ bot.command('start', async (ctx) => {
       parse_mode: 'Markdown',
       reply_markup: {
         inline_keyboard: [
-          [{ text: '🌐 Buka Dashboard', url: dashboardUrl }],
+          [{ text: '🌐 Web Dashboard', url: webDashboardUrl }],
+          [{ text: '📱 Buka di Telegram', web_app: { url: miniAppUrl } }],
           [{ text: '📚 Panduan Lengkap', callback_data: 'show_help' }]
         ]
       }
