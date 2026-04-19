@@ -54,29 +54,7 @@ export const getBudgetSpending = async (userId, month, year) => {
   const lastDay = new Date(year, month, 0).getDate();
   const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 
-  console.log(`[Budget Debug] userId=${userId}, month=${month}, year=${year}, range=${startDate} to ${endDate}`);
-
-  // Debug: Log budget categories for user
-  const budgetCats = await query(
-    `SELECT b.category_id, c.name as category_name, b.amount 
-     FROM budgets b 
-     LEFT JOIN categories c ON b.category_id = c.id 
-     WHERE b.user_id = $1 AND b.month = $2 AND b.year = $3`,
-    [userId, month, year]
-  );
-  console.log(`[Budget Debug] Budget categories:`, budgetCats.rows);
-
-  // Debug: Log transaction categories for user in this month
-  const txCats = await query(
-    `SELECT t.category_id, c.name as category_name, SUM(t.amount) as total
-     FROM transactions t
-     LEFT JOIN categories c ON t.category_id = c.id
-     WHERE t.user_id = $1 AND t.type = 'expense' AND t.date >= $2 AND t.date <= $3
-     GROUP BY t.category_id, c.name`,
-    [userId, startDate, endDate]
-  );
-  console.log(`[Budget Debug] Transaction categories:`, txCats.rows);
-
+  // Get budgets with spending matched by category NAME (not ID)
   const result = await query(
     `SELECT 
        b.id as budget_id,
@@ -85,15 +63,17 @@ export const getBudgetSpending = async (userId, month, year) => {
        c.name as category_name,
        c.icon as category_icon,
        c.color as category_color,
-       COALESCE(SUM(t.amount), 0) as spent
+       COALESCE(
+         (SELECT SUM(t2.amount) FROM transactions t2
+          JOIN categories c2 ON t2.category_id = c2.id
+          WHERE t2.user_id = b.user_id 
+            AND t2.type = 'expense'
+            AND t2.date >= $2 AND t2.date <= $3
+            AND c2.name = c.name), 0
+       ) as spent
      FROM budgets b
      LEFT JOIN categories c ON b.category_id = c.id
-     LEFT JOIN transactions t ON t.category_id = b.category_id 
-       AND t.user_id = b.user_id 
-       AND t.type = 'expense'
-       AND t.date >= $2 AND t.date <= $3
-     WHERE b.user_id = $1 AND b.month = $4 AND b.year = $5
-     GROUP BY b.id, b.amount, b.category_id, c.name, c.icon, c.color`,
+     WHERE b.user_id = $1 AND b.month = $4 AND b.year = $5`,
     [userId, startDate, endDate, month, year]
   );
 
