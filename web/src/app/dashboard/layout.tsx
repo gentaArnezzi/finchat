@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
-import { LayoutDashboard, ReceiptText, TrendingUp, Wallet, Zap, LogOut, Settings } from 'lucide-react';
+import { LayoutDashboard, ReceiptText, TrendingUp, Wallet, Zap, LogOut, Settings, Menu, X } from 'lucide-react';
 import Image from 'next/image';
 
 export default function DashboardLayout({
@@ -14,6 +14,11 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -43,6 +48,12 @@ export default function DashboardLayout({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="md:hidden mr-4 p-2 text-slate-500 hover:text-slate-700"
+              >
+                {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-white overflow-hidden flex items-center justify-center border border-slate-100">
                   <Image src="/finchat-logo.png" alt="FinChat Logo" width={32} height={32} className="w-full h-full object-cover" />
@@ -78,7 +89,7 @@ export default function DashboardLayout({
                   api.clearToken();
                   router.push('/');
                 }}
-                className="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-red-600 transition-colors"
+                className="hidden md:flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-red-600 transition-colors"
               >
                 <LogOut size={18} />
                 Keluar
@@ -86,6 +97,45 @@ export default function DashboardLayout({
             </div>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-white border-b border-slate-200">
+            <div className="px-4 py-4 space-y-2">
+              {navLinks.map((link) => {
+                const isActive = link.href === '/dashboard' 
+                  ? pathname === '/dashboard' 
+                  : pathname.startsWith(link.href);
+                
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+                      isActive 
+                        ? 'bg-indigo-50 text-indigo-600' 
+                        : 'text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    {link.icon}
+                    {link.label}
+                  </Link>
+                );
+              })}
+              <button
+                onClick={() => {
+                  api.clearToken();
+                  router.push('/');
+                }}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 w-full"
+              >
+                <LogOut size={18} />
+                Keluar
+              </button>
+            </div>
+          </div>
+        )}
       </nav>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {children}
