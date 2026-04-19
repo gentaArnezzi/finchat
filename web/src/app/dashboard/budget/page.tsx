@@ -281,7 +281,7 @@ export default function BudgetPage() {
                     </div>
                     
                     {hasBudgetAccess !== false && (
-                      <div className="flex gap-2 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-slate-100">
+                      <div className="flex gap-2 mt-3 md:mt-4 pt-3 md:pt-4 border-t border-slate-100">
                         <button
                           onClick={() => {
                             setEditingBudget({
@@ -291,15 +291,15 @@ export default function BudgetPage() {
                             });
                             setShowEditModal(true);
                           }}
-                          className="flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors text-xs sm:text-sm font-medium"
+                          className="flex-1 flex items-center justify-center gap-1 md:gap-2 px-2 md:px-3 py-2 bg-slate-100 text-slate-600 rounded-lg md:rounded-lg hover:bg-slate-200 transition-colors text-xs md:text-sm font-medium"
                         >
-                          <Pencil size={12} className="sm:size-14" /> <span className="hidden sm:inline">Edit</span>
+                          <Pencil size={14} /> <span className="hidden md:inline">Edit</span>
                         </button>
                         <button
                           onClick={() => handleDeleteBudget(item.budget_id)}
-                          className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-xs sm:text-sm font-medium"
+                          className="flex items-center justify-center gap-1 md:gap-2 px-2 md:px-3 py-2 bg-red-50 text-red-600 rounded-lg md:rounded-lg hover:bg-red-100 transition-colors text-xs md:text-sm font-medium"
                         >
-                          <Trash2 size={12} className="sm:size-14" /> <span className="hidden sm:inline">Hapus</span>
+                          <Trash2 size={14} /> <span className="hidden md:inline">Hapus</span>
                         </button>
                       </div>
                     )}
