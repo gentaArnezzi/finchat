@@ -182,8 +182,13 @@ bot.command('start', async (ctx) => {
 ✅ *Catat Pemasukan/Pengeluaran*
    Ketik: "Beli kopi 25rb" atau "Gaji masuk 5jt"
 
-📊 *Lihat Laporan*
-   Ketik: "pengeluaran bulan ini" atau langsung:
+📊 *Lihat Laporan (Langsung Ketik!)*
+   • "pengeluaran bulan ini" - lihat pengeluaran
+   • "pemasukan saya minggu ini" - lihat Pemasukan
+   • "pendapatanku bulan lalu" - lihat bulan kemarin
+   • "total tahun ini" - lihat semua
+
+📊 *Atau Pakai Command:*
    • /ringkasan - hari ini
    • /bulanini - bulan ini
    • /minggu - minggu ini  
@@ -194,9 +199,10 @@ bot.command('start', async (ctx) => {
    • /budget - lihat budget per kategori
    • /upgrade - upgrade plan
 
-🎯 *Tips:*
-   • Ketik natural: "saya dapat uang 10jt" untuk Pemasukan
-   • Ketik "pengeluaran minggu ini" untuk lihat laporan
+🎯 *Contoh Query:*
+   • "pemasukan saya bulan ini"
+   • "pengeluaran minggu lalu"
+   • "total keuangan tahun 2025"
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -258,6 +264,13 @@ Ketik pesan natural seperti:
 • "Saya dapat uang 10jt"
 
 📊 *Laporan & Statistik:*
+Ketik langsung untuk query:
+• "pemasukan bulan ini"
+• "pengeluaran minggu ini"
+• "pendapatanku bulan lalu"
+• "total tahun ini"
+
+Atau pake command:
 • /ringkasan - Ringkasan hari ini
 • /bulanini - Ringkasan bulan ini
 • /minggu - Ringkasan minggu ini
@@ -272,8 +285,8 @@ Ketik pesan natural seperti:
 • /bantuan - Daftar command ini
 
 💡 *Tips:*
-• Ketik "pengeluaran bulan ini" untuk lihat laporan
-• Ketik "pendapatan minggu lalu" untuk lihat Pemasukan
+• Langsung ketik "pengeluaran bulan ini" untuk lihat laporan
+• Ketik "pemasukan saya minggu lalu" untuk lihat Pemasukan
 • Langsung catat tanpa command juga bisa!
 
  ketik /start untuk mulai! 👇`;
@@ -755,20 +768,48 @@ bot.on('message:text', async (ctx) => {
   try {
     // Check if it's a query request (not a transaction)
     const lowerText = text.toLowerCase();
-    const isQuery = lowerText.includes('pengeluaran') || 
-                    lowerText.includes('pendapatan') || 
-                    lowerText.includes('total') ||
-                    lowerText.includes('laporan');
+    const isQuery = 
+      // Pengeluaran variations
+      lowerText.includes('pengeluaran') || 
+      lowerText.includes('pengeluaran') ||
+      // Pemasukan variations
+      lowerText.includes('pemasukan') ||
+      lowerText.includes('pendapatan') ||
+      lowerText.includes('pendapatanku') ||
+      lowerText.includes('income') ||
+      // Other query words
+      lowerText.includes('total') ||
+      lowerText.includes('laporan') ||
+      lowerText.includes('ringkasan') ||
+      // "apa saja" type queries
+      (lowerText.includes('apa') && lowerText.includes('saya')) ||
+      // Budget related
+      lowerText.includes('budget') ||
+      lowerText.includes('limit');
     
     if (isQuery) {
       // Handle query requests
       const now = new Date();
       let startDate, endDate, periodName;
       
-      if (lowerText.includes('bulan ini') || lowerText === 'pengeluaran bulan ini') {
-        startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
-        endDate = now.toISOString().split('T')[0];
-        periodName = 'Bulan Ini';
+      // Determine period
+      if (lowerText.includes('tahun') && lowerText.includes('lalu')) {
+        const lastYear = now.getFullYear() - 1;
+        startDate = `${lastYear}-01-01`;
+        endDate = `${lastYear}-12-31`;
+        periodName = `Tahun ${lastYear}`;
+      } else if (lowerText.includes('tahun ini')) {
+        startDate = `${now.getFullYear()}-01-01`;
+        endDate = `${now.getFullYear()}-12-31`;
+        periodName = `Tahun ${now.getFullYear()}`;
+      } else if (lowerText.includes('minggu') && lowerText.includes('lalu')) {
+        const lastWeekStart = new Date(now);
+        lastWeekStart.setDate(now.getDate() - 7 - now.getDay());
+        const lastWeekEnd = new Date(lastWeekStart);
+        lastWeekEnd.setDate(lastWeekStart.getDate() + 6);
+        startDate = lastWeekStart.toISOString().split('T')[0];
+        endDate = lastWeekEnd.toISOString().split('T')[0];
+        periodName = 'Minggu Lalu';
       } else if (lowerText.includes('minggu ini')) {
         const dayOfWeek = now.getDay();
         const startOfWeek = new Date(now);
@@ -776,16 +817,20 @@ bot.on('message:text', async (ctx) => {
         startDate = startOfWeek.toISOString().split('T')[0];
         endDate = now.toISOString().split('T')[0];
         periodName = 'Minggu Ini';
-      } else if (lowerText.includes('bulan lalu')) {
+      } else if (lowerText.includes('bulan') && lowerText.includes('lalu')) {
         const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         startDate = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}-01`;
         const lastDay = new Date(lastMonth.getFullYear(), lastMonth.getMonth() + 1, 0).getDate();
         endDate = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}-${lastDay}`;
-        periodName = 'Bulan Lalu';
-      } else if (lowerText.includes('tahun ini')) {
-        startDate = `${now.getFullYear()}-01-01`;
-        endDate = `${now.getFullYear()}-12-31`;
-        periodName = 'Tahun Ini';
+        periodName = lastMonth.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+      } else if (lowerText.includes('bulan ini')) {
+        startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+        endDate = now.toISOString().split('T')[0];
+        periodName = 'Bulan Ini';
+      } else if (lowerText.includes('hari ini')) {
+        startDate = now.toISOString().split('T')[0];
+        endDate = now.toISOString().split('T')[0];
+        periodName = 'Hari Ini';
       } else {
         // Default to this month
         startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
@@ -800,15 +845,19 @@ bot.on('message:text', async (ctx) => {
         
         let response = `📊 *Laporan ${periodName}*\n\n`;
         
-        if (lowerText.includes('pengeluaran')) {
+        // Determine what to show based on query
+        const isExpenseOnly = lowerText.includes('pengeluaran') || lowerText.includes('pengeluaranku');
+        const isIncomeOnly = lowerText.includes('pemasukan') || lowerText.includes('pendapat') || lowerText.includes('pendapatanku');
+        
+        if (isIncomeOnly) {
+          response += `💰 Total Pemasukan: ${formatRupiah(income)}\n💵 ${stats.income?.count || 0} transaksi\n📈 Saldo: ${formatRupiah(income - expense)}`;
+        } else if (isExpenseOnly) {
           response += `💸 Total Pengeluaran: ${formatRupiah(expense)}\n📝 ${stats.expense?.count || 0} transaksi`;
-        } else if (lowerText.includes('pendapatan') || lowerText.includes('pemasukan')) {
-          response += `💰 Total Pemasukan: ${formatRupiah(income)}\n💵 ${stats.income?.count || 0} transaksi`;
         } else {
           response += `💰 Pemasukan: ${formatRupiah(income)}\n💸 Pengeluaran: ${formatRupiah(expense)}\n📈 Saldo: ${formatRupiah(income - expense)}`;
         }
         
-        response += `\n\nGunakan /ringkasan, /bulanini, /minggu, /tahun untuk detail!`;
+        response += `\n\n💡 Ketik /statistik untuk detail per kategori!`;
         
         await ctx.reply(response, { parse_mode: 'Markdown' });
         return;
@@ -890,22 +939,23 @@ Ketik pesan natural seperti:
 • "Gaji masuk 5jt"
 • "Saya dapat uang 10jt"
 
-📊 *Laporan & Statistik:*
+📊 *Query Langsung (Ketik Saja!):*
+• "pemasukan bulan ini"
+• "pengeluaran minggu ini"  
+• "pendapatanku bulan lalu"
+• "total tahun ini"
+• "budget saya"
+
+📊 *Command:*
 • /ringkasan - Ringkasan hari ini
 • /bulanini - Ringkasan bulan ini
 • /minggu - Ringkasan minggu ini
 • /tahun - Ringkasan tahun ini
 • /statistik - Detail per kategori
-
-💰 *Kelola Budget:*
-• /budget - Lihat budget per kategori
-
-💎 *Plan & Upgrade:*
+• /budget - Budget per kategori
 • /upgrade - Upgrade plan
-• /dashboard - Web dashboard
 
-💡 *Tips Query:*
-Ketik "pengeluaran bulan ini" untuk lihat laporan!
+💡 Langsung ketik aja, tanpa /command!
 
  ketik /bantuan untuk command list 👇`;
 
