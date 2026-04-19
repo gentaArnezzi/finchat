@@ -28,21 +28,46 @@ const sendTelegramMessage = async (chatId, text) => {
   }
 };
 
+const TIMEZONE_OFFSETS = {
+  'Asia/Jakarta': 7,
+  'Asia/Makassar': 8,
+  'Asia/Jayapura': 9,
+};
+
 export const sendDailyReminder = async (currentTime = null) => {
   try {
-    let queryText = `
-      SELECT u.telegram_id, u.name, p.reminder_time
+    const result = await query(`
+      SELECT u.telegram_id, u.name, p.reminder_time, u.timezone
       FROM users u
       JOIN user_preferences p ON u.id = p.user_id
       WHERE p.daily_reminder = true
-    `;
+    `);
+
+    // Group users by adjusted hour in their timezone
+    const usersByHour = {};
     
-    // Filter by reminder_time if provided
-    if (currentTime) {
-      queryText += ` AND p.reminder_time LIKE '${currentTime}%'`;
+    for (const user of result.rows) {
+      const offset = TIMEZONE_OFFSETS[user.timezone] || 7;
+      const reminderHour = parseInt(user.reminder_time?.split(':')[0] || '21');
+      const userHourUTC = (reminderHour - offset + 24) % 24;
+      const hourKey = userHourUTC.toString().padStart(2, '0') + ':00';
+      
+      if (!usersByHour[hourKey]) usersByHour[hourKey] = [];
+      usersByHour[hourKey].push(user);
     }
     
-    const result = await query(queryText);
+    // Only process for current UTC hour if specified
+    if (currentTime) {
+      const users = usersByHour[currentTime] || [];
+      for (const user of users) {
+        await sendTelegramMessage(
+          user.telegram_id,
+          `⏰ <b>Reminder Harian</b>\n\nHalo ${user.name}! Jangan lupa catat pengeluaran hari ini ya!\n\nKetik transaksi langsung di chat ini 📝`
+        );
+      }
+      console.log(`Daily reminder sent to ${users.length} users for hour ${currentTime}`);
+      return { sent: users.length };
+    }
 
     for (const user of result.rows) {
       await sendTelegramMessage(
