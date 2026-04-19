@@ -1123,8 +1123,8 @@ bot.on('message:text', async (ctx) => {
       parsed  // Store full array
     };
 
-    // Handle multiple transactions display
-    if (Array.isArray(parsed)) {
+    // Handle multiple transactions display (2 or more)
+    if (Array.isArray(parsed) && parsed.length > 1) {
       const typeEmoji = firstTx.type === 'income' ? '💰' : '💸';
       const typeLabel = firstTx.type === 'income' ? 'Pemasukan' : 'Pengeluaran';
       let msg = `📝 Saya akan mencatat ${parsed.length} transaksi:\n\n${typeEmoji} ${typeLabel}\n\n`;
