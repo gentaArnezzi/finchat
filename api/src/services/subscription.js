@@ -12,18 +12,21 @@ export const PLANS = {
   free: {
     name: 'Free',
     price: 0,
+    priceAnnual: 0,
     txLimit: 50,
     features: ['50 transaksi/bulan', 'Dashboard basic', 'Kategori otomatis'],
   },
   pro: {
     name: 'Pro',
-    price: 29000,
+    price: 14900,
+    priceAnnual: 10000,
     txLimit: Infinity,
     features: ['Unlimited transaksi', 'Export PDF/Excel', 'Budget alerts', 'Dashboard lengkap', 'AI categorization'],
   },
   business: {
     name: 'Business',
-    price: 79000,
+    price: 29900,
+    priceAnnual: 25000,
     txLimit: Infinity,
     features: ['Semua fitur Pro', 'Custom categories unlimited', 'Priority support', 'Data unlimited'],
   }

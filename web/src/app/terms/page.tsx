@@ -112,7 +112,7 @@ export default function TermsPage() {
             <div className="space-y-4">
               <div className="bg-white border border-slate-200 rounded-xl p-5">
                 <h3 className="font-semibold text-slate-800 mb-2">5.1 Plan Berbayar</h3>
-                <p>Plan Pro (Rp29.000/bln) dan Business (Rp79.000/bln) ditagihkan per bulan. Tidak ada kontrak jangka panjang. Pembayaran diproses melalui Midtrans.</p>
+                <p>Plan Pro (Rp14.900/bln) dan Business (Rp29.900/bln) ditagihkan per bulan. Tidak ada kontrak jangka panjang. Pembayaran diproses melalui Midtrans.</p>
               </div>
               <div className="bg-white border border-slate-200 rounded-xl p-5">
                 <h3 className="font-semibold text-slate-800 mb-2">5.2 Perpanjangan</h3>

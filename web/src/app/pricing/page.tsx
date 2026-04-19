@@ -38,8 +38,8 @@ const plans = [
   {
     id: 'pro',
     name: 'Pro',
-    price: 29000,
-    priceAnnual: 24167,
+    price: 14900,
+    priceAnnual: 10000,
     badge: 'Paling Populer',
     description: 'Untuk yang serius kelola keuangan setiap bulan',
     cta: 'Mulai Pro Sekarang',
@@ -62,8 +62,8 @@ const plans = [
   {
     id: 'business',
     name: 'Business',
-    price: 79000,
-    priceAnnual: 49167,
+    price: 29900,
+    priceAnnual: 25000,
     badge: null,
     description: 'Untuk freelancer & usaha kecil yang butuh lebih',
     cta: 'Mulai Business',
@@ -311,7 +311,7 @@ export default function PricingPage() {
                   ['AI auto-kategorisasi', '❌', '❌', '✅ Claude AI'],
                   ['Notifikasi budget', '❌', '⚠️ Kadang', '✅ Otomatis Telegram'],
                   ['Bisa chat natural', '❌', '❌', '✅ Bahasa Indonesia'],
-                  ['Harga dasar', 'Gratis', 'Rp50–150rb/bln', '✅ Gratis / Rp29rb'],
+                  ['Harga dasar', 'Gratis', 'Rp50–150rb/bln', '✅ Gratis / Rp14.9rb'],
                 ].map(([label, a, b, c], i) => (
                   <tr key={i} className={`border-b border-slate-100 last:border-0 ${i % 2 === 0 ? 'bg-slate-50/50' : 'bg-white'}`}>
                     <td className="py-4 px-6 font-medium text-slate-700">{label}</td>

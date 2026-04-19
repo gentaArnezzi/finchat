@@ -919,7 +919,7 @@ export default function LandingPage() {
                     <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest bg-indigo-500/20 w-fit px-3 py-1.5 rounded-md">Pro Series</div>
                     <div className="bg-indigo-500 text-white text-[9px] font-black tracking-widest px-3 py-1.5 rounded-full uppercase shadow-md shadow-indigo-500/30">Most Popular</div>
                   </div>
-                  <h3 className="text-4xl font-black text-white mb-3 tracking-tight">Rp 29k <span className="text-xl text-slate-500 font-bold tracking-normal">/bln</span></h3>
+                  <h3 className="text-4xl font-black text-white mb-3 tracking-tight">Rp 14,9k <span className="text-xl text-slate-500 font-bold tracking-normal">/bln</span></h3>
                   <p className="text-slate-400 text-[15px] mb-8 border-b border-slate-800 pb-8 leading-relaxed">Buka kunci kemampuan mutlak penganggaran, tanpa kompromi.</p>
                   <ul className="space-y-4 mb-10 text-[14px] font-semibold text-slate-300 flex-1">
                     <li className="flex gap-3.5 items-start"><CheckCircle2 className="text-indigo-400 shrink-0 mt-0.5" size={20}/> <span><b>Unlimited</b> Pencatatan Transaksi</span></li>
