@@ -720,24 +720,35 @@ bot.command('export', async (ctx) => {
 });
 
 // === KATEGORI COMMAND (Business Only) ===
+bot.command('kategori', async (ctx) => {
+  const from = ctx.from;
+  if (!from) return;
 
-  if (plan !== 'premium') {
-    await ctx.reply(
-      `🔒 *Custom Categories*\n\nFitur kategori custom hanya tersedia untuk plan *Business*.\n\n` +
+  try {
+    const token = await loginAndGetToken(from.id, from.first_name, from.username);
+    const { data: subData } = await axios.get(`${API_URL}/api/subscription/status`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const sub = subData.subscription;
+    const plan = sub.plan;
+
+    if (plan !== 'premium') {
+      await ctx.reply(
+        `🔒 *Custom Categories*\n\nFitur kategori custom hanya tersedia untuk plan *Business*.\n\n` +
         `📊 Plan saat ini: *${sub.planName}*\n\n` +
-`Upgrade ke Business untuk unlimited custom categories!`,
-              {
-                reply_markup: {
-                  inline_keyboard: [
-                    [{ text: '💎 Upgrade ke Business', callback_data: 'show_upgrade' }]
-                  ]
-                }
-              }
-            );
-            return;
+        `Upgrade ke Business untuk unlimited custom categories!`,
+        {
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: '💎 Upgrade ke Business', callback_data: 'show_upgrade' }]
+            ]
           }
+        }
+      );
+      return;
+    }
 
-          // Get custom categories
+    // Get custom categories
     const { data: catData } = await axios.get(`${API_URL}/api/categories`, {
       headers: { Authorization: `Bearer ${token}` }
     });

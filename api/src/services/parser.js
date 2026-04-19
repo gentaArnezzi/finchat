@@ -148,9 +148,6 @@ function parseAllAmounts(text) {
   return amounts.sort((a, b) => b - a); // Sort descending
 }
 
-  return 0;
-}
-
 /**
  * Detect transaction type (income or expense)
  */
