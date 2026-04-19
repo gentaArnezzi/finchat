@@ -28,35 +28,27 @@ const sendTelegramMessage = async (chatId, text) => {
   }
 };
 
-const TIMEZONE_OFFSETS = {
-  'Asia/Jakarta': 7,
-  'Asia/Makassar': 8,
-  'Asia/Jayapura': 9,
-};
-
 export const sendDailyReminder = async (currentTime = null) => {
   try {
     const result = await query(`
-      SELECT u.telegram_id, u.name, p.reminder_time, u.timezone
+      SELECT u.telegram_id, u.name, p.reminder_time
       FROM users u
       JOIN user_preferences p ON u.id = p.user_id
       WHERE p.daily_reminder = true
     `);
 
-    // Group users by adjusted hour in their timezone
+    // Group users by their reminder time (local time already converted by scheduler)
     const usersByHour = {};
     
     for (const user of result.rows) {
-      const offset = TIMEZONE_OFFSETS[user.timezone] || 7;
       const reminderHour = parseInt(user.reminder_time?.split(':')[0] || '21');
-      const userHourUTC = (reminderHour - offset + 24) % 24;
-      const hourKey = userHourUTC.toString().padStart(2, '0') + ':00';
+      const hourKey = reminderHour.toString().padStart(2, '0') + ':00';
       
       if (!usersByHour[hourKey]) usersByHour[hourKey] = [];
       usersByHour[hourKey].push(user);
     }
     
-    // Only process for current UTC hour if specified
+    // Only process for current hour if specified
     if (currentTime) {
       const users = usersByHour[currentTime] || [];
       for (const user of users) {
