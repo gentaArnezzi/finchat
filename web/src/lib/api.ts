@@ -269,10 +269,10 @@ class ApiClient {
     return this.request<{ success: boolean; subscription: any }>('/api/subscription/status');
   }
 
-  async createPayment(plan: string) {
+  async createPayment(plan: string, annual: boolean = false) {
     return this.request<{ success: boolean; payment: any }>('/api/subscription/create-payment', {
       method: 'POST',
-      body: JSON.stringify({ plan }),
+      body: JSON.stringify({ plan, annual }),
     });
   }
 

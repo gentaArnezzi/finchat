@@ -14,6 +14,7 @@ interface Plan {
   id: string;
   name: string;
   price: number;
+  priceAnnual?: number;
   priceFormatted: string;
   txLimit: number;
   features: string[];
@@ -24,6 +25,7 @@ export default function UpgradePage() {
   const [subscription, setSubscription] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [processingPlan, setProcessingPlan] = useState<string | null>(null);
+  const [annual, setAnnual] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -49,14 +51,12 @@ export default function UpgradePage() {
     
     setProcessingPlan(planId);
     try {
-      const res = await api.createPayment(planId);
+      const res = await api.createPayment(planId, annual);
       const { payment } = res;
 
       if (payment.snapUrl) {
-        // Production: redirect to Midtrans payment page
         window.location.href = payment.snapUrl;
       } else if (payment.mode === 'development') {
-        // Map plan ID to display name
         const planNames: Record<string, string> = {
           'pro': 'Pro',
           'business': 'Business'
@@ -91,6 +91,27 @@ export default function UpgradePage() {
         <h1 className="text-3xl font-bold text-gray-900">Upgrade Plan</h1>
         <p className="text-gray-500 mt-2">Pilih plan yang sesuai kebutuhanmu</p>
       </div>
+
+      {/* Annual Toggle */}
+      {plans.some(p => p.price > 0) && (
+        <div className="flex justify-center">
+          <div className="inline-flex items-center gap-3 p-1 rounded-full bg-slate-100 border border-slate-200">
+            <button
+              onClick={() => setAnnual(false)}
+              className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${!annual ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              Bulanan
+            </button>
+            <button
+              onClick={() => setAnnual(true)}
+              className={`px-4 py-2 rounded-full text-sm font-semibold transition-all flex items-center gap-2 ${annual ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              Tahunan
+              <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded-full">Hemat 17%</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Current Plan Banner */}
       <div className="bg-gradient-to-br from-indigo-600 to-slate-900 rounded-2xl p-8 text-white relative overflow-hidden shadow-xl shadow-indigo-900/10">
@@ -136,6 +157,12 @@ export default function UpgradePage() {
                 <div className="mt-4">
                   {plan.price === 0 ? (
                     <span className="text-4xl font-extrabold text-slate-900">Gratis</span>
+                  ) : annual && plan.priceAnnual ? (
+                    <div className="flex flex-col items-center">
+                      <span className="text-4xl font-extrabold text-slate-900">{formatRupiah(plan.priceAnnual)}</span>
+                      <span className="text-slate-500 text-sm">/tahun</span>
+                      <span className="text-xs text-emerald-600 font-medium mt-1">Hemat {formatRupiah(plan.price * 12 - plan.priceAnnual)}/tahun</span>
+                    </div>
                   ) : (
                     <div className="flex items-baseline justify-center gap-1">
                       <span className="text-4xl font-extrabold text-slate-900">{formatRupiah(plan.price)}</span>

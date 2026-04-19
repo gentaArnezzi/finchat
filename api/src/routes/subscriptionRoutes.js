@@ -59,12 +59,12 @@ router.get('/status', authenticateToken, async (req, res) => {
  */
 router.post('/create-payment', authenticateToken, async (req, res) => {
   try {
-    const { plan } = req.body;
+    const { plan, annual = false } = req.body;
     if (!plan || !['pro', 'business'].includes(plan)) {
       return res.status(400).json({ error: 'Invalid plan. Choose "pro" or "business".' });
     }
 
-    const result = await subscriptionService.createPaymentOrder(req.user.id, plan);
+    const result = await subscriptionService.createPaymentOrder(req.user.id, plan, annual);
     res.json({ success: true, payment: result });
   } catch (error) {
     console.error('Create payment error:', error);

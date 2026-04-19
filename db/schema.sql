@@ -132,6 +132,7 @@ CREATE TABLE payments (
     amount DECIMAL(15, 2) NOT NULL,
     payment_method VARCHAR(50),
     status VARCHAR(20) DEFAULT 'pending',
+    billing_period VARCHAR(20) DEFAULT 'bulanan',
     midtrans_transaction_id VARCHAR(100),
     paid_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -141,6 +142,7 @@ CREATE TABLE payments (
 -- Add payment reference and started_at to subscriptions
 ALTER TABLE subscriptions ADD COLUMN payment_id UUID REFERENCES payments(id);
 ALTER TABLE subscriptions ADD COLUMN started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE subscriptions ADD COLUMN billing_period VARCHAR(20) DEFAULT 'bulanan';
 
 CREATE INDEX idx_payments_user_id ON payments(user_id);
 CREATE INDEX idx_payments_order_id ON payments(order_id);

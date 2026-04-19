@@ -134,11 +134,14 @@ export async function checkTransactionLimit(userId) {
 /**
  * Create payment order via Midtrans Snap
  */
-export async function createPaymentOrder(userId, planKey) {
+export async function createPaymentOrder(userId, planKey, annual = false) {
   const plan = PLANS[planKey];
   if (!plan || plan.price === 0) {
     throw new Error('Invalid plan for payment');
   }
+
+  const amount = annual && plan.priceAnnual ? plan.priceAnnual : plan.price;
+  const billingPeriod = annual ? 'tahunan' : 'bulanan';
 
   // Get user info
   const userResult = await query('SELECT * FROM users WHERE id = $1', [userId]);
@@ -150,9 +153,9 @@ export async function createPaymentOrder(userId, planKey) {
   // Save payment record
   const paymentId = uuidv4();
   await query(
-    `INSERT INTO payments (id, user_id, order_id, plan, amount, status)
-     VALUES ($1, $2, $3, $4, $5, 'pending')`,
-    [paymentId, userId, orderId, planKey, plan.price]
+    `INSERT INTO payments (id, user_id, order_id, plan, amount, status, billing_period)
+     VALUES ($1, $2, $3, $4, $5, 'pending', $6)`,
+    [paymentId, userId, orderId, planKey, amount, billingPeriod]
   );
 
   // Create Midtrans Snap transaction
@@ -163,7 +166,8 @@ export async function createPaymentOrder(userId, planKey) {
       paymentId,
       orderId,
       plan: planKey,
-      amount: plan.price,
+      amount: amount,
+      annual,
       snapToken: null,
       snapUrl: null,
       mode: 'development',
@@ -180,7 +184,7 @@ export async function createPaymentOrder(userId, planKey) {
   const payload = {
     transaction_details: {
       order_id: orderId,
-      gross_amount: plan.price
+      gross_amount: amount
     },
     customer_details: {
       first_name: user.name,
@@ -188,9 +192,9 @@ export async function createPaymentOrder(userId, planKey) {
     },
     item_details: [{
       id: planKey,
-      price: plan.price,
+      price: amount,
       quantity: 1,
-      name: `FinChat ${plan.name} - 1 Bulan`
+      name: `FinChat ${plan.name} - 1 ${annual ? 'Tahun' : 'Bulan'}`
     }],
     callbacks: {
       finish: `${process.env.WEB_URL || 'http://localhost:3000'}/dashboard?payment=success`
@@ -281,21 +285,34 @@ export async function handlePaymentNotification(notification) {
  * Activate subscription after payment
  */
 export async function activateSubscription(userId, planKey, paymentId) {
+  // Get billing period from payment if available
+  let billingPeriod = 'bulanan';
+  if (paymentId) {
+    const paymentResult = await query('SELECT billing_period FROM payments WHERE id = $1', [paymentId]);
+    if (paymentResult.rows[0]) {
+      billingPeriod = paymentResult.rows[0].billing_period || 'bulanan';
+    }
+  }
+
   // Deactivate old subscriptions
   await query(
     "UPDATE subscriptions SET status = 'expired', updated_at = NOW() WHERE user_id = $1 AND status = 'active'",
     [userId]
   );
 
-  // Calculate expiry (1 month from now)
+  // Calculate expiry based on billing period
   const expiresAt = new Date();
-  expiresAt.setMonth(expiresAt.getMonth() + 1);
+  if (billingPeriod === 'tahunan') {
+    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+  } else {
+    expiresAt.setMonth(expiresAt.getMonth() + 1);
+  }
 
   const subId = uuidv4();
   await query(
-    `INSERT INTO subscriptions (id, user_id, plan, status, payment_id, started_at, expires_at)
-     VALUES ($1, $2, $3, 'active', $4, NOW(), $5)`,
-    [subId, userId, planKey, paymentId, expiresAt.toISOString()]
+    `INSERT INTO subscriptions (id, user_id, plan, status, payment_id, started_at, expires_at, billing_period)
+     VALUES ($1, $2, $3, 'active', $4, NOW(), $5, $6)`,
+    [subId, userId, planKey, paymentId, expiresAt.toISOString(), billingPeriod]
   );
 
   // Update user's plan
