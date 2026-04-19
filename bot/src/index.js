@@ -1095,8 +1095,9 @@ bot.on('message:text', async (ctx) => {
     // Check transaction limit for free plan
     const limitCheck = await checkTransactionLimit(from.id);
     if (!limitCheck.allowed) {
+      const planMsg = limitCheck.limit === Infinity ? 'Pro/Business' : 'Free Plan';
       await ctx.reply(
-        `⚠️ *Batas Transaksi Tercapai*\n\nKamu sudah mencatat ${limitCheck.count}/${limitCheck.limit} transaksi bulan ini (Free Plan).\n\nUpgrade ke Pro untuk unlimited transaksi! 🚀`,
+        `⚠️ *Batas Transaksi Tercapai*\n\nKamu sudah mencatat ${limitCheck.count}/${limitCheck.limit === Infinity ? '∞' : limitCheck.limit} transaksi bulan ini (${planMsg}).\n\nUpgrade untuk unlimited transaksi! 🚀`,
         { parse_mode: 'Markdown' }
       );
       return;
