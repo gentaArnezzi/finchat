@@ -20,6 +20,13 @@ declare global {
   }
 }
 
+const faqs = [
+  { q: 'Apakah FinChat aman?', a: 'Sangat aman. Kami menggunakan enkripsi end-to-end dan tidak pernah menyimpan data finansial Anda di server pihak ketiga. Semua data terikat dengan ID Telegram Anda.' },
+  { q: 'Bagaimana cara memulainya?', a: 'Cukup kirim pesan ke bot FinChat di Telegram (@finchatme_bot), lalu mulai catat transaksi dengan bahasa sehari-hari.' },
+  { q: 'Apakah ada biaya tersembunyi?', a: 'Tidak ada biaya tersembunyi. Plan Free gratis selamanya. Upgrade ke Pro atau Business hanya jika Anda butuh fitur lebih.' },
+  { q: 'Apakah data saya bisa dihapus?', a: 'Ya, Anda bisa meminta penghapusan data kapan saja melalui menu pengaturan di dashboard.' },
+];
+
 function FAQItem({ question, answer }: { question: string, answer: string }) {
   const [isOpen, setIsOpen] = useState(false);
   return (
@@ -955,6 +962,18 @@ export default function LandingPage() {
                 </div>
               </div>
             </FadeIn>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="py-24 bg-slate-50">
+        <div className="max-w-3xl mx-auto px-6">
+          <h2 className="text-3xl font-bold text-slate-900 text-center mb-12">Pertanyaan Umum</h2>
+          <div className="bg-white rounded-2xl border border-slate-200 px-6 md:px-8">
+            {faqs.map((faq, i) => (
+              <FAQItem key={i} question={faq.q} answer={faq.a} />
+            ))}
           </div>
         </div>
       </section>
