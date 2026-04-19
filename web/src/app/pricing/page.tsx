@@ -58,7 +58,7 @@ const plans = [
     ],
   },
   {
-    id: 'premium',
+    id: 'business',
     name: 'Business',
     price: 79000,
     priceAnnual: 49167,

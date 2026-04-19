@@ -60,8 +60,8 @@ router.get('/status', authenticateToken, async (req, res) => {
 router.post('/create-payment', authenticateToken, async (req, res) => {
   try {
     const { plan } = req.body;
-    if (!plan || !['pro', 'premium'].includes(plan)) {
-      return res.status(400).json({ error: 'Invalid plan. Choose "pro" or "premium".' });
+    if (!plan || !['pro', 'business'].includes(plan)) {
+      return res.status(400).json({ error: 'Invalid plan. Choose "pro" or "business".' });
     }
 
     const result = await subscriptionService.createPaymentOrder(req.user.id, plan);
@@ -97,7 +97,7 @@ router.post('/dev-activate', authenticateToken, async (req, res) => {
 
   try {
     const { plan } = req.body;
-    if (!plan || !['pro', 'premium'].includes(plan)) {
+    if (!plan || !['pro', 'business'].includes(plan)) {
       return res.status(400).json({ error: 'Invalid plan' });
     }
 

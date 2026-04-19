@@ -21,7 +21,7 @@ export const PLANS = {
     txLimit: Infinity,
     features: ['Unlimited transaksi', 'Export PDF/Excel', 'Budget alerts', 'Dashboard lengkap', 'AI categorization'],
   },
-  premium: {
+  business: {
     name: 'Business',
     price: 79000,
     txLimit: Infinity,
@@ -63,10 +63,10 @@ export async function checkFeatureAccess(userId, feature) {
   const plan = await getUserPlan(userId);
 
   const featureGating = {
-    export: ['pro', 'premium'],
-    budget_alerts: ['pro', 'premium'],
-    unlimited_transactions: ['pro', 'premium'],
-    custom_categories: ['premium'],
+    export: ['pro', 'business'],
+    budget_alerts: ['pro', 'business'],
+    unlimited_transactions: ['pro', 'business'],
+    custom_categories: ['business'],
   };
 
   const allowedPlans = featureGating[feature];

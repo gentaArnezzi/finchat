@@ -652,7 +652,7 @@ bot.command('upgrade', async (ctx) => {
     );
   } catch (error) {
     await ctx.reply(
-      '⭐ *Upgrade FinChat Plan*\n\nUpgrade untuk unlimited transaksi, export, dan fitur premium lainnya!\n\n' +
+      '⭐ *Upgrade FinChat Plan*\n\nUpgrade untuk unlimited transaksi, export, dan fitur Business lainnya!\n\n' +
       'Buka dashboard untuk upgrade: /dashboard',
       { parse_mode: 'Markdown' }
     );
@@ -672,7 +672,7 @@ bot.command('export', async (ctx) => {
     const sub = subData.subscription;
     const plan = sub.plan;
 
-    if (plan !== 'pro' && plan !== 'premium') {
+    if (plan !== 'pro' && plan !== 'business') {
       await ctx.reply(
         `🔒 *Export Tidak Tersedia*\n\nFitur Export PDF/Excel hanya tersedia untuk plan *Pro* dan *Business*.\n\n` +
         `📊 Plan saat ini: *${sub.planName}*\n\n` +
@@ -732,7 +732,7 @@ bot.command('kategori', async (ctx) => {
     const sub = subData.subscription;
     const plan = sub.plan;
 
-    if (plan !== 'premium') {
+    if (plan !== 'business') {
       await ctx.reply(
         `🔒 *Custom Categories*\n\nFitur kategori custom hanya tersedia untuk plan *Business*.\n\n` +
         `📊 Plan saat ini: *${sub.planName}*\n\n` +

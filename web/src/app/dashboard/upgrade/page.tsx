@@ -59,7 +59,7 @@ export default function UpgradePage() {
         // Map plan ID to display name
         const planNames: Record<string, string> = {
           'pro': 'Pro',
-          'premium': 'Business'
+          'business': 'Business'
         };
         const planName = planNames[planId] || planId;
         if (confirm(`Midtrans belum dikonfigurasi. Aktifkan plan ${planName} secara langsung?`)) {
