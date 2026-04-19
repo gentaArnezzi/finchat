@@ -56,10 +56,15 @@ export default function UpgradePage() {
         // Production: redirect to Midtrans payment page
         window.location.href = payment.snapUrl;
       } else if (payment.mode === 'development') {
-        // Only show this if Midtrans is truly not configured
-        if (confirm(`Midtrans belum dikonfigurasi. Aktifkan plan ${planId} secara langsung?`)) {
+        // Map plan ID to display name
+        const planNames: Record<string, string> = {
+          'pro': 'Pro',
+          'premium': 'Business'
+        };
+        const planName = planNames[planId] || planId;
+        if (confirm(`Midtrans belum dikonfigurasi. Aktifkan plan ${planName} secara langsung?`)) {
           await api.devActivatePlan(planId);
-          alert(`✅ Plan ${planId} berhasil diaktifkan!`);
+          alert(`✅ Plan ${planName} berhasil diaktifkan!`);
           loadData();
         }
       }
