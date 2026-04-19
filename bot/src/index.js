@@ -459,6 +459,8 @@ bot.command('statistik', async (ctx) => {
       token
     );
 
+    console.log('statistik response:', JSON.stringify(res));
+
     if (!res.stats || res.stats.length === 0) {
       return await ctx.reply(
         `📈 *Statistik Bulan Ini*\n\nBelum ada data transaksi bulan ini.`,
@@ -584,8 +586,9 @@ ${icon} ${lastTx.description || typeText}
         }
       }
     );
-  } catch (error) {
-    await ctx.reply('Maaf, ada masalah. Coba lagi nanti.');
+} catch (error) {
+    console.error('Statistik error:', error.response?.data || error.message);
+    await ctx.reply('Maaf, ada masalah mengambil data. Coba lagi nanti.');
   }
 });
 
