@@ -96,6 +96,57 @@ function parseAmount(text) {
       return parseInt(match[1]);
     }
   }
+  return 0;
+}
+
+/**
+ * Parse all amounts from text (for multiple transactions)
+ */
+function parseAllAmounts(text) {
+  const lower = text.toLowerCase().replace(/\s+/g, ' ');
+  const amounts = [];
+
+  // Pattern for all amount formats with their multipliers
+  const allPatterns = [
+    { regex: /(\d+)[.,](\d+)\s*(?:jt|juta)/i, multiplier: (m) => parseInt(m[1]) * 1000000 + parseInt(m[2]) * 100000 },
+    { regex: /(\d+)\s*(?:jt|juta)/i, multiplier: (m) => parseInt(m[1]) * 1000000 },
+    { regex: /(\d+)\s*(?:rb|rbu|ribu)/i, multiplier: (m) => parseInt(m[1]) * 1000 },
+    { regex: /(\d+)\s*k\b/i, multiplier: (m) => parseInt(m[1]) * 1000 },
+    { regex: /(?:rp\.?\s*)?(\d{1,3}(?:[.,]\d{3})+)(?!\d)/i, multiplier: (m) => parseInt(m[1].replace(/[.,]/g, '')) },
+    { regex: /(\d{4,})/g, multiplier: (m) => parseInt(m[1]) },
+  ];
+
+  // Global patterns that can find multiple matches
+  const globalPatterns = [
+    /(\d+)\s*(?:rb|rbu|ribu)/gi,
+    /(\d+)\s*k\b/gi,
+    /(\d+)\s*(?:jt|juta)/gi,
+    /(?:rp\.?\s*)?(\d{1,3}(?:[.,]\d{3})+)/gi,
+    /(\d{4,})/g,
+  ];
+
+  for (const pattern of globalPatterns) {
+    const matches = [...lower.matchAll(pattern)];
+    for (const match of matches) {
+      const amountStr = match[1] || match[0].replace(/[^\d]/g, '');
+      let amount = parseInt(amountStr.replace(/[.,]/g, ''));
+      
+      // Apply multiplier based on suffix
+      if (match[0].toLowerCase().includes('jt') || match[0].toLowerCase().includes('juta')) {
+        if (amount < 100) amount *= 1000000;
+        else amount *= 1000000;
+      } else if (match[0].toLowerCase().includes('rb') || match[0].toLowerCase().includes('ribu') || match[0].toLowerCase().includes('k')) {
+        amount *= 1000;
+      }
+      
+      if (amount >= 1000 && !amounts.includes(amount)) {
+        amounts.push(amount);
+      }
+    }
+  }
+
+  return amounts.sort((a, b) => b - a); // Sort descending
+}
 
   return 0;
 }
@@ -171,24 +222,67 @@ function extractDescription(text) {
  * Returns parsed transaction or null if confidence is too low
  */
 function regexParse(message) {
-  const amount = parseAmount(message);
-
-  // If we can't detect amount, regex fails → go to AI
-  if (amount === 0) return null;
+  // First try single amount parse
+  const singleAmount = parseAmount(message);
+  
+  // Check for multiple amounts
+  const allAmounts = parseAllAmounts(message);
+  
+  // If multiple different amounts found, create multiple transactions
+  if (allAmounts.length > 1) {
+    console.log(`📊 Detected multiple transactions: ${allAmounts.length} amounts found`);
+    
+    // Parse each amount individually to get proper category/description
+    const transactions = [];
+    const type = detectType(message);
+    
+    for (const amount of allAmounts) {
+      // Find the amount in the original message to get context for category
+      const amountStr = amount >= 1000000 
+        ? (amount / 1000000) + 'jt'
+        : (amount / 1000) + 'rb';
+      
+      // Find the position to extract description around this amount
+      const pos = message.toLowerCase().indexOf(amountStr);
+      let contextMsg = message;
+      if (pos > 0) {
+        const start = Math.max(0, pos - 30);
+        const end = Math.min(message.length, pos + 30);
+        contextMsg = message.substring(start, end);
+      }
+      
+      const category = detectCategory(contextMsg, type);
+      const description = extractDescription(contextMsg) || 'Multi-transaksi';
+      
+      transactions.push({
+        type,
+        amount,
+        category,
+        description,
+        date: new Date().toISOString().split('T')[0],
+        parsedBy: 'regex'
+      });
+    }
+    
+    return transactions.length > 0 ? transactions : null;
+  }
+  
+  // Single transaction (original logic)
+  if (singleAmount === 0) return null;
 
   const type = detectType(message);
   const category = detectCategory(message, type);
   const description = extractDescription(message);
   const date = new Date().toISOString().split('T')[0];
 
-  return {
+  return [{
     type,
-    amount,
+    amount: singleAmount,
     category,
     description,
     date,
     parsedBy: 'regex'
-  };
+  }];
 }
 
 /**

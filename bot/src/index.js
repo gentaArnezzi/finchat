@@ -868,22 +868,47 @@ bot.on('message:text', async (ctx) => {
     if (ctx.session.pendingTransaction) {
       try {
         const { parsed } = ctx.session.pendingTransaction;
-        await createTransaction(
-          from.id,
-          parsed.amount,
-          parsed.type,
-          parsed.category,
-          parsed.description,
-          parsed.date
-        );
+        
+        // Handle multiple transactions
+        if (Array.isArray(parsed)) {
+          let totalAmount = 0;
+          for (const tx of parsed) {
+            await createTransaction(
+              from.id,
+              tx.amount,
+              tx.type,
+              tx.category,
+              tx.description,
+              tx.date
+            );
+            totalAmount += tx.amount;
+          }
+          
+          const stats = await getTodaySummary(from.id);
+          const expense = stats.expense?.total || 0;
+          
+          await ctx.reply(
+            `✅ Tersimpan! ${parsed.length} transaksi\n\n💰 Total: ${formatRupiah(totalAmount)}\n\n💸 Total hari ini: ${formatRupiah(expense)}`
+          );
+        } else {
+          // Single transaction (original logic)
+          await createTransaction(
+            from.id,
+            parsed.amount,
+            parsed.type,
+            parsed.category,
+            parsed.description,
+            parsed.date
+          );
 
-        const stats = await getTodaySummary(from.id);
-        const expense = stats.expense?.total || 0;
+          const stats = await getTodaySummary(from.id);
+          const expense = stats.expense?.total || 0;
 
-        const icon = CATEGORY_ICONS[parsed.category] || '📦';
-        await ctx.reply(
-          `✅ Tersimpan! ${icon}\n\n${parsed.description}\n${formatRupiah(parsed.amount)} (${parsed.category})\n\n💸 Total hari ini: ${formatRupiah(expense)}`
-        );
+          const icon = CATEGORY_ICONS[parsed.category] || '📦';
+          await ctx.reply(
+            `✅ Tersimpan! ${icon}\n\n${parsed.description}\n${formatRupiah(parsed.amount)} (${parsed.category})\n\n💸 Total hari ini: ${formatRupiah(expense)}`
+          );
+        }
       } catch (error) {
         await ctx.reply('Maaf, ada masalah menyimpan transaksi.');
       }
@@ -1090,23 +1115,47 @@ bot.on('message:text', async (ctx) => {
       parsed
     };
 
-    await ctx.reply(
-      `📝 Saya akan mencatat:\n\n${icon} ${parsed.description || 'Transaksi'}\n💰 ${formatRupiah(parsed.amount)} (${typeLabel})\n📂 ${parsed.category}\n📅 ${new Date(parsed.date).toLocaleDateString('id-ID')}`,
-      {
-        reply_markup: {
-          inline_keyboard: [
-            [
-              { text: '✅ Simpan', callback_data: 'save_transaction' },
-              { text: '✏️ Edit Nominal', callback_data: 'edit_amount' }
-            ],
-            [
-              { text: '📂 Edit Kategori', callback_data: 'edit_category' },
-              { text: '❌ Batal', callback_data: 'cancel_transaction' }
+    // Handle multiple transactions display
+    if (Array.isArray(parsed)) {
+      let msg = `📝 Saya akan mencatat ${parsed.length} transaksi:\n\n`;
+      parsed.forEach((tx, i) => {
+        const txIcon = CATEGORY_ICONS[tx.category] || '📦';
+        msg += `${i + 1}. ${txIcon} ${tx.description || tx.category}\n   💰 ${formatRupiah(tx.amount)}\n`;
+      });
+      msg += `\n📅 ${new Date(parsed[0].date).toLocaleDateString('id-ID')}`;
+      
+      await ctx.reply(
+        msg,
+        {
+          reply_markup: {
+            inline_keyboard: [
+              [
+                { text: '✅ Simpan Semua', callback_data: 'save_transaction' },
+                { text: '❌ Batal', callback_data: 'cancel_transaction' }
+              ]
             ]
-          ]
+          }
         }
-      }
-    );
+      );
+    } else {
+      await ctx.reply(
+        `📝 Saya akan mencatat:\n\n${icon} ${parsed.description || 'Transaksi'}\n💰 ${formatRupiah(parsed.amount)} (${typeLabel})\n📂 ${parsed.category}\n📅 ${new Date(parsed.date).toLocaleDateString('id-ID')}`,
+        {
+          reply_markup: {
+            inline_keyboard: [
+              [
+                { text: '✅ Simpan', callback_data: 'save_transaction' },
+                { text: '✏️ Edit Nominal', callback_data: 'edit_amount' }
+              ],
+              [
+                { text: '📂 Edit Kategori', callback_data: 'edit_category' },
+                { text: '❌ Batal', callback_data: 'cancel_transaction' }
+              ]
+            ]
+          }
+        }
+      );
+    }
   } catch (error) {
     console.error('Parse error:', error.message);
     await ctx.reply('Maaf, ada masalah memproses pesan. Coba lagi.');
@@ -1232,22 +1281,47 @@ Ketik pesan natural seperti:
     if (ctx.session.pendingTransaction) {
       try {
         const { parsed } = ctx.session.pendingTransaction;
-        await createTransaction(
-          from.id,
-          parsed.amount,
-          parsed.type,
-          parsed.category,
-          parsed.description,
-          parsed.date
-        );
+        
+        // Handle multiple transactions
+        if (Array.isArray(parsed)) {
+          let totalAmount = 0;
+          for (const tx of parsed) {
+            await createTransaction(
+              from.id,
+              tx.amount,
+              tx.type,
+              tx.category,
+              tx.description,
+              tx.date
+            );
+            totalAmount += tx.amount;
+          }
+          
+          const stats = await getTodaySummary(from.id);
+          const expense = stats.expense?.total || 0;
+          
+          await ctx.editMessageText(
+            `✅ Tersimpan! ${parsed.length} transaksi\n\n💰 Total: ${formatRupiah(totalAmount)}\n\n💸 Total hari ini: ${formatRupiah(expense)}`
+          );
+        } else {
+          // Single transaction
+          await createTransaction(
+            from.id,
+            parsed.amount,
+            parsed.type,
+            parsed.category,
+            parsed.description,
+            parsed.date
+          );
 
-        const stats = await getTodaySummary(from.id);
-        const expense = stats.expense?.total || 0;
-        const icon = CATEGORY_ICONS[parsed.category] || '📦';
+          const stats = await getTodaySummary(from.id);
+          const expense = stats.expense?.total || 0;
+          const icon = CATEGORY_ICONS[parsed.category] || '📦';
 
-        await ctx.editMessageText(
-          `✅ Tersimpan! ${icon}\n\n${parsed.description}\n${formatRupiah(parsed.amount)} (${parsed.category})\n\n💸 Total pengeluaran hari ini: ${formatRupiah(expense)}`
-        );
+          await ctx.editMessageText(
+            `✅ Tersimpan! ${icon}\n\n${parsed.description}\n${formatRupiah(parsed.amount)} (${parsed.category})\n\n💸 Total pengeluaran hari ini: ${formatRupiah(expense)}`
+          );
+        }
       } catch (error) {
         await ctx.editMessageText('❌ Gagal menyimpan. Coba lagi.');
       }
