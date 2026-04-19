@@ -6,5 +6,5 @@ kollexy.com, www.kollexy.com {
 }
 
 finchat.tspdigital.id, api.finchat.tspdigital.id {
-	reverse_proxy finchat-api:3001
+	reverse_proxy finchat-api-1:3001
 }
