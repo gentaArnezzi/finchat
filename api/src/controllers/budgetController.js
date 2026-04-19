@@ -54,6 +54,29 @@ export const getBudgetSpending = async (userId, month, year) => {
   const lastDay = new Date(year, month, 0).getDate();
   const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 
+  console.log(`[Budget Debug] userId=${userId}, month=${month}, year=${year}, range=${startDate} to ${endDate}`);
+
+  // Debug: Log budget categories for user
+  const budgetCats = await query(
+    `SELECT b.category_id, c.name as category_name, b.amount 
+     FROM budgets b 
+     LEFT JOIN categories c ON b.category_id = c.id 
+     WHERE b.user_id = $1 AND b.month = $2 AND b.year = $3`,
+    [userId, month, year]
+  );
+  console.log(`[Budget Debug] Budget categories:`, budgetCats.rows);
+
+  // Debug: Log transaction categories for user in this month
+  const txCats = await query(
+    `SELECT t.category_id, c.name as category_name, SUM(t.amount) as total
+     FROM transactions t
+     LEFT JOIN categories c ON t.category_id = c.id
+     WHERE t.user_id = $1 AND t.type = 'expense' AND t.date >= $2 AND t.date <= $3
+     GROUP BY t.category_id, c.name`,
+    [userId, startDate, endDate]
+  );
+  console.log(`[Budget Debug] Transaction categories:`, txCats.rows);
+
   const result = await query(
     `SELECT 
        b.id as budget_id,
