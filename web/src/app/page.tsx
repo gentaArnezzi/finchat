@@ -956,7 +956,7 @@ export default function LandingPage() {
             <div className="col-span-2">
               <Link href="/" className="flex items-center mb-5 max-w-fit cursor-pointer group">
                 <div className="flex items-center justify-center transition-transform group-hover:scale-105">
-                  <img src="/Logo2finchat.webp" alt="FinChat Logo" className="w-[140px] h-[44px] md:w-[180px] md:h-[54px] object-cover object-center rounded-lg shadow-sm" />
+                  <img src="/Logofinchatwhite.png" alt="FinChat Logo" className="h-7 md:h-8 w-auto object-contain" />
                 </div>
               </Link>
               <p className="text-slate-500 text-sm max-w-xs leading-relaxed mb-6">

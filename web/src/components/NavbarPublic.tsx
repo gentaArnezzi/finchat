@@ -110,11 +110,11 @@ export default function NavbarPublic() {
   }, [handleTelegramAuth]);
 
   return (
-    <header className={`fixed top-0 w-full z-50 transition-all duration-500 border-b ${isScrolled ? 'bg-white/90 backdrop-blur-md border-slate-200/60 shadow-sm py-4' : 'bg-transparent border-transparent py-6'}`}>
+    <header className={`fixed top-0 w-full z-50 transition-all duration-500 border-b ${isScrolled ? 'bg-white/90 backdrop-blur-md border-slate-200/60 shadow-sm py-3' : 'bg-transparent border-transparent py-4'}`}>
       <div className="max-w-6xl mx-auto px-6 sm:px-8 flex justify-between items-center">
         <Link href="/" className="flex items-center group">
           <div className="flex items-center justify-center transition-transform group-hover:scale-105">
-            <img src="/Logo2finchat.webp" alt="FinChat Logo" className="w-[140px] h-[44px] md:w-[180px] md:h-[54px] object-cover object-center rounded-lg shadow-sm" />
+            <img src="/Logofinchatwhite.png" alt="FinChat Logo" className="h-8 md:h-9 w-auto object-contain" />
           </div>
         </Link>
         

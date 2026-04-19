@@ -61,7 +61,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
               </button>
               <div className="flex items-center">
                 <div className="flex items-center justify-center">
-                  <img src="/Logo2finchat.webp" alt="FinChat Logo" className="w-[120px] h-[36px] md:w-[140px] md:h-[42px] object-cover object-center rounded-md shadow-sm" />
+                  <img src="/Logofinchatwhite.png" alt="FinChat Logo" className="h-7 md:h-8 w-auto object-contain" />
                 </div>
               </div>
               <div className="hidden md:flex ml-10 space-x-8">
