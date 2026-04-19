@@ -9,10 +9,15 @@ import {
 export const startScheduler = () => {
   console.log('📅 Starting notification scheduler...');
 
-  // Daily reminder at 21:00 WIB (14:00 UTC)
-  cron.schedule('0 14 * * *', async () => {
-    console.log('Running daily reminder job...');
-    await sendDailyReminder();
+  // Run every hour to check for daily reminder based on user preference
+  cron.schedule('0 * * * *', async () => {
+    const now = new Date();
+    const hourUTC = now.getUTCHours();
+    const hourWIB = (hourUTC + 7) % 24;
+    
+    // Check all users who have daily_reminder enabled and their reminder_time matches current hour
+    console.log(`Running daily reminder check for hour ${hourWIB}...`);
+    await sendDailyReminder(hourWIB.toString().padStart(2, '0') + ':00');
   });
 
   // Budget alert check every 6 hours
@@ -33,5 +38,5 @@ export const startScheduler = () => {
     await sendMonthlyReport();
   });
 
-  console.log('✅ Scheduler started: daily reminder (21:00 WIB), budget alerts (6h), weekly (Mon 08:00), monthly (1st 09:00)');
+  console.log('✅ Scheduler started: hourly reminder check, budget alerts (6h), weekly (Mon 08:00), monthly (1st 09:00)');
 };

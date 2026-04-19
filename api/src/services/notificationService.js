@@ -28,14 +28,21 @@ const sendTelegramMessage = async (chatId, text) => {
   }
 };
 
-export const sendDailyReminder = async () => {
+export const sendDailyReminder = async (currentTime = null) => {
   try {
-    const result = await query(`
-      SELECT u.telegram_id, u.name
+    let queryText = `
+      SELECT u.telegram_id, u.name, p.reminder_time
       FROM users u
       JOIN user_preferences p ON u.id = p.user_id
       WHERE p.daily_reminder = true
-    `);
+    `;
+    
+    // Filter by reminder_time if provided
+    if (currentTime) {
+      queryText += ` AND p.reminder_time LIKE '${currentTime}%'`;
+    }
+    
+    const result = await query(queryText);
 
     for (const user of result.rows) {
       await sendTelegramMessage(
