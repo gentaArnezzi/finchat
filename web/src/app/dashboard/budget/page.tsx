@@ -207,18 +207,18 @@ export default function BudgetPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col justify-between">
-          <p className="text-sm font-semibold text-slate-500 mb-2">Total Budget</p>
-          <p className="text-2xl font-bold text-slate-900">{formatRupiah(totalBudget)}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-6 flex flex-col justify-between">
+          <p className="text-xs sm:text-sm font-semibold text-slate-500 mb-1 sm:mb-2">Total Budget</p>
+          <p className="text-xl sm:text-2xl font-bold text-slate-900">{formatRupiah(totalBudget)}</p>
         </div>
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col justify-between">
-          <p className="text-sm font-semibold text-slate-500 mb-2">Terpakai</p>
-          <p className="text-2xl font-bold text-indigo-600">{formatRupiah(totalSpent)}</p>
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-6 flex flex-col justify-between">
+          <p className="text-xs sm:text-sm font-semibold text-slate-500 mb-1 sm:mb-2">Terpakai</p>
+          <p className="text-xl sm:text-2xl font-bold text-indigo-600">{formatRupiah(totalSpent)}</p>
         </div>
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col justify-between">
-          <p className="text-sm font-semibold text-slate-500 mb-2">Sisa Keseluruhan</p>
-          <p className="text-2xl font-bold text-emerald-600">{formatRupiah(totalBudget - totalSpent)}</p>
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-6 flex flex-col justify-between">
+          <p className="text-xs sm:text-sm font-semibold text-slate-500 mb-1 sm:mb-2">Sisa Keseluruhan</p>
+          <p className="text-xl sm:text-2xl font-bold text-emerald-600">{formatRupiah(totalBudget - totalSpent)}</p>
         </div>
       </div>
 
@@ -244,26 +244,26 @@ export default function BudgetPage() {
               const remaining = item.remaining || 0;
               
               return (
-                <div key={item.budget_id} className="p-6 transition-colors hover:bg-slate-50/50">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-indigo-50/50 rounded-xl flex items-center justify-center border border-indigo-100/50">
+                <div key={item.budget_id} className="p-4 sm:p-6 transition-colors hover:bg-slate-50/50">
+                  <div className="flex items-start justify-between mb-3 sm:mb-4 gap-2">
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-indigo-50/50 rounded-xl flex items-center justify-center border border-indigo-100/50 shrink-0">
                         {getCategoryIcon(item.category_name)}
                       </div>
                       <div>
-                        <h3 className="font-bold text-slate-900">{item.category_name}</h3>
-                        <p className="text-sm text-slate-500 mt-0.5">{monthName}</p>
+                        <h3 className="font-bold text-slate-900 text-sm sm:text-base">{item.category_name}</h3>
+                        <p className="text-xs sm:text-sm text-slate-500 mt-0.5">{monthName}</p>
                       </div>
                     </div>
                     <div className="text-right flex flex-col items-end">
-                      <span className={`px-2.5 py-1 text-xs rounded-md font-medium border ${percent >= 100 ? 'bg-red-50 text-red-700 border-red-100' : percent >= 80 ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'}`}>
+                      <span className={`px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs rounded-md font-medium border shrink-0 ${percent >= 100 ? 'bg-red-50 text-red-700 border-red-100' : percent >= 80 ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'}`}>
                         {getStatusText(percent)}
                       </span>
                     </div>
                   </div>
                   
-                  <div className="mt-4">
-                    <div className="flex justify-between text-sm mb-2 font-medium">
+                  <div className="mt-3 sm:mt-4">
+                    <div className="flex justify-between text-xs sm:text-sm mb-2 font-medium">
                       <span className="text-slate-600">Terpakai: {formatRupiah(item.spent)}</span>
                       <span className="text-slate-900">Target: {formatRupiah(item.budget_amount)}</span>
                     </div>
@@ -281,7 +281,7 @@ export default function BudgetPage() {
                     </div>
                     
                     {hasBudgetAccess !== false && (
-                      <div className="flex gap-2 mt-4 pt-4 border-t border-slate-100">
+                      <div className="flex gap-2 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-slate-100">
                         <button
                           onClick={() => {
                             setEditingBudget({
@@ -291,15 +291,15 @@ export default function BudgetPage() {
                             });
                             setShowEditModal(true);
                           }}
-                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium"
+                          className="flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors text-xs sm:text-sm font-medium"
                         >
-                          <Pencil size={14} /> Edit
+                          <Pencil size={12} className="sm:size-14" /> <span className="hidden sm:inline">Edit</span>
                         </button>
                         <button
                           onClick={() => handleDeleteBudget(item.budget_id)}
-                          className="flex items-center justify-center gap-2 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium"
+                          className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-xs sm:text-sm font-medium"
                         >
-                          <Trash2 size={14} /> Hapus
+                          <Trash2 size={12} className="sm:size-14" /> <span className="hidden sm:inline">Hapus</span>
                         </button>
                       </div>
                     )}
