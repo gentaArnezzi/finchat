@@ -152,17 +152,17 @@ export default function BudgetPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Budget Bulanan</h1>
           <p className="text-slate-500 mt-1">Kelola target anggaran per kategori</p>
         </div>
 
-        <div className="flex flex-wrap gap-2 sm:gap-3">
+        <div className="flex flex-wrap gap-2 md:gap-3">
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-            className="border border-slate-200 rounded-xl px-3 sm:px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white text-sm font-medium"
+            className="border border-slate-200 rounded-lg md:rounded-xl px-3 md:px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white text-sm font-medium"
           >
             {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
               <option key={m} value={m}>
@@ -173,7 +173,7 @@ export default function BudgetPage() {
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-            className="border border-slate-200 rounded-xl px-3 sm:px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white text-sm font-medium"
+            className="border border-slate-200 rounded-lg md:rounded-xl px-3 md:px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white text-sm font-medium"
           >
             {[2024, 2025, 2026].map(y => (
               <option key={y} value={y}>{y}</option>
@@ -182,43 +182,43 @@ export default function BudgetPage() {
           {hasBudgetAccess === false ? (
             <Link
               href="/dashboard/upgrade"
-              className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-slate-200 text-slate-500 rounded-xl hover:bg-slate-300 transition-colors font-medium text-xs sm:text-sm"
+              className="flex items-center gap-2 px-3 md:px-4 py-2 bg-slate-200 text-slate-500 rounded-lg md:rounded-xl hover:bg-slate-300 transition-colors font-medium text-sm"
             >
-              <Lock size={14} className="sm:size-16" /> <span className="hidden sm:inline">Tambah Budget </span><span className="text-xs bg-indigo-100 text-indigo-700 px-1.5 sm:px-2 py-0.5 rounded-full font-semibold">PRO</span>
+              <Lock size={16} /> Tambah Budget <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-semibold">PRO</span>
             </Link>
           ) : (
             <div className="flex gap-2">
               {showCopyHint && (
                 <button
                   onClick={handleCopyFromLastMonth}
-                  className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-indigo-100 text-indigo-700 rounded-xl hover:bg-indigo-200 transition-colors font-medium text-xs sm:text-sm"
+                  className="flex items-center gap-2 px-3 md:px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg md:rounded-xl hover:bg-indigo-200 transition-colors font-medium text-sm"
                 >
-                  <Copy size={14} className="sm:size-16" /> <span className="hidden sm:inline">Copy Budget</span>
+                  <Copy size={16} /> Copy Budget
                 </button>
               )}
               <button
                 onClick={() => setShowModal(true)}
-                className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-sm font-medium text-xs sm:text-sm"
+                className="flex items-center gap-2 px-3 md:px-4 py-2 bg-indigo-600 text-white rounded-lg md:rounded-xl hover:bg-indigo-700 transition-colors shadow-sm font-medium text-sm"
               >
-                <Plus size={14} className="sm:size-16" /> <span className="hidden sm:inline">Tambah Budget</span>
+                <Plus size={16} /> Tambah Budget
               </button>
             </div>
           )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-6 flex flex-col justify-between">
-          <p className="text-xs sm:text-sm font-semibold text-slate-500 mb-1 sm:mb-2">Total Budget</p>
-          <p className="text-xl sm:text-2xl font-bold text-slate-900">{formatRupiah(totalBudget)}</p>
+      <div className="grid grid-cols-3 md:grid-cols-3 gap-3 md:gap-5">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 md:p-6 flex flex-col justify-between">
+          <p className="text-xs md:text-sm font-semibold text-slate-500 mb-1 md:mb-2">Total Budget</p>
+          <p className="text-xl md:text-2xl font-bold text-slate-900">{formatRupiah(totalBudget)}</p>
         </div>
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-6 flex flex-col justify-between">
-          <p className="text-xs sm:text-sm font-semibold text-slate-500 mb-1 sm:mb-2">Terpakai</p>
-          <p className="text-xl sm:text-2xl font-bold text-indigo-600">{formatRupiah(totalSpent)}</p>
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 md:p-6 flex flex-col justify-between">
+          <p className="text-xs md:text-sm font-semibold text-slate-500 mb-1 md:mb-2">Terpakai</p>
+          <p className="text-xl md:text-2xl font-bold text-indigo-600">{formatRupiah(totalSpent)}</p>
         </div>
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-6 flex flex-col justify-between">
-          <p className="text-xs sm:text-sm font-semibold text-slate-500 mb-1 sm:mb-2">Sisa Keseluruhan</p>
-          <p className="text-xl sm:text-2xl font-bold text-emerald-600">{formatRupiah(totalBudget - totalSpent)}</p>
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 md:p-6 flex flex-col justify-between">
+          <p className="text-xs md:text-sm font-semibold text-slate-500 mb-1 md:mb-2">Sisa Keseluruhan</p>
+          <p className="text-xl md:text-2xl font-bold text-emerald-600">{formatRupiah(totalBudget - totalSpent)}</p>
         </div>
       </div>
 
