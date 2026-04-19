@@ -262,9 +262,12 @@ function regexParse(message) {
 /**
  * Gemini AI - FALLBACK ONLY for complex cases
  */
-async function geminiFallback(message) {
+async function geminiFallback(message, retries = 2) {
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return null;
+  if (!apiKey) {
+    console.log('⚠️ GEMINI_API_KEY not configured');
+    return null;
+  }
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -280,46 +283,79 @@ Format:
 
 Jawab JSON saja, tanpa markdown.`;
 
-  try {
-    const model = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const model = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+      
+      // Use v1 for Gemini 2.x, fallback to v1beta for older models
+      const version = model.includes('2.0') || model.includes('2.5') ? 'v1' : 'v1beta';
+      const url = `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${apiKey}`;
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.1,
-          maxOutputTokens: 512,
-          responseMimeType: 'application/json'
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.1,
+            maxOutputTokens: 512,
+            responseMimeType: 'application/json'
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.log(`⚠️ Gemini API error ${response.status}: ${errorText}`);
+        if (response.status === 429 && attempt < retries - 1) {
+          await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+          continue;
         }
-      })
-    });
+        return null;
+      }
 
-    if (!response.ok) return null;
+      const data = await response.json();
+      
+      if (data.error) {
+        console.log(`⚠️ Gemini error: ${data.error.message}`);
+        return null;
+      }
+      
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) {
+        console.log('⚠️ Gemini returned empty response');
+        return null;
+      }
 
-    const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) return null;
+      const cleanJson = text.replace(/```json|```/g, '').trim();
+      let parsed;
+      try {
+        parsed = JSON.parse(cleanJson);
+      } catch (parseError) {
+        console.log(`⚠️ Failed to parse Gemini JSON: ${cleanJson.substring(0, 100)}`);
+        return null;
+      }
 
-    const cleanJson = text.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(cleanJson);
+      if (!parsed || (Array.isArray(parsed) && parsed.length === 0)) return null;
 
-    if (!parsed || (Array.isArray(parsed) && parsed.length === 0)) return null;
+      return (Array.isArray(parsed) ? parsed : [parsed]).filter(tx => tx.amount > 0).map(tx => ({
+        type: tx.type || 'expense',
+        amount: tx.amount,
+        category: CATEGORIES.includes(tx.category) ? tx.category : detectCategory(tx.description || message, tx.type),
+        description: tx.description || message,
+        date: tx.date || today,
+        parsedBy: 'gemini'
+      }));
 
-    return (Array.isArray(parsed) ? parsed : [parsed]).filter(tx => tx.amount > 0).map(tx => ({
-      type: tx.type || 'expense',
-      amount: tx.amount,
-      category: CATEGORIES.includes(tx.category) ? tx.category : detectCategory(tx.description || message, tx.type),
-      description: tx.description || message,
-      date: tx.date || today,
-      parsedBy: 'gemini'
-    }));
-
-  } catch (error) {
-    return null;
+    } catch (error) {
+      console.log(`⚠️ Gemini attempt ${attempt + 1} failed: ${error.message}`);
+      if (attempt < retries - 1) {
+        await new Promise(r => setTimeout(r, 1000));
+      }
+    }
   }
+  
+  return null;
 }
 
 /**
