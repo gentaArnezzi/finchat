@@ -572,29 +572,10 @@ async function groqFallback(message, retries = 2) {
 
   const today = new Date().toISOString().split('T')[0];
 
-  const prompt = `Parse transaksi keuangan Indonesia ke JSON.
-
-KATEGORI: ${CATEGORIES.join(', ')}
-
-PESAN: "${message}"
-
-TUGAS:
-1. Ekstrak amount (Rp) dari pesan - PERHATIKAN:
-   - "rebu" / "rb" / "ribu" = x 1.000 (bukan 10.000!)
-   - "jt" / "juta" = x 1.000.000
-   - "18 rebu" = Rp 18.000 (DELAPAN BELAS RIBU)
-   - "250rb" = Rp 250.000
-   - "1.5jt" = Rp 1.500.000
-2. Tentukan type (expense/income)
-3. Tentukan kategori yang paling cocok
-4. BUAT description yang CLEAN - hanya bagian penting (hapus: "tadi", "kena", "wkwk", "abis", "lah", "dong", dll)
-
-CONTOH:
-- "tadi nambal ban vespa 250rb wkwk" → {"type":"expense","amount":250000,"category":"Transportasi","description":"Nambal ban vespa","date":"${today}"}
-- "parkir 18rebu" → {"type":"expense","amount":18000,"category":"Transportasi","description":"Bayar parkir","date":"${today}"}
-- "bayar tol 25rb" → {"type":"expense","amount":25000,"category":"Transportasi","description":"Bayar tol","date":"${today}"}
-
-Jawab JSON saja, tanpa markdown.`;
+  // OPTIMIZED: compact prompt for 8b model
+  const prompt = `Parser: "${message}" → JSON {type,amount,category,description,date}
+Aturan: rb=1000, jt=1000000. hapus: tadi,kena,wkwk,abis,lah
+cth: "parkir 18rebu"→{type:"expense",amount:18000,category:"Transportasi",description:"Bayar parkir",date:"${today}"}`;
 
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
@@ -608,7 +589,7 @@ Jawab JSON saja, tanpa markdown.`;
           model: process.env.GROQ_MODEL || 'llama-3.1-8b-instant',
           messages: [{ role: 'user', content: prompt }],
           temperature: 0.1,
-          max_tokens: 512
+          max_tokens: 128
         })
       });
 
@@ -675,29 +656,10 @@ async function openrouterFallback(message, retries = 2) {
 
   const today = new Date().toISOString().split('T')[0];
 
-  const prompt = `Parse transaksi keuangan Indonesia ke JSON.
-
-KATEGORI: ${CATEGORIES.join(', ')}
-
-PESAN: "${message}"
-
-TUGAS:
-1. Ekstrak amount (Rp) dari pesan - PERHATIKAN:
-   - "rebu" / "rb" / "ribu" = x 1.000 (bukan 10.000!)
-   - "jt" / "juta" = x 1.000.000
-   - "18 rebu" = Rp 18.000 (DELAPAN BELAS RIBU)
-   - "250rb" = Rp 250.000
-   - "1.5jt" = Rp 1.500.000
-2. Tentukan type (expense/income)
-3. Tentukan kategori yang paling cocok
-4. BUAT description yang CLEAN - hanya bagian penting (hapus: "tadi", "kena", "wkwk", "abis", "lah", "dong", dll)
-
-CONTOH:
-- "tadi nambal ban vespa 250rb wkwk" → {"type":"expense","amount":250000,"category":"Transportasi","description":"Nambal ban vespa","date":"${today}"}
-- "parkir 18rebu" → {"type":"expense","amount":18000,"category":"Transportasi","description":"Bayar parkir","date":"${today}"}
-- "bayar tol 25rb" → {"type":"expense","amount":25000,"category":"Transportasi","description":"Bayar tol","date":"${today}"}
-
-Jawab JSON saja, tanpa markdown.`;
+  // OPTIMIZED: compact prompt for 8b model
+  const prompt = `Parser: "${message}" → JSON {type,amount,category,description,date}
+Aturan: rb=1000, jt=1000000. hapus: tadi,kena,wkwk,abis,lah
+cth: "parkir 18rebu"→{type:"expense",amount:18000,category:"Transportasi",description:"Bayarparkir",date:"${today}"}`;
 
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
@@ -713,7 +675,7 @@ Jawab JSON saja, tanpa markdown.`;
           model: 'deepseek/deepseek-chat',
           messages: [{ role: 'user', content: prompt }],
           temperature: 0.1,
-          max_tokens: 512
+          max_tokens: 128
         })
       });
 
@@ -780,29 +742,10 @@ async function geminiFallback(message, retries = 2) {
 
   const today = new Date().toISOString().split('T')[0];
 
-  const prompt = `Parse transaksi keuangan Indonesia ke JSON.
-
-KATEGORI: ${CATEGORIES.join(', ')}
-
-PESAN: "${message}"
-
-TUGAS:
-1. Ekstrak amount (Rp) dari pesan - PERHATIKAN:
-   - "rebu" / "rb" / "ribu" = x 1.000 (bukan 10.000!)
-   - "jt" / "juta" = x 1.000.000
-   - "18 rebu" = Rp 18.000 (DELAPAN BELAS RIBU)
-   - "250rb" = Rp 250.000
-   - "1.5jt" = Rp 1.500.000
-2. Tentukan type (expense/income)
-3. Tentukan kategori yang paling cocok
-4. BUAT description yang CLEAN - hanya bagian penting (hapus: "tadi", "kena", "wkwk", "abis", "lah", "dong", dll)
-
-CONTOH:
-- "tadi nambal ban vespa 250rb wkwk" → {"type":"expense","amount":250000,"category":"Transportasi","description":"Nambal ban vespa","date":"${today}"}
-- "parkir 18rebu" → {"type":"expense","amount":18000,"category":"Transportasi","description":"Bayar parkir","date":"${today}"}
-- "bayar tol 25rb" → {"type":"expense","amount":25000,"category":"Transportasi","description":"Bayar tol","date":"${today}"}
-
-Jawab JSON saja, tanpa markdown.`;
+  // OPTIMIZED: compact prompt
+  const prompt = `Parser: "${message}" → JSON {type,amount,category,description,date}
+Aturan: rb=1000, jt=1000000. hapus: tadi,kena,wkwk,abis,lah
+cth: "parkir 18rebu"→{type:"expense",amount:18000,category:"Transportasi",description:"Bayarparkir",date:"${today}"}`;
 
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
@@ -818,7 +761,8 @@ Jawab JSON saja, tanpa markdown.`;
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             temperature: 0.1,
-            maxOutputTokens: 512,
+            maxOutputTokens: 128,
+            maxOutputTokens: 128,
             responseMimeType: 'application/json'
           }
         })
