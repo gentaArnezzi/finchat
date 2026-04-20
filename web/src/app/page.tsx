@@ -197,7 +197,7 @@ export default function LandingPage() {
                 href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME || 'finchatme_bot'}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-4 bg-gradient-to-br from-indigo-600 to-slate-900 hover:shadow-xl hover:shadow-indigo-900/20 text-white text-sm font-semibold rounded-full transition-all active:scale-95 border-none"
+                className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-4 bg-[#cafb30] hover:bg-[#b8e829] text-slate-900 text-sm font-semibold rounded-full transition-all active:scale-95 border-none"
               >
                 <Send size={16} />
                 Mulai Chat Gratis
