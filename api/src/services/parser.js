@@ -44,7 +44,8 @@ function normalize(text) {
 }
 
 function extractSegments(text) {
-  const separators = /\s*(?:dan|&|\+|,)\s*|\s+terus\s+/i;
+  // Split by: dan, &, +, , (termasuk "sama", "plus", "ditambah")
+  const separators = /\s*(?:dan|sama|plus|ditambah|&|\+|,)\s*|\s+terus\s+/i;
   const parts = text.split(separators);
   return parts.filter(p => /\d/.test(p));
 }
@@ -52,12 +53,18 @@ function extractSegments(text) {
 function extractAmount(segment) {
   if (!segment) return 0;
   
+  // Find all number sequences and take the LAST one (usually the main amount)
+  // "bayar parkiran 34000 orange water 8500" → take 8500, not 340008500
   const matches = segment.match(/\d+/g);
-  if (!matches) return 0;
+  if (!matches || matches.length === 0) return 0;
   
-  const numStr = matches.join('');
-  const amount = parseInt(numStr, 10);
+  // Take the last number (most likely the transaction amount)
+  // OR if there's only one, use it
+  const lastNum = parseInt(matches[matches.length - 1], 10);
   
+  let amount = lastNum;
+  
+  // Validate
   if (amount < 100 || amount > 10000000000) return 0;
   if (amount < 1000) return amount * 1000;
   
