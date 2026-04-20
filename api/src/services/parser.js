@@ -26,18 +26,26 @@ const INCOME_KEYWORDS = ['gaji', 'bonus', 'jual', 'transfer masuk', 'dapat', 'te
 
 function normalize(text) {
   if (!text) return '';
-  return text
+  
+  // Step 1: Replace rb/jt/etc dulu
+  let normalized = text
     .toLowerCase()
     .replace(/rb|ribu|rebu|rbu/gi, '000')
     .replace(/jt|juta/gi, '000000')
-    .replace(/(\d+)k(?!\w)/g, (_, n) => n + '000')
-    .replace(/(\d+),(\d{3})/g, '$1$2')
-    .replace(/(\d{1,3})\.(\d{3})/g, '$1$2')
-    .replace(/\s*(\d+)\s+000/g, '$1000') // "34 000" → "34000"
+    .replace(/(\d+)k(?!\w)/g, (_, n) => n + '000');
+  
+  // Step 2: Fix number format - "34 000" → "34000" dan "1 500" → "1500"
+  normalized = normalized.replace(/\b(\d{1,3})\s+(\d{3})\b/g, '$1$2');
+  normalized = normalized.replace(/\b(\d+)\s+000\b/g, '$1000');
+  
+  // Step 3: Remove noise
+  normalized = normalized
     .replace(/[^\w\s\d]/g, ' ')
     .replace(/\b(tadi|wkwk|abis|lah|dong|kena|gue|gui|sya|aku|lo|lu|yang|nya|deh|neh|buat|untuk)\b/gi, '')
     .replace(/\s+/g, ' ')
     .trim();
+  
+  return normalized;
 }
 
 function extractSegments(text) {
