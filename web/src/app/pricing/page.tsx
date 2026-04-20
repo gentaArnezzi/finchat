@@ -19,7 +19,7 @@ const plans = [
     badge: null,
     description: 'Cocok untuk yang baru mulai tracking keuangan',
     cta: 'Mulai Gratis',
-    ctaHref: `https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME || 'finchatme_bot'}`,
+    ctaHref: `https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME || 'finchatids_bot'}`,
     ctaExternal: true,
     highlight: false,
     features: [

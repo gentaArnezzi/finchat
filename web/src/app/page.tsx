@@ -27,7 +27,7 @@ const faqs = [
   },
   {
     q: 'Bagaimana cara memulai?',
-    a: 'Cukup kirim pesan ke bot FinChat di Telegram (@finchatme_bot), lalu mulai catat transaksi dengan bahasa sehari-hari. Gratis, tanpa biaya.',
+    a: 'Cukup kirim pesan ke bot FinChat di Telegram (@finchatids_bot), lalu mulai catat transaksi dengan bahasa sehari-hari. Gratis, tanpa biaya.',
   },
   {
     q: 'Metode pembayaran apa saja yang tersedia?',
@@ -194,7 +194,7 @@ export default function LandingPage() {
 
             <div className="flex flex-col sm:flex-row justify-center lg:justify-start items-center gap-4 w-full sm:w-auto">
               <a
-                href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME || 'finchatme_bot'}`}
+                href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME || 'finchatids_bot'}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-4 bg-[#a2c828] hover:bg-[#b8e829] text-slate-900 text-sm font-semibold rounded-full transition-all active:scale-95 border-none"
@@ -928,7 +928,7 @@ export default function LandingPage() {
                   <li className="flex gap-3.5 items-start opacity-40 grayscale"><CheckCircle2 className="text-slate-400 shrink-0 mt-0.5" size={20}/> <span>Tanpa Custom Kategori</span></li>
                 </ul>
                 <div className="mt-auto">
-                  <a href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME || 'finchatme_bot'}`} target="_blank" rel="noopener noreferrer" className="block w-full py-4 text-center rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold transition-all shadow-md active:scale-95">
+                  <a href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME || 'finchatids_bot'}`} target="_blank" rel="noopener noreferrer" className="block w-full py-4 text-center rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold transition-all shadow-md active:scale-95">
                     Daftar Akun Gratis
                   </a>
                 </div>
