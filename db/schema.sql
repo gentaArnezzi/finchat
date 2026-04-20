@@ -148,3 +148,16 @@ CREATE INDEX idx_payments_user_id ON payments(user_id);
 CREATE INDEX idx_payments_order_id ON payments(order_id);
 CREATE INDEX idx_subscriptions_user_id ON subscriptions(user_id);
 CREATE INDEX idx_subscriptions_status ON subscriptions(status);
+
+-- Conversation memory for LLM context
+CREATE TABLE conversation_memory (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role VARCHAR(20) NOT NULL CHECK (role IN ('user', 'assistant')),
+    content TEXT NOT NULL,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_conversation_memory_user_id ON conversation_memory(user_id);
+CREATE INDEX idx_conversation_memory_created_at ON conversation_memory(created_at);

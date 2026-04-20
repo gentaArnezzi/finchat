@@ -560,7 +560,192 @@ function regexParse(message) {
 }
 
 /**
- * GEMINI AI FALLBACK
+ * GROQ AI PARSER (Primary - Llama 3)
+ * Fast, cheap, great for Indonesian casual language
+ */
+async function groqFallback(message, retries = 2) {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) {
+    console.log('⚠️ GROQ_API_KEY not configured');
+    return null;
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+
+  const prompt = `Parse transaksi keuangan Indonesia ke JSON.
+
+KATEGORI: ${CATEGORIES.join(', ')}
+
+PESAN: "${message}"
+
+Format JSON:
+- Jika 1 transaksi: {"type":"expense/income","amount":number,"category":"kategori","description":"deskripsi","date":"${today}"}
+- Jika multi: [{"type":"expense","amount":25000,"category":"Makanan & Minuman","description":"Kopi","date":"${today}"}]
+
+Jawab JSON saja, tanpa markdown.`;
+
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: process.env.GROQ_MODEL || 'llama-3-70b-versatile',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.1,
+          max_tokens: 512
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.log(`⚠️ Groq API error ${response.status}: ${errorText.substring(0, 100)}`);
+        if (response.status === 429 && attempt < retries - 1) {
+          await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
+          continue;
+        }
+        return null;
+      }
+
+      const data = await response.json();
+      const text = data.choices?.[0]?.message?.content;
+      if (!text) {
+        console.log('⚠️ Groq returned empty response');
+        return null;
+      }
+
+      const cleanJson = text.replace(/```json|```/g, '').trim();
+      let parsed;
+      try {
+        parsed = JSON.parse(cleanJson);
+      } catch (parseError) {
+        console.log(`⚠️ Failed to parse Groq JSON: ${cleanJson.substring(0, 80)}`);
+        return null;
+      }
+
+      if (!parsed || (Array.isArray(parsed) && parsed.length === 0)) return null;
+
+      return (Array.isArray(parsed) ? parsed : [parsed])
+        .filter(tx => tx.amount > 0)
+        .map(tx => ({
+          type: tx.type || 'expense',
+          amount: tx.amount,
+          category: CATEGORIES.includes(tx.category) ? tx.category : detectCategory(tx.description || message, tx.type),
+          description: tx.description || message,
+          date: tx.date || today,
+          parsedBy: 'groq'
+        }));
+
+    } catch (error) {
+      console.log(`⚠️ Groq attempt ${attempt + 1} failed: ${error.message}`);
+      if (attempt < retries - 1) {
+        await new Promise(r => setTimeout(r, 1000));
+      }
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * OPENROUTER AI PARSER (Fallback - DeepSeek)
+ * Free tier available, good for edge cases
+ */
+async function openrouterFallback(message, retries = 2) {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
+    console.log('⚠️ OPENROUTER_API_KEY not configured');
+    return null;
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+
+  const prompt = `Parse transaksi keuangan Indonesia ke JSON.
+
+KATEGORI: ${CATEGORIES.join(', ')}
+
+PESAN: "${message}"
+
+Format JSON:
+- Jika 1 transaksi: {"type":"expense/income","amount":number,"category":"kategori","description":"deskripsi","date":"${today}"}
+- Jika multi: [{"type":"expense","amount":25000,"category":"Makanan & Minuman","description":"Kopi","date":"${today}"}]
+
+Jawab JSON saja, tanpa markdown.`;
+
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+          'HTTP-Referer': 'https://finchat.id',
+          'X-Title': 'FinChat'
+        },
+        body: JSON.stringify({
+          model: 'deepseek/deepseek-chat',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.1,
+          max_tokens: 512
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.log(`⚠️ OpenRouter API error ${response.status}: ${errorText.substring(0, 100)}`);
+        if (response.status === 429 && attempt < retries - 1) {
+          await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
+          continue;
+        }
+        return null;
+      }
+
+      const data = await response.json();
+      const text = data.choices?.[0]?.message?.content;
+      if (!text) {
+        console.log('⚠️ OpenRouter returned empty response');
+        return null;
+      }
+
+      const cleanJson = text.replace(/```json|```/g, '').trim();
+      let parsed;
+      try {
+        parsed = JSON.parse(cleanJson);
+      } catch (parseError) {
+        console.log(`⚠️ Failed to parse OpenRouter JSON: ${cleanJson.substring(0, 80)}`);
+        return null;
+      }
+
+      if (!parsed || (Array.isArray(parsed) && parsed.length === 0)) return null;
+
+      return (Array.isArray(parsed) ? parsed : [parsed])
+        .filter(tx => tx.amount > 0)
+        .map(tx => ({
+          type: tx.type || 'expense',
+          amount: tx.amount,
+          category: CATEGORIES.includes(tx.category) ? tx.category : detectCategory(tx.description || message, tx.type),
+          description: tx.description || message,
+          date: tx.date || today,
+          parsedBy: 'openrouter'
+        }));
+
+    } catch (error) {
+      console.log(`⚠️ OpenRouter attempt ${attempt + 1} failed: ${error.message}`);
+      if (attempt < retries - 1) {
+        await new Promise(r => setTimeout(r, 1000));
+      }
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * GEMINI AI (Heavy Reasoning)
+ * Use for complex multi-transaction or ambiguous messages
  */
 async function geminiFallback(message, retries = 2) {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -662,7 +847,7 @@ Jawab JSON saja, tanpa markdown.`;
 /**
  * MAIN PARSER EXPORT
  */
-export async function parseTransaction(message) {
+export async function parseTransaction(message, userId = null) {
   if (!message || typeof message !== 'string' || message.trim().length === 0) {
     return null;
   }
@@ -675,8 +860,26 @@ export async function parseTransaction(message) {
     return regexResult;
   }
 
-  // === TIER 2: GEMINI FALLBACK ===
-  console.log(`🤖 Regex failed, trying Gemini: "${message}"`);
+  // === TIER 2: GROQ (Primary - Llama 3) ===
+  console.log(`🤖 Regex failed, trying Groq: "${message}"`);
+  const groqResult = await groqFallback(message);
+  if (groqResult && groqResult.length > 0) {
+    const firstTx = Array.isArray(groqResult) ? groqResult[0] : groqResult;
+    console.log(`✅ Groq: "${message}" → ${firstTx.amount} (${firstTx.category})`);
+    return groqResult;
+  }
+
+  // === TIER 3: OPENROUTER (Fallback - DeepSeek) ===
+  console.log(`🤖 Groq failed, trying OpenRouter: "${message}"`);
+  const openrouterResult = await openrouterFallback(message);
+  if (openrouterResult && openrouterResult.length > 0) {
+    const firstTx = Array.isArray(openrouterResult) ? openrouterResult[0] : openrouterResult;
+    console.log(`✅ OpenRouter: "${message}" → ${firstTx.amount} (${firstTx.category})`);
+    return openrouterResult;
+  }
+
+  // === TIER 4: GEMINI (Heavy Reasoning - Last Resort) ===
+  console.log(`🤖 OpenRouter failed, trying Gemini: "${message}"`);
   const aiResult = await geminiFallback(message);
   if (aiResult && aiResult.length > 0) {
     const firstTx = Array.isArray(aiResult) ? aiResult[0] : aiResult;
