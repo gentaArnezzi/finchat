@@ -335,7 +335,7 @@ export default function LandingPage() {
       </section>
 
       {/* FEATURE 1: SEAMLESS INPUT */}
-      <section id="fitur-chat" className="py-24 md:py-32 relative overflow-hidden bg-white border-b border-slate-50">
+      <section id="fitur" className="py-24 md:py-32 relative overflow-hidden bg-white border-b border-slate-50">
         <div className="max-w-6xl mx-auto px-6 sm:px-8">
           <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-20">
             {/* Left: Copy */}
@@ -985,7 +985,7 @@ export default function LandingPage() {
       </section>
 
       {/* FAQ */}
-      <section className="py-24 bg-slate-50">
+      <section id="faq" className="py-24 bg-slate-50">
         <div className="max-w-3xl mx-auto px-6">
           <h2 className="text-3xl font-bold text-slate-900 text-center mb-12">Pertanyaan Umum</h2>
           <div className="bg-white rounded-2xl border border-slate-200 px-6 md:px-8">

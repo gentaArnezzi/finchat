@@ -104,7 +104,7 @@ export default function NavbarPublic() {
         </Link>
         
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-500">
-          <a href="/#solusi" className="hover:text-slate-900 transition-colors">Fitur</a>
+          <a href="/#fitur" className="hover:text-slate-900 transition-colors">Fitur</a>
           <Link href="/pricing" className="hover:text-slate-900 transition-colors">Harga</Link>
           <Link href="/blog" className="hover:text-slate-900 transition-colors">Blog</Link>
           <a href="/#faq" className="hover:text-slate-900 transition-colors">FAQ</a>
