@@ -3,11 +3,13 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --finchat: #cafb30;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--finchat);
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
