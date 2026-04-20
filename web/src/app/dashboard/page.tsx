@@ -6,7 +6,7 @@ import { useWebSocket } from '@/context/WebSocketContext';
 import { Transaction } from '@/types';
 import MonthlyBarChart from '@/components/charts/BarChart';
 import ExportButton from '@/components/ExportButton';
-import { Wallet, TrendingUp, TrendingDown, Clock, ArrowRight, ArrowUpRight, ArrowDownRight, LayoutTemplate } from 'lucide-react';
+import { Wallet, TrendingUp, TrendingDown, Clock, ArrowRight, ArrowUpRight, ArrowDownRight, LayoutTemplate, PiggyBank, Target, Percent, Activity } from 'lucide-react';
 
 const getCategoryIcon = (categoryName: string) => {
   const name = categoryName?.toLowerCase() || '';
@@ -110,6 +110,16 @@ export default function DashboardPage() {
   const totalIncome = stats?.income?.total || 0;
   const totalExpense = stats?.expense?.total || 0;
   const balance = totalIncome - totalExpense;
+  
+  // Calculate additional stats
+  const now = new Date();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const currentDay = now.getDate();
+  const daysLeft = daysInMonth - currentDay;
+  const avgDailyExpense = currentDay > 0 ? Math.round(totalExpense / currentDay) : 0;
+  const savingsRate = totalIncome > 0 ? Math.round((balance / totalIncome) * 100) : 0;
+  const projectedExpense = avgDailyExpense * daysLeft;
+  const projectedBalance = balance - projectedExpense;
 
   if (loading) {
     return (
@@ -215,6 +225,49 @@ export default function DashboardPage() {
             <p className="text-xs text-slate-400 mt-2 font-medium uppercase tracking-wider">Total Pengeluaran</p>
           </div>
         )}
+      </div>
+
+      {/* Quick Stats Row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Activity size={16} className="text-slate-400" />
+            <p className="text-xs font-medium text-slate-500">Rata-rata Harian</p>
+          </div>
+          <p className="text-lg font-bold text-slate-900">{formatRupiah(avgDailyExpense)}</p>
+          <p className="text-[10px] text-slate-400">pengeluaran per hari</p>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <PiggyBank size={16} className="text-slate-400" />
+            <p className="text-xs font-medium text-slate-500">Tingkat Tabungan</p>
+          </div>
+          <p className={`text-lg font-bold ${savingsRate >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+            {savingsRate}%
+          </p>
+          <p className="text-[10px] text-slate-400">dari total income</p>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Clock size={16} className="text-slate-400" />
+            <p className="text-xs font-medium text-slate-500">Sisa Hari</p>
+          </div>
+          <p className="text-lg font-bold text-slate-900">{daysLeft}</p>
+          <p className="text-[10px] text-slate-400">hari di bulan ini</p>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Target size={16} className="text-slate-400" />
+            <p className="text-xs font-medium text-slate-500">Proyeksi Saldo</p>
+          </div>
+          <p className={`text-lg font-bold ${projectedBalance >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+            {formatRupiah(projectedBalance)}
+          </p>
+          <p className="text-[10px] text-slate-400">estimasi bulanini</p>
+        </div>
       </div>
 
       {/* Monthly Bar Chart */}
