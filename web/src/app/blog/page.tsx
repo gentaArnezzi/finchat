@@ -92,7 +92,7 @@ export default function BlogPage() {
           <div className="max-w-2xl">
 
             <h1 className="text-4xl md:text-6xl font-black text-slate-900 mt-6 mb-4 tracking-tight leading-[1.1]">
-              Literasi Keuangan<br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-indigo-500">Orang Indonesia.</span>
+              Literasi Keuangan<br /> <span className="text-[#cafb30]">Orang Indonesia.</span>
             </h1>
             <p className="text-slate-500 text-lg md:text-xl leading-relaxed max-w-xl">
               Panduan nyata mengelola uang pribadi — dari cara membagi gaji pertama, hingga strategi investasi pemula.

@@ -151,7 +151,7 @@ export default function PricingPage() {
       <section className="pt-24 pb-16 text-center px-6 relative z-10">
 
         <h1 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tight leading-[1.1] mb-6">
-          Investasi Kecil, <br className="hidden sm:block" /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-emerald-500">Dampak Eksponensial.</span>
+          Investasi Kecil, <br className="hidden sm:block" /> <span className="text-[#cafb30]">Dampak Eksponensial.</span>
         </h1>
         <p className="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto mb-12 leading-relaxed">
           Tidak ada kontrak rumit. Tidak ada biaya jebakan. <i>Cancel</i> kapan pun tanpa pinalti. Kebebasan finansial ada di tangan Anda.

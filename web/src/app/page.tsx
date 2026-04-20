@@ -430,7 +430,7 @@ export default function LandingPage() {
               <FadeIn>
 
                 <h2 className="text-4xl md:text-5xl font-black text-white mb-6 tracking-tight leading-[1.1]">
-                  Autentikasi AI <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 drop-shadow-sm">Sangat Cerdas.</span>
+                  Autentikasi AI <span className="text-[#cafb30]">Sangat Cerdas.</span>
                 </h2>
                 <p className="text-slate-400 text-lg leading-relaxed mb-8">
                   Di balik layar, Model AI internal kami mengekstrak maksud finansial Anda. Tidak perlu lagi klik dan <i>scroll</i> puluhan kategori yang membosankan. Algoritma kami bekerja 24/7 menentukan klasifikasi dan konversi paling akurat.
@@ -486,7 +486,7 @@ export default function LandingPage() {
         <FadeIn className="max-w-5xl mx-auto px-6 sm:px-8 relative z-10">
           <div className="text-center mb-16">
 
-             <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight leading-[1.1]">Rekap Otomatis di <br className="hidden md:block"/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-emerald-500">Web Dashboard.</span></h2>
+             <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight leading-[1.1]">Rekap Otomatis di <br className="hidden md:block"/> <span className="text-[#cafb30]">Web Dashboard.</span></h2>
              <p className="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto">Data rapi, keputusan tepat. Visualisasikan setiap pergerakan finansial Anda dengan antarmuka grafis kelas atas.</p>
           </div>
 
@@ -824,7 +824,7 @@ export default function LandingPage() {
               <FadeIn>
                 
                 <h2 className="text-4xl md:text-5xl font-black text-white mb-6 tracking-tight leading-[1.1]">
-                  Infrastruktur <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Keamanan Kelas Bank.</span>
+                  Infrastruktur <span className="text-[#cafb30]">Keamanan Kelas Bank.</span>
                 </h2>
                 <p className="text-slate-400 text-lg md:text-xl leading-relaxed mb-8">
                   Tidur lebih nyenyak. FinChat dibangun dengan arsitektur privasi-pertama. Data finansial Anda tetap menjadi milik Anda sepenuhnya—tanpa iklan, tanpa akses pihak ketiga.
@@ -910,7 +910,7 @@ export default function LandingPage() {
 
         <div className="max-w-5xl mx-auto px-6 sm:px-8 relative z-10">
           <FadeIn className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight">Mulai Gratis. <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-rose-400">Upscale Kapan Saja.</span></h2>
+            <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight">Mulai Gratis. <span className="text-[#cafb30]">Upscale Kapan Saja.</span></h2>
             <p className="text-slate-500 text-lg md:text-xl">Buat jejak finansial pertamamu sekarang tanpa risiko apapun.</p>
           </FadeIn>
 
