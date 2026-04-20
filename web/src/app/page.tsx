@@ -872,9 +872,9 @@ export default function LandingPage() {
                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] border border-slate-700/20 rounded-full border-dashed hidden md:block"></div>
 
                  {/* Center Main Node */}
-                 <div className="relative z-20 w-32 h-32 md:w-40 md:h-40 bg-gradient-to-tr from-emerald-500 to-cyan-400 rounded-full flex items-center justify-center mx-auto shadow-[0_0_80px_-15px_rgba(52,211,153,0.3)] border-4 border-[#0a0f1d] hover:scale-105 transition-transform duration-500">
-                   <ShieldCheck className="text-white md:w-16 md:h-16 w-12 h-12" />
-                 </div>
+<div className="relative z-20 w-32 h-32 md:w-40 md:h-40 bg-[#cafb30] rounded-full flex items-center justify-center mx-auto shadow-[0_0_80px_-15px_rgba(202,251,48,0.3)] border-4 border-slate-900 hover:scale-105 transition-transform duration-500">
+                    <ShieldCheck className="text-slate-900 md:w-16 md:h-16 w-12 h-12" />
+                  </div>
 
                  {/* Floating Cards around the center */}
                  <div className="absolute top-0 md:top-4 left-0 bg-[#0c1222]/90 backdrop-blur-md border border-slate-700/80 p-4 md:p-5 rounded-2xl shadow-2xl z-30 transform -translate-x-2 md:-translate-x-8 hover:scale-105 transition-transform duration-300">
