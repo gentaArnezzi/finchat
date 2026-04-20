@@ -1,15 +1,31 @@
 @import "tailwindcss";
 
 :root {
+  --color-primary: #cafb30;
+}
+
+/* Map ALL indigo-* vars to primary color */
+@theme {
+  --color-indigo-50: oklch(from var(--color-primary) 97% c 10);
+  --color-indigo-100: oklch(from var(--color-primary) 92% c 25);
+  --color-indigo-200: oklch(from var(--color-primary) 87% c 40);
+  --color-indigo-300: oklch(from var(--color-primary) 80% c 55);
+  --color-indigo-400: oklch(from var(--color-primary) 72% c 70);
+  --color-indigo-500: oklch(from var(--color-primary) 65% c 85);
+  --color-indigo-600: oklch(from var(--color-primary) 58% c 100);
+  --color-indigo-700: oklch(from var(--color-primary) 50% c 115);
+  --color-indigo-800: oklch(from var(--color-primary) 42% c 130);
+  --color-indigo-900: oklch(from var(--color-primary) 35% c 145);
+}
+
+:root {
   --background: #ffffff;
   --foreground: #171717;
-  --finchat: #cafb30;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-primary: var(--finchat);
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
