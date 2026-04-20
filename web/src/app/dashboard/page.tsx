@@ -304,11 +304,9 @@ export default function DashboardPage() {
       </div>
 
       {/* Monthly Bar Chart */}
-      {monthlyData.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-          <MonthlyBarChart data={monthlyData} title="Tren Pemasukan vs Pengeluaran" />
-        </div>
-      )}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+        <MonthlyBarChart data={monthlyData} title="Tren Pemasukan vs Pengeluaran" />
+      </div>
 
       {/* Recent Transactions */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
