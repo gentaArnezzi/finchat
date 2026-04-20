@@ -294,30 +294,30 @@ export default function PricingPage() {
       <section className="py-20 bg-white border-y border-slate-100">
         <div className="max-w-4xl mx-auto px-6">
           <h2 className="text-2xl font-bold text-slate-900 text-center mb-12">FinChat vs Cara Lama</h2>
-          <div className="rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="rounded-2xl overflow-hidden shadow-lg">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="text-left py-4 px-6 font-semibold text-slate-500 w-1/3">Fitur</th>
-                  <th className="text-center py-4 px-4 text-slate-400 font-medium">Excel / Buku</th>
-                  <th className="text-center py-4 px-4 text-slate-400 font-medium">App Lain</th>
-                  <th className="text-center py-4 px-4 font-bold text-indigo-600 bg-indigo-50">FinChat</th>
+                <tr className="bg-slate-900">
+                  <th className="text-left py-4 px-6 font-bold text-white">Fitur</th>
+                  <th className="text-center py-4 px-4 text-slate-300 font-medium">Excel / Buku</th>
+                  <th className="text-center py-4 px-4 text-slate-300 font-medium">App Lain</th>
+                  <th className="text-center py-4 px-4 font-bold text-slate-900 bg-[#cafb30]">FinChat</th>
                 </tr>
               </thead>
               <tbody>
                 {[
                   ['Kecepatan input', '😫 Manual', '⚡ 5-7 klik', '✅ 5 detik chat'],
                   ['Tidak perlu install app', '✅', '❌', '✅'],
-                  ['AI auto-kategorisasi', '❌', '❌', '✅ Claude AI'],
-                  ['Notifikasi budget', '❌', '⚠️ Kadang', '✅ Otomatis Telegram'],
+                  ['AI auto-kategorisasi', '❌', '❌', '✅'],
+                  ['Notifikasi budget', '❌', '⚠️ Kadang', '✅ Otomatis'],
                   ['Bisa chat natural', '❌', '❌', '✅ Bahasa Indonesia'],
-                  ['Harga dasar', 'Gratis', 'Rp50–150rb/bln', '✅ Gratis / Rp14.9rb'],
+                  ['Harga dasar', 'Gratis', 'Rp50–150rb/bln', '✅ Gratis'],
                 ].map(([label, a, b, c], i) => (
-                  <tr key={i} className={`border-b border-slate-100 last:border-0 ${i % 2 === 0 ? 'bg-slate-50/50' : 'bg-white'}`}>
-                    <td className="py-4 px-6 font-medium text-slate-700">{label}</td>
-                    <td className="py-4 px-4 text-center text-slate-500">{a}</td>
-                    <td className="py-4 px-4 text-center text-slate-500">{b}</td>
-                    <td className="py-4 px-4 text-center font-semibold text-slate-800 bg-indigo-50/50">{c}</td>
+                  <tr key={i} className={`border-b border-slate-800 last:border-0 ${i % 2 === 0 ? 'bg-slate-800' : 'bg-slate-900'}`}>
+                    <td className="py-4 px-6 font-medium text-slate-200">{label}</td>
+                    <td className="py-4 px-4 text-center text-slate-400">{a}</td>
+                    <td className="py-4 px-4 text-center text-slate-400">{b}</td>
+                    <td className="py-4 px-4 text-center font-bold text-[#cafb30]">{c}</td>
                   </tr>
                 ))}
               </tbody>
