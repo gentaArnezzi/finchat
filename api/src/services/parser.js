@@ -845,23 +845,15 @@ Jawab JSON saja, tanpa markdown.`;
 }
 
 /**
- * MAIN PARSER EXPORT
+ * MAIN PARSER EXPORT - All AI (No Regex)
  */
 export async function parseTransaction(message, userId = null) {
   if (!message || typeof message !== 'string' || message.trim().length === 0) {
     return null;
   }
 
-  // === TIER 1: REGEX ===
-  const regexResult = regexParse(message);
-  if (regexResult && regexResult.length > 0) {
-    const firstTx = Array.isArray(regexResult) ? regexResult[0] : regexResult;
-    console.log(`✅ Regex: "${message}" → ${firstTx.amount} (${firstTx.category})`);
-    return regexResult;
-  }
-
-  // === TIER 2: GROQ (Primary - Llama 3) ===
-  console.log(`🤖 Regex failed, trying Groq: "${message}"`);
+  // === TIER 1: GROQ (Primary - Llama 3) ===
+  console.log(`🤖 Parsing with Groq: "${message}"`);
   const groqResult = await groqFallback(message);
   if (groqResult && groqResult.length > 0) {
     const firstTx = Array.isArray(groqResult) ? groqResult[0] : groqResult;
@@ -869,7 +861,7 @@ export async function parseTransaction(message, userId = null) {
     return groqResult;
   }
 
-  // === TIER 3: OPENROUTER (Fallback - DeepSeek) ===
+  // === TIER 2: OPENROUTER (Fallback - DeepSeek) ===
   console.log(`🤖 Groq failed, trying OpenRouter: "${message}"`);
   const openrouterResult = await openrouterFallback(message);
   if (openrouterResult && openrouterResult.length > 0) {
@@ -878,7 +870,7 @@ export async function parseTransaction(message, userId = null) {
     return openrouterResult;
   }
 
-  // === TIER 4: GEMINI (Heavy Reasoning - Last Resort) ===
+  // === TIER 3: GEMINI (Heavy Reasoning - Last Resort) ===
   console.log(`🤖 OpenRouter failed, trying Gemini: "${message}"`);
   const aiResult = await geminiFallback(message);
   if (aiResult && aiResult.length > 0) {
