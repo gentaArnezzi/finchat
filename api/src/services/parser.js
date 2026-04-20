@@ -579,7 +579,11 @@ KATEGORI: ${CATEGORIES.join(', ')}
 PESAN: "${message}"
 
 TUGAS:
-1. Ekstrak amount (Rp) dari pesan
+1. Ekstrak amount (Rp) dari pesan - PERHATIKAN:
+   - "18 rebu" / "18rb" / "18ribu" = Rp 18.000 (bukan 18 juta!)
+   - "250rb" = Rp 250.000
+   - "1.5jt" / "1.5 juta" = Rp 1.500.000
+   - "5jt" / "5 juta" = Rp 5.000.000
 2. Tentukan type (expense/income)
 3. Tentukan kategori yang paling cocok
 4. BUAT description yang CLEAN - hanya bagian penting (hapus: "tadi", "kena", "wkwk", "abis", "lah", "dong", dll)
@@ -587,6 +591,7 @@ TUGAS:
 CONTOH:
 - "tadi nambal ban vespa 250rb wkwk" → {"type":"expense","amount":250000,"category":"Transportasi","description":"Nambal ban vespa","date":"${today}"}
 - "beli kopi lagi 30rb" → {"type":"expense","amount":30000,"category":"Makanan & Minuman","description":"Beli kopi","date":"${today}"}
+- "parkir 18rebu" → {"type":"expense","amount":18000,"category":"Transportasi","description":"Bayar parkir","date":"${today}"}
 
 Jawab JSON saja, tanpa markdown.`;
 
@@ -676,7 +681,11 @@ KATEGORI: ${CATEGORIES.join(', ')}
 PESAN: "${message}"
 
 TUGAS:
-1. Ekstrak amount (Rp) dari pesan
+1. Ekstrak amount (Rp) dari pesan - PERHATIKAN:
+   - "18 rebu" / "18rb" / "18ribu" = Rp 18.000 (bukan 18 juta!)
+   - "250rb" = Rp 250.000
+   - "1.5jt" / "1.5 juta" = Rp 1.500.000
+   - "5jt" / "5 juta" = Rp 5.000.000
 2. Tentukan type (expense/income)
 3. Tentukan kategori yang paling cocok
 4. BUAT description yang CLEAN - hanya bagian penting (hapus: "tadi", "kena", "wkwk", "abis", "lah", "dong", dll)
@@ -684,6 +693,7 @@ TUGAS:
 CONTOH:
 - "tadi nambal ban vespa 250rb wkwk" → {"type":"expense","amount":250000,"category":"Transportasi","description":"Nambal ban vespa","date":"${today}"}
 - "beli kopi lagi 30rb" → {"type":"expense","amount":30000,"category":"Makanan & Minuman","description":"Beli kopi","date":"${today}"}
+- "parkir 18rebu" → {"type":"expense","amount":18000,"category":"Transportasi","description":"Bayar parkir","date":"${today}"}
 
 Jawab JSON saja, tanpa markdown.`;
 
@@ -775,7 +785,11 @@ KATEGORI: ${CATEGORIES.join(', ')}
 PESAN: "${message}"
 
 TUGAS:
-1. Ekstrak amount (Rp) dari pesan
+1. Ekstrak amount (Rp) dari pesan - PERHATIKAN:
+   - "18 rebu" / "18rb" / "18ribu" = Rp 18.000 (bukan 18 juta!)
+   - "250rb" = Rp 250.000
+   - "1.5jt" / "1.5 juta" = Rp 1.500.000
+   - "5jt" / "5 juta" = Rp 5.000.000
 2. Tentukan type (expense/income)
 3. Tentukan kategori yang paling cocok
 4. BUAT description yang CLEAN - hanya bagian penting (hapus: "tadi", "kena", "wkwk", "abis", "lah", "dong", dll)
@@ -783,6 +797,7 @@ TUGAS:
 CONTOH:
 - "tadi nambal ban vespa 250rb wkwk" → {"type":"expense","amount":250000,"category":"Transportasi","description":"Nambal ban vespa","date":"${today}"}
 - "beli kopi lagi 30rb" → {"type":"expense","amount":30000,"category":"Makanan & Minuman","description":"Beli kopi","date":"${today}"}
+- "parkir 18rebu" → {"type":"expense","amount":18000,"category":"Transportasi","description":"Bayar parkir","date":"${today}"}
 
 Jawab JSON saja, tanpa markdown.`;
 
