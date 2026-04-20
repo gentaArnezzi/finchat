@@ -252,10 +252,10 @@ export default function LandingPage() {
                  </div>
 
                  {/* Telegram Header */}
-                 <div className="bg-slate-50 border-b border-slate-200 px-4 py-2 mt-0.5 flex items-center gap-3 relative z-20">
-                   <div className="w-8 h-8 md:w-9 md:h-9 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-xs md:text-sm shadow-inner">
-                     FC
-                   </div>
+<div className="bg-slate-50 border-b border-slate-200 px-4 py-2 mt-0.5 flex items-center gap-3 relative z-20">
+                    <div className="w-8 h-8 md:w-9 md:h-9 rounded-full flex items-center justify-center overflow-hidden shadow-inner">
+                      <Image src="/Logo2finchat.webp" alt="FinChat" width={36} height={36} className="w-full h-full object-cover" />
+                    </div>
                    <div>
                      <p className="text-sm md:text-base font-bold text-slate-900 leading-tight">FinChat Bot</p>
                      <p className="text-[10px] md:text-[11px] text-slate-500 font-medium">bot</p>
