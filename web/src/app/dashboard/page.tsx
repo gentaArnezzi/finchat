@@ -37,6 +37,7 @@ export default function DashboardPage() {
   const [comparison, setComparison] = useState<ComparisonData | null>(null);
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
   const [monthlyData, setMonthlyData] = useState<{ month: string; income: number; expense: number }[]>([]);
+  const [yearStats, setYearStats] = useState<{ totalIncome: number; totalExpense: number; transactionCount: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const { socket } = useWebSocket();
@@ -47,16 +48,22 @@ export default function DashboardPage() {
       const startOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
       const endOfMonth = now.toISOString().split('T')[0];
 
-      const [statsRes, transactionsRes, historyRes, comparisonRes] = await Promise.all([
+      const [statsRes, transactionsRes, historyRes, comparisonRes, yearRes] = await Promise.all([
         api.getStats(startOfMonth, endOfMonth),
         api.getTransactions({ limit: 5 }),
         api.getHistory(now.getFullYear()),
         api.getComparisonStats(),
+        api.getStats(`${now.getFullYear()}-01-01`, endOfMonth),
       ]);
 
       setStats(statsRes.stats);
       setRecentTransactions(transactionsRes.transactions);
       setComparison(comparisonRes.comparison);
+      setYearStats({
+        totalIncome: yearRes.stats?.income?.total || 0,
+        totalExpense: yearRes.stats?.expense?.total || 0,
+        transactionCount: transactionsRes.transactions?.length || 0
+      });
 
       // Process monthly data for bar chart (group by month, side-by-side income/expense)
       const monthMap: Record<string, { income: number; expense: number }> = {};
@@ -120,6 +127,9 @@ export default function DashboardPage() {
   const savingsRate = totalIncome > 0 ? Math.round((balance / totalIncome) * 100) : 0;
   const projectedExpense = avgDailyExpense * daysLeft;
   const projectedBalance = balance - projectedExpense;
+  const yearTotalIncome = yearStats?.totalIncome || 0;
+  const yearTotalExpense = yearStats?.totalExpense || 0;
+  const yearBalance = yearTotalIncome - yearTotalExpense;
 
   if (loading) {
     return (
@@ -267,6 +277,29 @@ export default function DashboardPage() {
             {formatRupiah(projectedBalance)}
           </p>
           <p className="text-[10px] text-slate-400">estimasi bulanini</p>
+        </div>
+      </div>
+
+      {/* Year Summary */}
+      <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-6 text-white">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <p className="text-sm font-medium text-slate-300">Ringkasan Tahun {now.getFullYear()}</p>
+            <p className="text-2xl font-bold mt-1">{formatRupiah(yearBalance)}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-xs text-slate-400">Saldo Tahun Ini</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white/10 rounded-xl p-4">
+            <p className="text-xs text-slate-300 mb-1">Total Pemasukan</p>
+            <p className="text-lg font-bold text-emerald-400">{formatRupiah(yearTotalIncome)}</p>
+          </div>
+          <div className="bg-white/10 rounded-xl p-4">
+            <p className="text-xs text-slate-300 mb-1">Total Pengeluaran</p>
+            <p className="text-lg font-bold text-rose-400">{formatRupiah(yearTotalExpense)}</p>
+          </div>
         </div>
       </div>
 
