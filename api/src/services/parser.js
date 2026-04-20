@@ -290,9 +290,13 @@ export async function parseTransaction(message, userId = null) {
       let llmResult = await classifyWithLLM(segment);
       console.log(`🤖 LLM Result for "${segment}":`, llmResult);
       
-      // FORCE deterministic fallback if LLM returns null or wrong category
-      if (!llmResult || !llmResult.category || llmResult.category === 'Lainnya') {
-        console.log(`🔄 Force fallback for: "${segment}"`);
+      // Check if need fallback: LLM returns null OR wrong type (income keywords → expense)
+      const keywords = ['nambah', 'masukin', 'masuk', 'terima', 'dapat', 'gaji', 'bonus', 'transfer', 'saldo', 'topup', 'uang'];
+      const hasIncomeKeyword = keywords.some(k => segment.includes(k));
+      const needsFallback = !llmResult || (hasIncomeKeyword && llmResult?.type === 'expense');
+      
+      if (needsFallback) {
+        console.log(`🔄 Force fallback for: "${segment}" (LLM type was wrong or null)`);
         llmResult = fallbackClassify(segment);
         console.log(`🔄 Fallback result:`, llmResult);
       }
