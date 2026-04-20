@@ -59,7 +59,8 @@ const CATEGORY_KEYWORDS = {
     'parkirmall', 'parkir basement', 'parkir utama',
     'toll', 'fasilitas', ' entrance', ' exit',
     'airport', 'bandara', 'stadium', 'terminal',
-    'travel', 'travelling', 'perjalanan'
+    'travel', 'travelling', 'perjalanan',
+    'ban', 'vespa', 'motor', 'mobil', 'service', 'servis', 'ganti oli'
   ],
 
   // === BELANJA ===
@@ -450,6 +451,15 @@ function extractDescription(text, amount) {
     .replace(/^ke\s+/i, '')
     .replace(/^bayar\s+/i, '')
     .replace(/^dengan\s+/i, '')
+    .replace(/^nambal\s+/i, '')
+    .replace(/^tambah\s+/i, '')
+    .replace(/\s+kena\s+\d+/i, '')
+    .replace(/\s+wkwk\b/gi, '')
+    .replace(/\s+haha\b/gi, '')
+    .replace(/\s+lol\b/gi, '')
+    .replace(/\s+😅\s*/gi, '')
+    .replace(/\s+😂\s*/gi, '')
+    .replace(/\s+🤣\s*/gi, '')
     .replace(/,\s*,/g, ',')
     .replace(/^\s*[-–:,]\s*/, '')
     .replace(/\s+/g, ' ')
