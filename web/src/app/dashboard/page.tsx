@@ -5,6 +5,7 @@ import { api } from '@/lib/api';
 import { useWebSocket } from '@/context/WebSocketContext';
 import { Transaction } from '@/types';
 import MonthlyBarChart from '@/components/charts/BarChart';
+import TrendLineChart from '@/components/charts/LineChart';
 import ExportButton from '@/components/ExportButton';
 import { Wallet, TrendingUp, TrendingDown, Clock, ArrowRight, ArrowUpRight, ArrowDownRight, LayoutTemplate, PiggyBank, Target, Percent, Activity } from 'lucide-react';
 
@@ -38,6 +39,7 @@ export default function DashboardPage() {
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
   const [monthlyData, setMonthlyData] = useState<{ month: string; income: number; expense: number }[]>([]);
   const [yearStats, setYearStats] = useState<{ totalIncome: number; totalExpense: number; transactionCount: number } | null>(null);
+  const [dailyTrend, setDailyTrend] = useState<{ date: string; income: number; expense: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const { socket } = useWebSocket();
@@ -48,12 +50,13 @@ export default function DashboardPage() {
       const startOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
       const endOfMonth = now.toISOString().split('T')[0];
 
-      const [statsRes, transactionsRes, historyRes, comparisonRes, yearRes] = await Promise.all([
+      const [statsRes, transactionsRes, historyRes, comparisonRes, yearRes, trendRes] = await Promise.all([
         api.getStats(startOfMonth, endOfMonth),
         api.getTransactions({ limit: 5 }),
         api.getHistory(now.getFullYear()),
         api.getComparisonStats(),
         api.getStats(`${now.getFullYear()}-01-01`, endOfMonth),
+        api.getDailyTrend(30),
       ]);
 
       setStats(statsRes.stats);
@@ -79,6 +82,20 @@ export default function DashboardPage() {
         expense: data.expense,
       }));
       setMonthlyData(chartData);
+
+      // Process daily trend data
+      const trendMap: Record<string, { income: number; expense: number }> = {};
+      trendRes.trend?.forEach((item: any) => {
+        const dateKey = new Date(item.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+        if (!trendMap[dateKey]) trendMap[dateKey] = { income: 0, expense: 0 };
+        trendMap[dateKey][item.type as 'income' | 'expense'] = parseFloat(item.total);
+      });
+      const trendData = Object.entries(trendMap).map(([date, data]) => ({
+        date,
+        income: data.income,
+        expense: data.expense,
+      }));
+      setDailyTrend(trendData);
 
       setLastRefresh(new Date());
     } catch (error) {
@@ -305,8 +322,15 @@ export default function DashboardPage() {
 
       {/* Monthly Bar Chart */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-        <MonthlyBarChart data={monthlyData} title="Tren Pemasukan vs Pengeluaran" />
+        <MonthlyBarChart data={monthlyData} title="Tren Bulanan" />
       </div>
+
+      {/* Daily Trend Line Chart */}
+      {dailyTrend.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+          <TrendLineChart data={dailyTrend} title="Tren 30 Hari Terakhir" />
+        </div>
+      )}
 
       {/* Recent Transactions */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
