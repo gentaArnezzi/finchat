@@ -18,7 +18,7 @@ const CATEGORIES = [
   'Lainnya'
 ];
 
-const INCOME_KEYWORDS = ['gaji', 'bonus', 'jual', 'transfer masuk', 'dapat', 'terima', 'uang masuk', 'pembayaran', 'profit', 'dividen', 'thr', 'commission', 'komisi'];
+const INCOME_KEYWORDS = ['gaji', 'bonus', 'jual', 'transfer masuk', 'dapat', 'terima', 'uang masuk', 'pembayaran', 'profit', 'dividen', 'thr', 'commission', 'komisi', 'saldo', 'topup', 'isi saldo', 'deposit', 'transfer', 'bayar', 'uang dapat', 'uang terima', 'penerimaan', 'uang', 'nambah', 'tambah', 'masukin', 'masuk', 'terima uang'];
 
 // ============================================
 // PREPROCESSING (Deterministic)
@@ -154,8 +154,8 @@ async function classifyWithLLM(segment) {
 {"type":"expense|income","category":"X"}
 
 Rules:
-- income: gaji, bonus, jual, transfer masuk, dapat, terima
-- selain itu expense
+- income: gaji, bonus, jual, transfer masuk, dapat, terima, nambah saldo, masukin uang, topup saldo
+- Selain itu expense
 - category hanya dari: ${CATEGORIES.join(', ')}, jika tidak cocok → "Lainnya"
 
 Input: "${segment}"`;
