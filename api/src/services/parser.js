@@ -33,6 +33,7 @@ function normalize(text) {
     .replace(/(\d+)k(?!\w)/g, (_, n) => n + '000')
     .replace(/(\d+),(\d{3})/g, '$1$2')
     .replace(/(\d{1,3})\.(\d{3})/g, '$1$2')
+    .replace(/\s*(\d+)\s+000/g, '$1000') // "34 000" → "34000"
     .replace(/[^\w\s\d]/g, ' ')
     .replace(/\b(tadi|wkwk|abis|lah|dong|kena|gue|gui|sya|aku|lo|lu|yang|nya|deh|neh|buat|untuk)\b/gi, '')
     .replace(/\s+/g, ' ')
@@ -270,14 +271,24 @@ export async function parseTransaction(message, userId = null) {
     for (const segment of segments) {
       const amount = extractAmount(segment);
       console.log(`💰 Segment: "${segment}" → amount: ${amount}`);
-      if (amount === 0) continue;
+      if (amount === 0) {
+        console.log(`⚠️ Skipping segment with amount 0: "${segment}"`);
+        continue;
+      }
 
       const description = cleanDescription(segment);
       console.log(`📝 Description for "${segment}": "${description}"`);
 
-      // LLM classification
-      const llmResult = await classifyWithLLM(segment);
+      // LLM classification + FORCE FALLBACK if LLM fails
+      let llmResult = await classifyWithLLM(segment);
       console.log(`🤖 LLM Result for "${segment}":`, llmResult);
+      
+      // FORCE deterministic fallback if LLM returns null or wrong category
+      if (!llmResult || !llmResult.category || llmResult.category === 'Lainnya') {
+        console.log(`🔄 Force fallback for: "${segment}"`);
+        llmResult = fallbackClassify(segment);
+        console.log(`🔄 Fallback result:`, llmResult);
+      }
       
       const type = llmResult?.type || 'expense';
       const category = llmResult?.category || 'Lainnya';
