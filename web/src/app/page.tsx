@@ -197,7 +197,7 @@ export default function LandingPage() {
                 href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME || 'finchatme_bot'}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-4 bg-[#cafb30] hover:bg-[#b8e829] text-slate-900 text-sm font-semibold rounded-full transition-all active:scale-95 border-none"
+                className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-4 bg-[#a2c828] hover:bg-[#b8e829] text-slate-900 text-sm font-semibold rounded-full transition-all active:scale-95 border-none"
               >
                 <Send size={16} />
                 Mulai Chat Gratis
@@ -430,7 +430,7 @@ export default function LandingPage() {
               <FadeIn>
 
                 <h2 className="text-4xl md:text-5xl font-black text-white mb-6 tracking-tight leading-[1.1]">
-                  Autentikasi AI <span className="text-[#cafb30]">Sangat Cerdas.</span>
+                  Autentikasi AI <span className="text-[#a2c828]">Sangat Cerdas.</span>
                 </h2>
                 <p className="text-slate-400 text-lg leading-relaxed mb-8">
                   Di balik layar, Model AI internal kami mengekstrak maksud finansial Anda. Tidak perlu lagi klik dan <i>scroll</i> puluhan kategori yang membosankan. Algoritma kami bekerja 24/7 menentukan klasifikasi dan konversi paling akurat.
@@ -486,7 +486,7 @@ export default function LandingPage() {
         <FadeIn className="max-w-5xl mx-auto px-6 sm:px-8 relative z-10">
           <div className="text-center mb-16">
 
-             <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight leading-[1.1]">Rekap Otomatis di <br className="hidden md:block"/> <span className="text-[#cafb30]">Web Dashboard.</span></h2>
+             <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight leading-[1.1]">Rekap Otomatis di <br className="hidden md:block"/> <span className="text-[#a2c828]">Web Dashboard.</span></h2>
              <p className="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto">Data rapi, keputusan tepat. Visualisasikan setiap pergerakan finansial Anda dengan antarmuka grafis kelas atas.</p>
           </div>
 
@@ -824,7 +824,7 @@ export default function LandingPage() {
               <FadeIn>
                 
                 <h2 className="text-4xl md:text-5xl font-black text-white mb-6 tracking-tight leading-[1.1]">
-                  Infrastruktur <span className="text-[#cafb30]">Keamanan Kelas Bank.</span>
+                  Infrastruktur <span className="text-[#a2c828]">Keamanan Kelas Bank.</span>
                 </h2>
                 <p className="text-slate-400 text-lg md:text-xl leading-relaxed mb-8">
                   Tidur lebih nyenyak. FinChat dibangun dengan arsitektur privasi-pertama. Data finansial Anda tetap menjadi milik Anda sepenuhnya—tanpa iklan, tanpa akses pihak ketiga.
@@ -872,7 +872,7 @@ export default function LandingPage() {
                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] border border-slate-700/20 rounded-full border-dashed hidden md:block"></div>
 
                  {/* Center Main Node */}
-<div className="relative z-20 w-32 h-32 md:w-40 md:h-40 bg-[#cafb30] rounded-full flex items-center justify-center mx-auto shadow-[0_0_80px_-15px_rgba(202,251,48,0.3)] border-4 border-slate-900 hover:scale-105 transition-transform duration-500">
+<div className="relative z-20 w-32 h-32 md:w-40 md:h-40 bg-[#a2c828] rounded-full flex items-center justify-center mx-auto shadow-[0_0_80px_-15px_rgba(162,200,40,0.3)] border-4 border-slate-900 hover:scale-105 transition-transform duration-500">
                     <ShieldCheck className="text-slate-900 md:w-16 md:h-16 w-12 h-12" />
                   </div>
 
@@ -910,7 +910,7 @@ export default function LandingPage() {
 
         <div className="max-w-5xl mx-auto px-6 sm:px-8 relative z-10">
           <FadeIn className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight">Mulai Gratis. <span className="text-[#cafb30]">Upscale Kapan Saja.</span></h2>
+            <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight">Mulai Gratis. <span className="text-[#a2c828]">Upscale Kapan Saja.</span></h2>
             <p className="text-slate-500 text-lg md:text-xl">Buat jejak finansial pertamamu sekarang tanpa risiko apapun.</p>
           </FadeIn>
 

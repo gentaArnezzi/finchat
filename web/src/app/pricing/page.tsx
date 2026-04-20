@@ -151,7 +151,7 @@ export default function PricingPage() {
       <section className="pt-24 pb-16 text-center px-6 relative z-10">
 
         <h1 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tight leading-[1.1] mb-6">
-          Investasi Kecil, <br className="hidden sm:block" /> <span className="text-[#cafb30]">Dampak Eksponensial.</span>
+          Investasi Kecil, <br className="hidden sm:block" /> <span className="text-[#a2c828]">Dampak Eksponensial.</span>
         </h1>
         <p className="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto mb-12 leading-relaxed">
           Tidak ada kontrak rumit. Tidak ada biaya jebakan. <i>Cancel</i> kapan pun tanpa pinalti. Kebebasan finansial ada di tangan Anda.
@@ -301,7 +301,7 @@ export default function PricingPage() {
                   <th className="text-left py-4 px-6 font-bold text-white">Fitur</th>
                   <th className="text-center py-4 px-4 text-slate-300 font-medium">Excel / Buku</th>
                   <th className="text-center py-4 px-4 text-slate-300 font-medium">App Lain</th>
-                  <th className="text-center py-4 px-4 font-bold text-slate-900 bg-[#cafb30]">FinChat</th>
+                  <th className="text-center py-4 px-4 font-bold text-slate-900 bg-[#a2c828]">FinChat</th>
                 </tr>
               </thead>
               <tbody>
@@ -317,7 +317,7 @@ export default function PricingPage() {
                     <td className="py-4 px-6 font-medium text-slate-200">{label}</td>
                     <td className="py-4 px-4 text-center text-slate-400">{a}</td>
                     <td className="py-4 px-4 text-center text-slate-400">{b}</td>
-                    <td className="py-4 px-4 text-center font-bold text-[#cafb30]">{c}</td>
+                    <td className="py-4 px-4 text-center font-bold text-[#a2c828]">{c}</td>
                   </tr>
                 ))}
               </tbody>

@@ -1,39 +1,39 @@
 @import "tailwindcss";
 
-/* Override ONLY indigo to finchat green-yellow - skip oklch conversion */
+/* Override ONLY indigo to finchat green - skip oklch conversion */
 @utility bg-indigo-* {
-  background-color: #cafb30;
+  background-color: #a2c828;
 }
 
 @theme {
-  --color-indigo-50: #fdfee6;
-  --color-indigo-100: #fafde0;
-  --color-indigo-200: #f3f9c2;
-  --color-indigo-300: #e5f298;
-  --color-indigo-400: #d6ea6a;
-  --color-indigo-500: #c6e24a;
-  --color-indigo-600: #cafb30;
-  --color-indigo-700: #99c424;
-  --color-indigo-800: #738d1b;
-  --color-indigo-900: #4d6812;
-  --color-indigo-950: #2d3c0b;
+  --color-indigo-50: #f3f7e6;
+  --color-indigo-100: #e6efcc;
+  --color-indigo-200: #d0e399;
+  --color-indigo-300: #b5d663;
+  --color-indigo-400: #9ec93b;
+  --color-indigo-500: #a5c72b;
+  --color-indigo-600: #a2c828;
+  --color-indigo-700: #7d9c1f;
+  --color-indigo-800: #5c7417;
+  --color-indigo-900: #3b4d0f;
+  --color-indigo-950: #1a2608;
 }
 
 /* Force override indigo colors in CSS - keep it simple */
-.bg-indigo-600 { background-color: #cafb30 !important; }
-.bg-indigo-500 { background-color: #cafb30 !important; }
-.bg-indigo-700 { background-color: #99c424 !important; }
-.text-indigo-600 { color: #cafb30 !important; }
-.text-indigo-500 { color: #cafb30 !important; }
-.text-indigo-400 { color: #d6ea6a !important; }
-.border-indigo-600 { border-color: #cafb30 !important; }
-.border-indigo-500 { border-color: #cafb30 !important; }
+.bg-indigo-600 { background-color: #a2c828 !important; }
+.bg-indigo-500 { background-color: #a2c828 !important; }
+.bg-indigo-700 { background-color: #7d9c1f !important; }
+.text-indigo-600 { color: #a2c828 !important; }
+.text-indigo-500 { color: #a2c828 !important; }
+.text-indigo-400 { color: #9ec93b !important; }
+.border-indigo-600 { border-color: #a2c828 !important; }
+.border-indigo-500 { border-color: #a2c828 !important; }
 
 /* Also handle gradients */
-.from-indigo-600 { --tw-gradient-from: #cafb30 !important; }
-.from-indigo-500 { --tw-gradient-from: #cafb30 !important; }
-.to-indigo-600 { --tw-gradient-to: #99c424 !important; }
-.to-indigo-500 { --tw-gradient-to: #c6e24a !important; }
+.from-indigo-600 { --tw-gradient-from: #a2c828 !important; }
+.from-indigo-500 { --tw-gradient-from: #a2c828 !important; }
+.to-indigo-600 { --tw-gradient-to: #7d9c1f !important; }
+.to-indigo-500 { --tw-gradient-to: #a5c72b !important; }
 
 :root {
   --background: #ffffff;
