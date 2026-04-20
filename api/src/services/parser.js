@@ -34,9 +34,8 @@ function normalize(text) {
     .replace(/jt|juta/gi, '000000')
     .replace(/(\d+)k(?!\w)/g, (_, n) => n + '000');
   
-  // Step 2: Fix number format - "34 000" → "34000" dan "1 500" → "1500"
-  normalized = normalized.replace(/\b(\d{1,3})\s+(\d{3})\b/g, '$1$2');
-  normalized = normalized.replace(/\b(\d+)\s+000\b/g, '$1000');
+  // Step 2: Merge numbers - hapus spasi antara digits: "1 000000" → "1000000"
+  normalized = normalized.replace(/(\d)\s+(0+)/g, '$1$2');
   
   // Step 3: Remove noise
   normalized = normalized
