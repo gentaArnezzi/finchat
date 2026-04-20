@@ -1,10 +1,7 @@
 /**
  * Transaction Parser for FinChat
  * Strategy: Hybrid System = Preprocessing (deterministic) + LLM Classification
- * 
- * - Preprocessing: normalize, extract segment, amount, clean description
- * - LLM: only classify type & category
- * - Support multi-transaction
+ * Production-grade with validation & fallback
  */
 
 import 'dotenv/config';
@@ -24,12 +21,11 @@ const CATEGORIES = [
 const INCOME_KEYWORDS = ['gaji', 'bonus', 'jual', 'transfer masuk', 'dapat', 'terima', 'uang masuk', 'pembayaran', 'profit', 'dividen', 'thr', 'commission', 'komisi'];
 
 // ============================================
-// PREPROCESSING FUNCTIONS (Deterministic)
+// PREPROCESSING (Deterministic)
 // ============================================
 
 function normalize(text) {
   if (!text) return '';
-  
   return text
     .toLowerCase()
     .replace(/rb|ribu|rebu|rbu/gi, '000')
@@ -44,48 +40,94 @@ function normalize(text) {
 }
 
 function extractSegments(text) {
-  // Split by: dan, &, +, , (termasuk "sama", "plus", "ditambah")
   const separators = /\s*(?:dan|sama|plus|ditambah|&|\+|,)\s*|\s+terus\s+/i;
-  const parts = text.split(separators);
-  return parts.filter(p => /\d/.test(p));
+  return text.split(separators).filter(p => /\d/.test(p));
 }
 
 function extractAmount(segment) {
   if (!segment) return 0;
-  
-  // Find all number sequences and take the LAST one (usually the main amount)
-  // "bayar parkiran 34000 orange water 8500" → take 8500, not 340008500
   const matches = segment.match(/\d+/g);
   if (!matches || matches.length === 0) return 0;
   
-  // Take the last number (most likely the transaction amount)
-  // OR if there's only one, use it
+  // Ambil nomor terakhir
   const lastNum = parseInt(matches[matches.length - 1], 10);
-  
-  let amount = lastNum;
-  
-  // Validate
-  if (amount < 100 || amount > 10000000000) return 0;
-  if (amount < 1000) return amount * 1000;
-  
-  return amount;
+  if (lastNum < 100 || lastNum > 10000000000) return 0;
+  if (lastNum < 1000) return lastNum * 1000;
+  return lastNum;
 }
 
 function cleanDescription(segment) {
   if (!segment) return 'Transaksi';
-  
   let desc = segment.replace(/\d+/g, '').replace(/\s+/g, ' ').trim();
   if (desc) desc = desc.charAt(0).toUpperCase() + desc.slice(1);
-  
   return desc || 'Transaksi';
 }
 
-function quickDetectType(text) {
-  const lower = text.toLowerCase();
-  for (const kw of INCOME_KEYWORDS) {
-    if (lower.includes(kw)) return 'income';
+// ============================================
+// SAFE JSON PARSING + VALIDATION
+// ============================================
+
+function safeJSONParse(text) {
+  try {
+    // Ambil semua kurung kurawal
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) return null;
+    return JSON.parse(match[0]);
+  } catch {
+    return null;
   }
-  return 'expense';
+}
+
+function validateLLMResult(obj) {
+  if (!obj) return null;
+  
+  // Validasi type
+  if (!['expense', 'income'].includes(obj.type)) {
+    obj.type = 'expense'; // default
+  }
+  
+  // Validasi category
+  if (!CATEGORIES.includes(obj.category)) {
+    obj.category = 'Lainnya';
+  }
+  
+  return obj;
+}
+
+// ============================================
+// DETERMINISTIC FALLBACK
+// ============================================
+
+function fallbackClassify(segment) {
+  const lower = segment.toLowerCase();
+  
+  // Income detection
+  for (const kw of INCOME_KEYWORDS) {
+    if (lower.includes(kw)) {
+      return { type: 'income', category: detectCategoryByKeyword(lower) };
+    }
+  }
+  
+  return { type: 'expense', category: detectCategoryByKeyword(lower) };
+}
+
+function detectCategoryByKeyword(text) {
+  const keywords = {
+    'Makanan & Minuman': ['makan', 'kopi', 'minum', 'food', 'cafe', 'restaurant', 'warteg'],
+    'Transportasi': ['parkir', 'tol', 'bensin', 'ojek', 'gojek', 'grab', 'transport', 'taxi', 'buss'],
+    'Belanja': ['beli', 'shop', 'toko', 'market', 'tokopedia', 'shopee', 'lazada'],
+    'Hiburan': ['nonton', 'game', 'netflix', 'spotify', 'bioskop', 'konser'],
+    'Kesehatan': ['obat', 'dokter', 'apotek', 'rumah sakit', 'medical'],
+    'Tagihan': ['listrik', 'wifi', 'air', 'pulsa', 'internet', 'tagihan', 'bpjs'],
+    'Gaji': ['gaji', 'thr', 'bonus', 'salary', 'upah'],
+    'Investasi': ['invest', 'saham', 'crypto', 'reksadana', 'deposito']
+  };
+  
+  for (const [cat, kws] of Object.entries(keywords)) {
+    if (kws.some(k => text.includes(k))) return cat;
+  }
+  
+  return 'Lainnya';
 }
 
 // ============================================
@@ -93,17 +135,19 @@ function quickDetectType(text) {
 // ============================================
 
 async function classifyWithLLM(segment) {
-  const prompt = `Klasifikasi: {"type":"expense|income","category":"X"}
+  // STRICT PROMPT
+  const prompt = `Output HARUS JSON VALID TANPA TEXT LAIN:
+
+{"type":"expense|income","category":"X"}
 
 Rules:
 - income: gaji, bonus, jual, transfer masuk, dapat, terima
 - selain itu expense
-- category: ${CATEGORIES.join(', ')} atau "Lainnya"
+- category hanya dari: ${CATEGORIES.join(', ')}, jika tidak cocok → "Lainnya"
 
-Input: "${segment}"
-Output:`;
+Input: "${segment}"`;
 
-  // Try Groq first
+  // TRY GROQ (Primary)
   const groqKey = process.env.GROQ_API_KEY;
   if (groqKey) {
     try {
@@ -122,17 +166,18 @@ Output:`;
         const data = await response.json();
         const text = data.choices?.[0]?.message?.content;
         if (text) {
-          const match = text.match(/\{[^}]+\}/);
-          if (match) {
-            console.log(`🤖 Groq: ${match[0]}`);
-            return JSON.parse(match[0]);
+          const parsed = safeJSONParse(text);
+          const validated = validateLLMResult(parsed);
+          if (validated) {
+            console.log(`🤖 Groq: ${JSON.stringify(validated)}`);
+            return validated;
           }
         }
       }
     } catch (e) { console.log(`⚠️ Groq: ${e.message}`); }
   }
 
-  // Try OpenRouter
+  // TRY OPENROUTER
   const orKey = process.env.OPENROUTER_API_KEY;
   if (orKey) {
     try {
@@ -146,17 +191,18 @@ Output:`;
         const data = await response.json();
         const text = data.choices?.[0]?.message?.content;
         if (text) {
-          const match = text.match(/\{[^}]+\}/);
-          if (match) {
-            console.log(`🤖 OpenRouter: ${match[0]}`);
-            return JSON.parse(match[0]);
+          const parsed = safeJSONParse(text);
+          const validated = validateLLMResult(parsed);
+          if (validated) {
+            console.log(`🤖 OpenRouter: ${JSON.stringify(validated)}`);
+            return validated;
           }
         }
       }
     } catch (e) { console.log(`⚠️ OpenRouter: ${e.message}`); }
   }
 
-  // Try Gemini (for complex)
+  // TRY GEMINI
   const geminiKey = process.env.GEMINI_API_KEY;
   if (geminiKey) {
     try {
@@ -174,17 +220,20 @@ Output:`;
         const data = await response.json();
         const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
         if (text) {
-          const match = text.match(/\{[^}]+\}/);
-          if (match) {
-            console.log(`🤖 Gemini: ${match[0]}`);
-            return JSON.parse(match[0]);
+          const parsed = safeJSONParse(text);
+          const validated = validateLLMResult(parsed);
+          if (validated) {
+            console.log(`🤖 Gemini: ${JSON.stringify(validated)}`);
+            return validated;
           }
         }
       }
     } catch (e) { console.log(`⚠️ Gemini: ${e.message}`); }
   }
 
-  return null;
+  // FALLBACK ke deterministic
+  console.log(`🔄 Fallback deterministic untuk: "${segment}"`);
+  return fallbackClassify(segment);
 }
 
 // ============================================
@@ -202,48 +251,27 @@ export async function parseTransaction(message, userId = null) {
     // Step 1: Normalize
     const normalized = normalize(message);
     console.log(`📝 Normalized: "${message}" → "${normalized}"`);
-    
     if (!normalized) return null;
 
     // Step 2: Extract segments (multi-transaction)
     const segments = extractSegments(normalized);
     console.log(`📝 Segments: ${segments.length}`);
-
     if (segments.length === 0) return null;
 
     // Step 3: Process each segment
     const transactions = [];
     
     for (const segment of segments) {
-      // 3a: Extract amount
       const amount = extractAmount(segment);
       if (amount === 0) continue;
 
-      // 3b: Clean description
       const description = cleanDescription(segment);
 
-      // 3c: Quick type detection
-      let type = quickDetectType(segment);
-      let category = 'Lainnya';
-
-      // 3d: LLM classification
+      // LLM classification
       const llmResult = await classifyWithLLM(segment);
       
-      if (llmResult) {
-        type = llmResult.type || type;
-        category = llmResult.category || 'Lainnya';
-      } else {
-        // Fallback: use deterministic category based on keywords
-        const lower = segment.toLowerCase();
-        if (lower.includes('makan') || lower.includes('kopi') || lower.includes('minum') || lower.includes('food') || lower.includes('cafe')) category = 'Makanan & Minuman';
-        else if (lower.includes('parkir') || lower.includes('tol') || lower.includes('bensin') || lower.includes('ojek') || lower.includes('gojek') || lower.includes('grab') || lower.includes('transport')) category = 'Transportasi';
-        else if (lower.includes('beli') || lower.includes('shop') || lower.includes('tokopedia') || lower.includes('shopee')) category = 'Belanja';
-        else if (lower.includes('nonton') || lower.includes('game') || lower.includes('netflix') || lower.includes('spotify')) category = 'Hiburan';
-        else if (lower.includes('obat') || lower.includes('dokter') || lower.includes('rumah sakit') || lower.includes('apotek')) category = 'Kesehatan';
-        else if (lower.includes('listrik') || lower.includes('wifi') || lower.includes('air') || lower.includes('pulsa') || lower.includes('tagihan')) category = 'Tagihan';
-        else if (lower.includes('gaji') || lower.includes('thr') || lower.includes('bonus')) category = 'Gaji';
-        else if (lower.includes('invest') || lower.includes('saham') || lower.includes('crypto')) category = 'Investasi';
-      }
+      const type = llmResult?.type || 'expense';
+      const category = llmResult?.category || 'Lainnya';
 
       transactions.push({
         type,
@@ -251,7 +279,7 @@ export async function parseTransaction(message, userId = null) {
         category: CATEGORIES.includes(category) ? category : 'Lainnya',
         description,
         date: today,
-        parsedBy: llmResult ? 'hybrid' : 'deterministic'
+        parsedBy: llmResult ? 'llm' : 'fallback'
       });
     }
 
