@@ -15,10 +15,11 @@ const CATEGORIES = [
   'Tagihan',
   'Gaji',
   'Investasi',
+  'Pinjaman',
   'Lainnya'
 ];
 
-const INCOME_KEYWORDS = ['gaji', 'bonus', 'jual', 'transfer masuk', 'dapat', 'terima', 'uang masuk', 'pembayaran', 'profit', 'dividen', 'thr', 'commission', 'komisi', 'saldo', 'topup', 'isi saldo', 'deposit', 'transfer', 'bayar', 'uang dapat', 'uang terima', 'penerimaan', 'uang', 'nambah', 'tambah', 'masukin', 'masuk', 'terima uang'];
+const INCOME_KEYWORDS = ['gaji', 'bonus', 'jual', 'transfer masuk', 'dapat', 'terima', 'uang masuk', 'pembayaran', 'profit', 'dividen', 'thr', 'commission', 'komisi', 'saldo', 'topup', 'isi saldo', 'deposit', 'transfer', 'bayar', 'uang dapat', 'uang terima', 'penerimaan', 'uang', 'nambah', 'tambah', 'masukin', 'masuk', 'terima uang', 'pinjam', 'pinjeman', 'hutang', 'utang', 'borrow'];
 
 // ============================================
 // PREPROCESSING (Deterministic)
@@ -128,7 +129,8 @@ function detectCategoryByKeyword(text) {
     'Kesehatan': ['obat', 'dokter', 'apotek', 'rumah sakit', 'medical', 'vitamin'],
     'Tagihan': ['listrik', 'wifi', 'air', 'pulsa', 'internet', 'tagihan', 'bpjs', 'token'],
     'Gaji': ['gaji', 'thr', 'bonus', 'salary', 'upah'],
-    'Investasi': ['invest', 'saham', 'crypto', 'reksadana', 'deposito']
+    'Investasi': ['invest', 'saham', 'crypto', 'reksadana', 'deposito'],
+    'Pinjaman': ['pinjam', 'pinjeman', 'hutang', 'utang', 'borrow', 'loan', 'lend', 'kembali', 'bayar kembali']
   };
   
   // Check in priority order - Makanan & Minuman first
@@ -154,8 +156,8 @@ async function classifyWithLLM(segment) {
 {"type":"expense|income","category":"X"}
 
 Rules:
-- income: gaji, bonus, jual, transfer masuk, dapat, terima, nambah saldo, masukin uang, topup saldo
-- Selain itu expense
+- income: gaji, bonus, jual, transfer masuk, dapat, terima, nambah saldo, masukin uang, topup saldo, pinjam, pinjeman, hutang
+- selain itu expense
 - category hanya dari: ${CATEGORIES.join(', ')}, jika tidak cocok → "Lainnya"
 
 Input: "${segment}"`;
