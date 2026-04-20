@@ -578,9 +578,15 @@ KATEGORI: ${CATEGORIES.join(', ')}
 
 PESAN: "${message}"
 
-Format JSON:
-- Jika 1 transaksi: {"type":"expense/income","amount":number,"category":"kategori","description":"deskripsi","date":"${today}"}
-- Jika multi: [{"type":"expense","amount":25000,"category":"Makanan & Minuman","description":"Kopi","date":"${today}"}]
+TUGAS:
+1. Ekstrak amount (Rp) dari pesan
+2. Tentukan type (expense/income)
+3. Tentukan kategori yang paling cocok
+4. BUAT description yang CLEAN - hanya bagian penting (hapus: "tadi", "kena", "wkwk", "abis", "lah", "dong", dll)
+
+CONTOH:
+- "tadi nambal ban vespa 250rb wkwk" → {"type":"expense","amount":250000,"category":"Transportasi","description":"Nambal ban vespa","date":"${today}"}
+- "beli kopi lagi 30rb" → {"type":"expense","amount":30000,"category":"Makanan & Minuman","description":"Beli kopi","date":"${today}"}
 
 Jawab JSON saja, tanpa markdown.`;
 
@@ -593,7 +599,7 @@ Jawab JSON saja, tanpa markdown.`;
           'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          model: process.env.GROQ_MODEL || 'llama-3-70b-versatile',
+          model: process.env.GROQ_MODEL || 'llama-3.1-70b-versatile',
           messages: [{ role: 'user', content: prompt }],
           temperature: 0.1,
           max_tokens: 512
