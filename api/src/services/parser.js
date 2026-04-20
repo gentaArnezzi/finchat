@@ -570,96 +570,28 @@ async function groqFallback(message, retries = 2) {
     return null;
   }
 
-  const today = new Date().toISOString().split('T')[0];
+const today = new Date().toISOString().split('T')[0];
 
-  // OPTIMIZED: compact prompt for 8b model
-  const prompt = `Parser: "${message}" → JSON {type,amount,category,description,date}
-Aturan: rb=1000, jt=1000000. hapus: tadi,kena,wkwk,abis,lah
-cth: "parkir 18rebu"→{type:"expense",amount:18000,category:"Transportasi",description:"Bayar parkir",date:"${today}"}`;
+  // OPTIMIZED: compact but comprehensive prompt
+  const prompt = `Ubah input jadi JSON VALID SAJA.
 
-  for (let attempt = 0; attempt < retries; attempt++) {
-    try {
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          model: process.env.GROQ_MODEL || 'llama-3.1-8b-instant',
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.1,
-          max_tokens: 128
-        })
-      });
+Format:
+{"type":"expense|income","amount":number,"category":string,"description":string,"date":"YYYY-MM-DD"}
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.log(`⚠️ Groq API error ${response.status}: ${errorText.substring(0, 100)}`);
-        if (response.status === 429 && attempt < retries - 1) {
-          await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
-          continue;
-        }
-        return null;
-      }
+Rules:
+- rb/rebu/ribu=1000, jt/juta=1000000, k=1000
+- default expense kecuali: gaji, bonus, jual, transfer masuk
+- ambil HANYA angka utama
+- category pilih dari: ${CATEGORIES.join(', ')} atau "Lainnya"
+- output HARUS JSON tanpa teks lain
+- date=${today}
 
-      const data = await response.json();
-      const text = data.choices?.[0]?.message?.content;
-      if (!text) {
-        console.log('⚠️ Groq returned empty response');
-        return null;
-      }
+Contoh:
+"parkir 18k" → {"type":"expense","amount":18000,"category":"Transportasi","description":"parkir","date":"${today}"}
+"gaji 5jt" → {"type":"income","amount":5000000,"category":"Gaji","description":"gaji","date":"${today}"}
 
-      const cleanJson = text.replace(/```json|```/g, '').trim();
-      let parsed;
-      try {
-        parsed = JSON.parse(cleanJson);
-      } catch (parseError) {
-        console.log(`⚠️ Failed to parse Groq JSON: ${cleanJson.substring(0, 80)}`);
-        return null;
-      }
-
-      if (!parsed || (Array.isArray(parsed) && parsed.length === 0)) return null;
-
-      return (Array.isArray(parsed) ? parsed : [parsed])
-        .filter(tx => tx.amount > 0)
-        .map(tx => ({
-          type: tx.type || 'expense',
-          amount: tx.amount,
-          category: CATEGORIES.includes(tx.category) ? tx.category : detectCategory(tx.description || message, tx.type),
-          description: tx.description || message,
-          date: tx.date || today,
-          parsedBy: 'groq'
-        }));
-
-    } catch (error) {
-      console.log(`⚠️ Groq attempt ${attempt + 1} failed: ${error.message}`);
-      if (attempt < retries - 1) {
-        await new Promise(r => setTimeout(r, 1000));
-      }
-    }
-  }
-  
-  return null;
-}
-
-/**
- * OPENROUTER AI PARSER (Fallback - DeepSeek)
- * Free tier available, good for edge cases
- */
-async function openrouterFallback(message, retries = 2) {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) {
-    console.log('⚠️ OPENROUTER_API_KEY not configured');
-    return null;
-  }
-
-  const today = new Date().toISOString().split('T')[0];
-
-  // OPTIMIZED: compact prompt for 8b model
-  const prompt = `Parser: "${message}" → JSON {type,amount,category,description,date}
-Aturan: rb=1000, jt=1000000. hapus: tadi,kena,wkwk,abis,lah
-cth: "parkir 18rebu"→{type:"expense",amount:18000,category:"Transportasi",description:"Bayarparkir",date:"${today}"}`;
+Input: "${message}"
+Output:`;
 
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
@@ -740,12 +672,28 @@ async function geminiFallback(message, retries = 2) {
     return null;
   }
 
-  const today = new Date().toISOString().split('T')[0];
+const today = new Date().toISOString().split('T')[0];
 
-  // OPTIMIZED: compact prompt
-  const prompt = `Parser: "${message}" → JSON {type,amount,category,description,date}
-Aturan: rb=1000, jt=1000000. hapus: tadi,kena,wkwk,abis,lah
-cth: "parkir 18rebu"→{type:"expense",amount:18000,category:"Transportasi",description:"Bayarparkir",date:"${today}"}`;
+  // OPTIMIZED: compact but comprehensive prompt
+  const prompt = `Ubah input jadi JSON VALID SAJA.
+
+Format:
+{"type":"expense|income","amount":number,"category":string,"description":string,"date":"YYYY-MM-DD"}
+
+Rules:
+- rb/rebu/ribu=1000, jt/juta=1000000, k=1000
+- default expense kecuali: gaji, bonus, jual, transfer masuk
+- ambil HANYA angka utama
+- category pilih dari: ${CATEGORIES.join(', ')} atau "Lainnya"
+- output HARUS JSON tanpa teks lain
+- date=${today}
+
+Contoh:
+"parkir 18k" → {"type":"expense","amount":18000,"category":"Transportasi","description":"parkir","date":"${today}"}
+"gaji 5jt" → {"type":"income","amount":5000000,"category":"Gaji","description":"gaji","date":"${today}"}
+
+Input: "${message}"
+Output:`;
 
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
