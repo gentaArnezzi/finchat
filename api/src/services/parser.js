@@ -113,17 +113,22 @@ function fallbackClassify(segment) {
 
 function detectCategoryByKeyword(text) {
   const keywords = {
-    'Makanan & Minuman': ['makan', 'kopi', 'minum', 'food', 'cafe', 'restaurant', 'warteg'],
-    'Transportasi': ['parkir', 'tol', 'bensin', 'ojek', 'gojek', 'grab', 'transport', 'taxi', 'buss'],
-    'Belanja': ['beli', 'shop', 'toko', 'market', 'tokopedia', 'shopee', 'lazada'],
-    'Hiburan': ['nonton', 'game', 'netflix', 'spotify', 'bioskop', 'konser'],
-    'Kesehatan': ['obat', 'dokter', 'apotek', 'rumah sakit', 'medical'],
-    'Tagihan': ['listrik', 'wifi', 'air', 'pulsa', 'internet', 'tagihan', 'bpjs'],
+    'Makanan & Minuman': ['makan', 'kopi', 'minum', 'food', 'cafe', 'restaurant', 'warteg', 'indomaret', 'alfamart', 'minimarket', 'water', 'juice', 'orange', 'teh', 'es', 'susu', 'soda', 'drink', 'bread', 'roti', 'snack', 'cemilan', 'nasi', 'ayam', 'soto', 'bakso', 'mie', 'pizza', 'burger'],
+    'Transportasi': ['parkir', 'tol', 'bensin', 'ojek', 'gojek', 'grab', 'transport', 'taxi', 'buss', 'kereta', 'mrt'],
+    'Belanja': ['beli', 'shop', 'toko', 'market', 'tokopedia', 'shopee', 'lazada', 'zalora'],
+    'Hiburan': ['nonton', 'game', 'netflix', 'spotify', 'bioskop', 'konser', 'youtube'],
+    'Kesehatan': ['obat', 'dokter', 'apotek', 'rumah sakit', 'medical', 'vitamin'],
+    'Tagihan': ['listrik', 'wifi', 'air', 'pulsa', 'internet', 'tagihan', 'bpjs', 'token'],
     'Gaji': ['gaji', 'thr', 'bonus', 'salary', 'upah'],
     'Investasi': ['invest', 'saham', 'crypto', 'reksadana', 'deposito']
   };
   
+  // Check in priority order - Makanan & Minuman first
+  const foodKws = keywords['Makanan & Minuman'];
+  if (foodKws.some(k => text.includes(k))) return 'Makanan & Minuman';
+  
   for (const [cat, kws] of Object.entries(keywords)) {
+    if (cat === 'Makanan & Minuman') continue;
     if (kws.some(k => text.includes(k))) return cat;
   }
   
@@ -255,7 +260,8 @@ export async function parseTransaction(message, userId = null) {
 
     // Step 2: Extract segments (multi-transaction)
     const segments = extractSegments(normalized);
-    console.log(`📝 Segments: ${segments.length}`);
+    console.log(`📝 Segments: ${segments.length}`, segments);
+    
     if (segments.length === 0) return null;
 
     // Step 3: Process each segment
@@ -263,12 +269,15 @@ export async function parseTransaction(message, userId = null) {
     
     for (const segment of segments) {
       const amount = extractAmount(segment);
+      console.log(`💰 Segment: "${segment}" → amount: ${amount}`);
       if (amount === 0) continue;
 
       const description = cleanDescription(segment);
+      console.log(`📝 Description for "${segment}": "${description}"`);
 
       // LLM classification
       const llmResult = await classifyWithLLM(segment);
+      console.log(`🤖 LLM Result for "${segment}":`, llmResult);
       
       const type = llmResult?.type || 'expense';
       const category = llmResult?.category || 'Lainnya';
