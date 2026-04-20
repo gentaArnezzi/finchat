@@ -1,22 +1,39 @@
 @import "tailwindcss";
 
-:root {
-  --color-primary: #cafb30;
+/* Override ONLY indigo to finchat green-yellow - skip oklch conversion */
+@utility bg-indigo-* {
+  background-color: #cafb30;
 }
 
-/* Map ALL indigo-* vars to primary color */
 @theme {
-  --color-indigo-50: oklch(from var(--color-primary) 97% c 10);
-  --color-indigo-100: oklch(from var(--color-primary) 92% c 25);
-  --color-indigo-200: oklch(from var(--color-primary) 87% c 40);
-  --color-indigo-300: oklch(from var(--color-primary) 80% c 55);
-  --color-indigo-400: oklch(from var(--color-primary) 72% c 70);
-  --color-indigo-500: oklch(from var(--color-primary) 65% c 85);
-  --color-indigo-600: oklch(from var(--color-primary) 58% c 100);
-  --color-indigo-700: oklch(from var(--color-primary) 50% c 115);
-  --color-indigo-800: oklch(from var(--color-primary) 42% c 130);
-  --color-indigo-900: oklch(from var(--color-primary) 35% c 145);
+  --color-indigo-50: #fdfee6;
+  --color-indigo-100: #fafde0;
+  --color-indigo-200: #f3f9c2;
+  --color-indigo-300: #e5f298;
+  --color-indigo-400: #d6ea6a;
+  --color-indigo-500: #c6e24a;
+  --color-indigo-600: #cafb30;
+  --color-indigo-700: #99c424;
+  --color-indigo-800: #738d1b;
+  --color-indigo-900: #4d6812;
+  --color-indigo-950: #2d3c0b;
 }
+
+/* Force override indigo colors in CSS - keep it simple */
+.bg-indigo-600 { background-color: #cafb30 !important; }
+.bg-indigo-500 { background-color: #cafb30 !important; }
+.bg-indigo-700 { background-color: #99c424 !important; }
+.text-indigo-600 { color: #cafb30 !important; }
+.text-indigo-500 { color: #cafb30 !important; }
+.text-indigo-400 { color: #d6ea6a !important; }
+.border-indigo-600 { border-color: #cafb30 !important; }
+.border-indigo-500 { border-color: #cafb30 !important; }
+
+/* Also handle gradients */
+.from-indigo-600 { --tw-gradient-from: #cafb30 !important; }
+.from-indigo-500 { --tw-gradient-from: #cafb30 !important; }
+.to-indigo-600 { --tw-gradient-to: #99c424 !important; }
+.to-indigo-500 { --tw-gradient-to: #c6e24a !important; }
 
 :root {
   --background: #ffffff;
@@ -35,12 +52,10 @@ body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-/* Smooth scrolling */
 html {
   scroll-behavior: smooth;
 }
 
-/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -58,14 +73,12 @@ html {
   background: #94a3b8;
 }
 
-/* Transitions */
 * {
   transition-property: color, background-color, border-color, box-shadow;
   transition-duration: 150ms;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Custom Animations */
 @keyframes float {
   0% { transform: translateY(0px); }
   50% { transform: translateY(-12px); }
@@ -95,7 +108,6 @@ html {
     linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
 }
 
-/* Typing effect keyframes */
 @keyframes pulse-dot {
   0%, 100% { opacity: 0.4; transform: scale(0.8); }
   50% { opacity: 1; transform: scale(1.1); }
@@ -108,7 +120,6 @@ html {
 .typing-dot:nth-child(2) { animation-delay: 0.2s; }
 .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
-/* Custom animation for chat bubble appearance delayed */
 @keyframes slideUpFade {
   0% { opacity: 0; transform: translateY(10px); }
   100% { opacity: 1; transform: translateY(0); }
