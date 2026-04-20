@@ -23,12 +23,15 @@ services:
     build: ./api
     ports:
       - "3001:3001"
+    env_file:
+      - .env
     environment:
       - DATABASE_URL=postgresql://finchat:finchat_pass@db:5432/finchat
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
     restart: unless-stopped
     depends_on:
       db:
@@ -36,6 +39,8 @@ services:
 
   bot:
     build: ./bot
+    env_file:
+      - .env
     environment:
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - API_URL=http://api:3001
