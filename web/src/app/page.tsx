@@ -319,6 +319,68 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* CARA KERJA */}
+      <section id="cara-kerja" className="py-24 md:py-32 relative overflow-hidden bg-slate-50">
+        <div className="max-w-6xl mx-auto px-6 sm:px-8">
+          <FadeIn>
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight leading-[1.1]">
+                Cara Kerja <span className="text-indigo-600">FinChat</span>
+              </h2>
+              <p className="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto">
+                Cukup 3 langkah mudah untuk mulai mencatat keuangan
+              </p>
+            </div>
+          </FadeIn>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <FadeIn delay={0.1}>
+              <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 text-center hover:shadow-md transition-shadow">
+                <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <Send size={28} className="text-indigo-600" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">1. Buka Telegram</h3>
+                <p className="text-slate-500">Buka aplikasi Telegram dan cari bot @finchatids_bot, lalu klik Mulai</p>
+              </div>
+            </FadeIn>
+
+            <FadeIn delay={0.2}>
+              <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 text-center hover:shadow-md transition-shadow">
+                <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <MessageSquare size={28} className="text-indigo-600" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">2. Chat Transaksi</h3>
+                <p className="text-slate-500">Tulis transaksi dengan bahasa sehari-hari, contoh: "beli kopi 25rb" atau "gaji 5 juta"</p>
+              </div>
+            </FadeIn>
+
+            <FadeIn delay={0.3}>
+              <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 text-center hover:shadow-md transition-shadow">
+                <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <BarChart3 size={28} className="text-indigo-600" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">3. Lihat Laporan</h3>
+                <p className="text-slate-500">Dapatkan ringkasan otomatis dan laporan keuangan lengkap langsung di chat</p>
+              </div>
+            </FadeIn>
+          </div>
+
+          <FadeIn delay={0.4}>
+            <div className="mt-12 text-center">
+              <a
+                href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME || 'finchatids_bot'}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-[#a2c828] hover:bg-[#b8e829] text-slate-900 text-sm font-semibold rounded-full transition-all active:scale-95"
+              >
+                <Send size={16} />
+                Coba Sekarang Gratis
+              </a>
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
       {/* SOCIAL PROOF / TICKER */}
       <section className="py-12 bg-white border-y border-slate-100 flex justify-center items-center overflow-hidden relative">
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.04] mix-blend-overlay pointer-events-none"></div>
