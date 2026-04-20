@@ -144,10 +144,6 @@ export default function DashboardPage() {
   const savingsRate = totalIncome > 0 ? Math.round((balance / totalIncome) * 100) : 0;
   const projectedExpense = avgDailyExpense * daysLeft;
   const projectedBalance = balance - projectedExpense;
-  const yearTotalIncome = yearStats?.totalIncome || 0;
-  const yearTotalExpense = yearStats?.totalExpense || 0;
-  const yearBalance = yearTotalIncome - yearTotalExpense;
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -297,77 +293,62 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Year Summary */}
-      <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-6 text-white">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <p className="text-sm font-medium text-slate-300">Ringkasan Tahun {now.getFullYear()}</p>
-            <p className="text-2xl font-bold mt-1">{formatRupiah(yearBalance)}</p>
+      {/* Charts and Transactions - Side by Side */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Charts - Left Side (2 columns) */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Monthly Bar Chart */}
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+            <MonthlyBarChart data={monthlyData} title="Tren Bulanan" />
           </div>
-          <div className="text-right">
-            <p className="text-xs text-slate-400">Saldo Tahun Ini</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white/10 rounded-xl p-4">
-            <p className="text-xs text-slate-300 mb-1">Total Pemasukan</p>
-            <p className="text-lg font-bold text-emerald-400">{formatRupiah(yearTotalIncome)}</p>
-          </div>
-          <div className="bg-white/10 rounded-xl p-4">
-            <p className="text-xs text-slate-300 mb-1">Total Pengeluaran</p>
-            <p className="text-lg font-bold text-rose-400">{formatRupiah(yearTotalExpense)}</p>
-          </div>
-        </div>
-      </div>
 
-      {/* Monthly Bar Chart */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-        <MonthlyBarChart data={monthlyData} title="Tren Bulanan" />
-      </div>
-
-      {/* Daily Trend Line Chart */}
-      {dailyTrend.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-          <TrendLineChart data={dailyTrend} title="Tren 30 Hari Terakhir" />
-        </div>
-      )}
-
-      {/* Recent Transactions */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-bold text-slate-900">Transaksi Terbaru</h2>
-          <a href="/dashboard/transactions" className="flex items-center text-sm text-indigo-600 hover:text-indigo-700 font-medium">
-            Lihat semua <ArrowRight size={16} className="ml-1" />
-          </a>
+          {/* Daily Trend Line Chart */}
+          {dailyTrend.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+              <TrendLineChart data={dailyTrend} title="Tren 30 Hari Terakhir" />
+            </div>
+          )}
         </div>
 
-        {recentTransactions.length === 0 ? (
-          <p className="text-slate-500 text-center py-8 text-sm">Belum ada transaksi</p>
-        ) : (
-          <div className="space-y-4">
-            {recentTransactions.map((tx) => (
-              <div key={tx.id} className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0 hover:bg-slate-50 p-2 rounded-xl transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-indigo-50/50 rounded-xl flex items-center justify-center border border-indigo-100/50">
-                    {getCategoryIcon(tx.category_name)}
+        {/* Recent Transactions - Right Side */}
+        <div className="lg:col-span-1">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 sticky top-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-bold text-slate-900">Transaksi Terbaru</h2>
+              <a href="/dashboard/transactions" className="flex items-center text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+                Lihat semua <ArrowRight size={16} className="ml-1" />
+              </a>
+            </div>
+
+            {recentTransactions.length === 0 ? (
+              <p className="text-slate-500 text-center py-8 text-sm">Belum ada transaksi</p>
+            ) : (
+              <div className="space-y-4">
+                {recentTransactions.map((tx) => (
+                  <div key={tx.id} className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0 hover:bg-slate-50 p-2 rounded-xl transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-indigo-50/50 rounded-xl flex items-center justify-center border border-indigo-100/50">
+                        {getCategoryIcon(tx.category_name)}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-slate-900 leading-tight">{tx.description || tx.category_name}</p>
+                        <p className="text-sm text-slate-500 mt-0.5">{tx.category_name}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className={`font-bold ${tx.type === 'income' ? 'text-emerald-600' : 'text-slate-900'}`}>
+                        {tx.type === 'income' ? '+' : '-'}{formatRupiah(Math.abs(tx.amount))}
+                      </p>
+                      <p className="text-sm font-medium text-slate-400 mt-0.5">
+                        {new Date(tx.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-semibold text-slate-900 leading-tight">{tx.description || tx.category_name}</p>
-                    <p className="text-sm text-slate-500 mt-0.5">{tx.category_name}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className={`font-bold ${tx.type === 'income' ? 'text-emerald-600' : 'text-slate-900'}`}>
-                    {tx.type === 'income' ? '+' : '-'}{formatRupiah(Math.abs(tx.amount))}
-                  </p>
-                  <p className="text-sm font-medium text-slate-400 mt-0.5">
-                    {new Date(tx.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
-                  </p>
-                </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
