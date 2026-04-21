@@ -716,7 +716,7 @@ bot.command('export', async (ctx) => {
     const sub = subData.subscription;
     const plan = sub.plan;
 
-    if (plan !== 'pro' && plan !== 'pro') {
+    if (plan !== 'pro' && plan !== 'business') {
       await ctx.reply(
         `🔒 *Export Tidak Tersedia*\n\nFitur Export PDF/Excel hanya tersedia untuk plan *Pro* dan *Business*.\n\n📊 Plan saat ini: *${sub.planName}*\n\nUpgrade untuk akses fitur ini!`,
         {
@@ -755,13 +755,41 @@ bot.command('kategori', async (ctx) => {
     const sub = subData.subscription;
     const plan = sub.plan;
 
-    if (plan !== 'pro') {
+if (plan !== 'business') {
       await ctx.reply(
-        `🔒 *Custom Categories*\n\nFitur kategori custom hanya tersedia untuk plan *Pro*.\n\n📊 Plan saat ini: *${sub.planName}*\n\nUpgrade ke Pro untuk unlimited custom categories!`,
-        { reply_markup: { inline_keyboard: [[{ text: '💎 Upgrade ke Pro', callback_data: 'show_upgrade' }]] } }
+        `🔒 *Custom Categories*\n\nFitur kategori custom hanya tersedia untuk plan *Business*.\n\n📊 Plan saat ini: *${sub.planName}*\n\nUpgrade ke Business untuk unlimited custom categories!`,
+        { reply_markup: { inline_keyboard: [[{ text: '💎 Upgrade ke Business', callback_data: 'show_upgrade' }]] } }
       );
       return;
     }
+
+    // Get custom categories
+    await ctx.reply(
+      `📂 *Custom Categories*\n\n${customCats.length} kategori custom:\n\n${customCats.map(c => `• ${c.icon} ${c.name}`).join('\n')}`,
+      { parse_mode: 'Markdown' }
+    );
+  } catch (error) {
+    console.error('Error in /kategori:', error);
+    await ctx.reply('Maaf, ada masalah. Coba lagi.');
+  }
+});
+
+bot.command('kategori_tambah', async (ctx) => {
+  const { subData } = session;
+  if (!subData?.subscription) {
+    await ctx.reply('❌ Sesi tidak valid. Ketik /start');
+    return;
+  }
+  const sub = subData.subscription;
+  const plan = sub.plan;
+
+  if (plan !== 'business') {
+    await ctx.reply(
+      `🔒 *Tambah Kategori*\n\nFitur tambah kategori hanya tersedia untuk plan *Business*.\n\n📊 Plan saat ini: *${sub.planName}*\n\nUpgrade ke Business!`,
+      { reply_markup: { inline_keyboard: [[{ text: '💎 Upgrade ke Business', callback_data: 'show_upgrade' }]] } }
+    );
+    return;
+  }
 
     const { data: catData } = await axios.get(`${API_URL}/api/categories`, { headers: { Authorization: `Bearer ${token}` } });
     const customCategories = catData.categories?.filter(c => c.is_custom) || [];
@@ -800,7 +828,7 @@ bot.on('message:text', async (ctx) => {
     try {
       const token = await loginAndGetToken(from.id, from.first_name, from.username);
       const { data: subData } = await axios.get(`${API_URL}/api/subscription/status`, { headers: { Authorization: `Bearer ${token}` } });
-      if (subData.subscription.plan !== 'pro') {
+      if (subData.subscription.plan !== 'business') {
         return await ctx.reply('🔒 Custom categories hanya untuk plan Business. Upgrade di /upgrade');
       }
       await axios.post(`${API_URL}/api/categories`, { name: categoryName, is_custom: true }, { headers: { Authorization: `Bearer ${token}` } });
@@ -819,7 +847,7 @@ bot.on('message:text', async (ctx) => {
     try {
       const token = await loginAndGetToken(from.id, from.first_name, from.username);
       const { data: subData } = await axios.get(`${API_URL}/api/subscription/status`, { headers: { Authorization: `Bearer ${token}` } });
-      if (subData.subscription.plan !== 'pro') {
+      if (subData.subscription.plan !== 'business') {
         return await ctx.reply('🔒 Custom categories hanya untuk plan Business. Upgrade di /upgrade');
       }
       await axios.delete(`${API_URL}/api/categories/${encodeURIComponent(categoryName)}`, { headers: { Authorization: `Bearer ${token}` } });
