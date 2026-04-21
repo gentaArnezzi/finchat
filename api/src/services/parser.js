@@ -1,7 +1,12 @@
 /**
- * Transaction Parser for FinChat
- * Strategy: Hybrid System = Preprocessing (deterministic) + LLM Classification
- * Production-grade with validation & fallback
+ * Transaction Parser for FinChat — LLM-First Edition
+ *
+ * Architecture:
+ *   1. LLM parses everything in ONE call (intent + segmentation + type + amount + category + description)
+ *   2. Amount verification: LLM-returned amounts MUST appear in original message (prevents hallucination)
+ *   3. Deterministic fallback: kicks in only when LLM fails OR amounts can't be verified
+ *
+ * Provider cascade: Groq → OpenRouter → Gemini → Deterministic
  */
 
 import 'dotenv/config';
@@ -19,391 +24,371 @@ const CATEGORIES = [
   'Lainnya'
 ];
 
-const INCOME_KEYWORDS = ['gaji', 'bonus', 'jual', 'transfer masuk', 'dapat', 'terima', 'uang masuk', 'pembayaran', 'profit', 'dividen', 'thr', 'commission', 'komisi', 'saldo', 'topup', 'isi saldo', 'deposit', 'transfer', 'bayar', 'uang dapat', 'uang terima', 'penerimaan', 'uang', 'nambah', 'tambah', 'masukin', 'masuk', 'terima uang', 'pinjam', 'pinjeman', 'hutang', 'utang', 'borrow'];
+const LLM_TIMEOUT_MS = 5000;
 
 // ============================================
-// PREPROCESSING (Deterministic)
+// UNIFIED LLM CALLER (with cascade + timeout)
 // ============================================
 
-function normalize(text) {
-  if (!text) return '';
-  
-  // Step 1: Replace rb/jt/etc dulu
-  let normalized = text
-    .toLowerCase()
-    .replace(/rb|ribu|rebu|rbu/gi, '000')
-    .replace(/jt|juta/gi, '000000')
-    .replace(/(\d+)k(?!\w)/g, (_, n) => n + '000');
-  
-  // Step 2: Merge numbers - hapus spasi antara digits: "1 000000" → "1000000"
-  normalized = normalized.replace(/(\d)\s+(0+)/g, '$1$2');
-  
-  // Step 3: Remove noise
-  normalized = normalized
-    .replace(/[^\w\s\d]/g, ' ')
-    .replace(/\b(tadi|wkwk|abis|lah|dong|kena|gue|gui|sya|aku|lo|lu|yang|nya|deh|neh|buat|untuk)\b/gi, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-  
-  return normalized;
-}
-
-function extractSegments(text) {
-  const separators = /\s*(?:dan|sama|plus|ditambah|&|\+|,)\s*|\s+terus\s+/i;
-  return text.split(separators).filter(p => /\d/.test(p));
-}
-
-function extractAmount(segment) {
-  if (!segment) return 0;
-  const matches = segment.match(/\d+/g);
-  if (!matches || matches.length === 0) return 0;
-  
-  // Ambil nomor terakhir
-  const lastNum = parseInt(matches[matches.length - 1], 10);
-  if (lastNum < 100 || lastNum > 10000000000) return 0;
-  if (lastNum < 1000) return lastNum * 1000;
-  return lastNum;
-}
-
-function cleanDescription(segment) {
-  if (!segment) return 'Transaksi';
-  let desc = segment.replace(/\d+/g, '').replace(/\s+/g, ' ').trim();
-  if (desc) desc = desc.charAt(0).toUpperCase() + desc.slice(1);
-  return desc || 'Transaksi';
-}
-
-// ============================================
-// SAFE JSON PARSING + VALIDATION
-// ============================================
-
-function safeJSONParse(text) {
+async function fetchWithTimeout(url, options, timeoutMs = LLM_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    // Ambil semua kurung kurawal
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) return null;
-    return JSON.parse(match[0]);
-  } catch {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(timeout);
+    return res;
+  } catch (e) {
+    clearTimeout(timeout);
+    throw e;
+  }
+}
+
+async function callGroq(prompt, maxTokens) {
+  const key = process.env.GROQ_API_KEY;
+  if (!key) return null;
+  try {
+    const res = await fetchWithTimeout('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+      body: JSON.stringify({
+        model: process.env.GROQ_MODEL || 'llama-3.1-8b-instant',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.1,
+        max_tokens: maxTokens,
+        response_format: { type: 'json_object' }
+      })
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content || null;
+  } catch (e) {
+    console.log(`⚠️ Groq: ${e.message}`);
     return null;
   }
 }
 
-function validateLLMResult(obj) {
-  if (!obj) return null;
-  
-  // Validasi type
-  if (!['expense', 'income'].includes(obj.type)) {
-    obj.type = 'expense'; // default
+async function callOpenRouter(prompt, maxTokens) {
+  const key = process.env.OPENROUTER_API_KEY;
+  if (!key) return null;
+  try {
+    const res = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${key}`,
+        'HTTP-Referer': 'https://finchat.id',
+        'X-Title': 'FinChat'
+      },
+      body: JSON.stringify({
+        model: process.env.OPENROUTER_MODEL || 'deepseek/deepseek-chat',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.1,
+        max_tokens: maxTokens,
+        response_format: { type: 'json_object' }
+      })
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content || null;
+  } catch (e) {
+    console.log(`⚠️ OpenRouter: ${e.message}`);
+    return null;
   }
-  
-  // Validasi category
-  if (!CATEGORIES.includes(obj.category)) {
-    obj.category = 'Lainnya';
+}
+
+async function callGemini(prompt, maxTokens) {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) return null;
+  try {
+    const model = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+    const version = model.includes('2.0') || model.includes('2.5') ? 'v1' : 'v1beta';
+    const url = `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${key}`;
+    const res = await fetchWithTimeout(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.1,
+          maxOutputTokens: maxTokens,
+          responseMimeType: 'application/json'
+        }
+      })
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || null;
+  } catch (e) {
+    console.log(`⚠️ Gemini: ${e.message}`);
+    return null;
   }
-  
-  return obj;
+}
+
+async function callLLM(prompt, maxTokens = 400) {
+  const providers = [
+    { name: 'Groq', fn: callGroq },
+    { name: 'OpenRouter', fn: callOpenRouter },
+    { name: 'Gemini', fn: callGemini }
+  ];
+  for (const p of providers) {
+    const result = await p.fn(prompt, maxTokens);
+    if (result) {
+      console.log(`🤖 LLM provider: ${p.name}`);
+      return result;
+    }
+  }
+  return null;
+}
+
+// ============================================
+// PROMPT
+// ============================================
+
+function buildPrompt(message) {
+  return `Parse pesan keuangan user jadi JSON. Output HARUS JSON VALID tanpa text lain.
+
+PESAN: "${message}"
+
+== SCHEMA ==
+
+Kalau user NANYA INFO (berapa, total, saldo, laporan, pengeluaran bulan ini, dll):
+{"intent":"query","query":"expense|income|balance|all","timeframe":"day|week|month|year|all","special":"highest|category|none"}
+
+Kalau user CATAT TRANSAKSI:
+{"intent":"transaction","items":[{"type":"expense|income","amount":<integer>,"category":"<kategori>","description":"<singkat>"}]}
+
+== RULES ==
+
+AMOUNT (dalam rupiah, integer penuh):
+- "25rb" / "25 ribu" / "25k" = 25000
+- "2jt" / "2 juta" = 2000000
+- "500" tanpa satuan (< 1000) = 500000 (diasumsikan ribuan)
+- JANGAN kalkulasi (kalau "patungan 300rb bagi 3", catat 300000, bukan 100000)
+
+TYPE:
+- income = uang MASUK ke user: gaji, bonus, thr, dividen, jual, terima transfer, dapat uang, topup saldo, pinjem DARI orang
+- expense = uang KELUAR dari user: beli, bayar, makan, isi bensin, pinjemin KE orang, bayar hutang
+
+CATEGORY (pilih persis satu, default "Lainnya"):
+- Makanan & Minuman: makan, kopi, snack, warteg, resto, indomaret, alfamart, bakso, nasi, roti
+- Transportasi: ojek, grab, gojek, bensin, parkir, tol, kereta, mrt, taxi
+- Belanja: beli barang non-makanan, shopee, tokopedia, baju, elektronik
+- Hiburan: nonton, netflix, spotify, game, konser, bioskop
+- Kesehatan: obat, dokter, apotek, vitamin, rumah sakit
+- Tagihan: listrik, wifi, pulsa, token, bpjs, internet
+- Gaji: gaji, thr, bonus kerja, salary
+- Investasi: saham, crypto, reksadana, deposito
+- Pinjaman: pinjem, hutang, utang (dua arah)
+- Lainnya: ga cocok
+
+MULTI-TRANSAKSI:
+Pisahkan jadi items terpisah kalau ada pemisah: dan, sama, plus, terus, koma, &, +
+
+DESCRIPTION: singkat (1-4 kata), huruf awal kapital. Contoh: "Kopi", "Ojek kantor", "Gaji bulanan"
+
+== CONTOH ==
+
+"beli kopi 25rb"
+→ {"intent":"transaction","items":[{"type":"expense","amount":25000,"category":"Makanan & Minuman","description":"Kopi"}]}
+
+"gaji masuk 5jt"
+→ {"intent":"transaction","items":[{"type":"income","amount":5000000,"category":"Gaji","description":"Gaji"}]}
+
+"makan 30rb sama grab 20rb"
+→ {"intent":"transaction","items":[{"type":"expense","amount":30000,"category":"Makanan & Minuman","description":"Makan"},{"type":"expense","amount":20000,"category":"Transportasi","description":"Grab"}]}
+
+"pinjem dari andi 500rb"
+→ {"intent":"transaction","items":[{"type":"income","amount":500000,"category":"Pinjaman","description":"Pinjem dari Andi"}]}
+
+"bayar listrik 150rb"
+→ {"intent":"transaction","items":[{"type":"expense","amount":150000,"category":"Tagihan","description":"Listrik"}]}
+
+"pengeluaran bulan ini berapa"
+→ {"intent":"query","query":"expense","timeframe":"month","special":"none"}
+
+"pengeluaran terbesar dimana"
+→ {"intent":"query","query":"expense","timeframe":"all","special":"highest"}
+
+"saldo gw berapa"
+→ {"intent":"query","query":"balance","timeframe":"all","special":"none"}
+
+JAWAB JSON SAJA:`;
+}
+
+// ============================================
+// JSON PARSING
+// ============================================
+
+function safeJSONParse(text) {
+  if (!text) return null;
+  const cleaned = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    if (match) {
+      try { return JSON.parse(match[0]); } catch { return null; }
+    }
+    return null;
+  }
+}
+
+// ============================================
+// AMOUNT VERIFICATION (THE SAFETY NET)
+// ============================================
+
+/**
+ * Extract all plausible amounts from raw message, normalized to rupiah.
+ * This is the source of truth that the LLM's output is verified against.
+ */
+function extractAllAmounts(text) {
+  if (!text) return new Set();
+
+  const normalized = text
+    .toLowerCase()
+    .replace(/(\d+)\s*(rb|ribu|rebu|rbu)\b/gi, (_, n) => n + '000')
+    .replace(/(\d+)\s*(jt|juta)\b/gi, (_, n) => n + '000000')
+    .replace(/(\d+)\s*k(?!\w)/gi, (_, n) => n + '000')
+    .replace(/(\d)[.,\s]+(\d{3})/g, '$1$2'); // handle "1.000.000" or "1 000 000"
+
+  const amounts = new Set();
+  const matches = normalized.match(/\d+/g) || [];
+
+  for (const m of matches) {
+    const n = parseInt(m, 10);
+    if (!Number.isFinite(n) || n < 1 || n > 10_000_000_000) continue;
+
+    if (n >= 100) amounts.add(n);
+    // "< 1000" interpreted as thousands (Indonesian convention)
+    if (n < 1000) amounts.add(n * 1000);
+  }
+
+  return amounts;
+}
+
+function verifyAmount(amountSet, llmAmount) {
+  if (!Number.isInteger(llmAmount) || llmAmount < 100) return false;
+  return amountSet.has(llmAmount);
+}
+
+// ============================================
+// VALIDATION
+// ============================================
+
+function validateTransactionItem(item, amountSet) {
+  if (!item || typeof item !== 'object') return null;
+
+  const amount = parseInt(item.amount, 10);
+  if (!Number.isFinite(amount) || amount < 100 || amount > 10_000_000_000) return null;
+
+  const type = ['expense', 'income'].includes(item.type) ? item.type : 'expense';
+  const category = CATEGORIES.includes(item.category) ? item.category : 'Lainnya';
+
+  let description = String(item.description || 'Transaksi').trim().slice(0, 80);
+  if (description) description = description.charAt(0).toUpperCase() + description.slice(1);
+  else description = 'Transaksi';
+
+  return {
+    type,
+    amount,
+    category,
+    description,
+    _verified: verifyAmount(amountSet, amount)
+  };
+}
+
+function validateQuery(obj) {
+  const validQuery = ['expense', 'income', 'balance', 'all'];
+  const validTimeframe = ['day', 'week', 'month', 'year', 'all'];
+  const validSpecial = ['highest', 'category', 'none'];
+
+  return {
+    query: validQuery.includes(obj.query) ? obj.query : 'balance',
+    timeframe: validTimeframe.includes(obj.timeframe) ? obj.timeframe : 'month',
+    special: validSpecial.includes(obj.special) ? obj.special : 'none'
+  };
 }
 
 // ============================================
 // DETERMINISTIC FALLBACK
 // ============================================
 
-function fallbackClassify(segment) {
-  const lower = segment.toLowerCase();
-  
-  // Income detection
-  for (const kw of INCOME_KEYWORDS) {
-    if (lower.includes(kw)) {
-      return { type: 'income', category: detectCategoryByKeyword(lower) };
-    }
-  }
-  
-  return { type: 'expense', category: detectCategoryByKeyword(lower) };
+const INCOME_KEYWORDS = [
+  'gaji', 'bonus', 'thr', 'dividen', 'komisi', 'commission',
+  'jual ', 'terima transfer', 'masuk', 'dapat ', 'topup',
+  'pinjem dari', 'pinjam dari', 'hutang dari', 'utang dari'
+];
+
+const CATEGORY_KEYWORDS = {
+  'Makanan & Minuman': ['makan', 'kopi', 'minum', 'cafe', 'resto', 'warteg', 'indomaret', 'alfamart', 'roti', 'snack', 'cemilan', 'nasi', 'ayam', 'soto', 'bakso', 'mie', 'pizza', 'burger', 'teh', 'susu'],
+  'Transportasi': ['parkir', 'tol', 'bensin', 'ojek', 'gojek', 'grab', 'taxi', 'kereta', 'mrt', 'krl', 'bus'],
+  'Belanja': ['beli', 'shop', 'toko', 'tokopedia', 'shopee', 'lazada', 'baju'],
+  'Hiburan': ['nonton', 'game', 'netflix', 'spotify', 'bioskop', 'konser', 'youtube'],
+  'Kesehatan': ['obat', 'dokter', 'apotek', 'rumah sakit', 'vitamin', 'klinik'],
+  'Tagihan': ['listrik', 'wifi', 'pulsa', 'internet', 'tagihan', 'bpjs', 'token'],
+  'Gaji': ['gaji', 'thr', 'salary', 'upah'],
+  'Investasi': ['invest', 'saham', 'crypto', 'reksadana', 'deposito'],
+  'Pinjaman': ['pinjem', 'pinjam', 'hutang', 'utang', 'loan']
+};
+
+const QUERY_KEYWORDS = ['berapa', 'total', 'saldo', 'laporan', 'pengeluaran', 'pemasukan', 'keuangan', 'gimana', 'cek', 'lihat', 'hitung', 'bulan ini', 'minggu ini', 'hari ini', 'tahun ini', 'terbesar', 'terbanyak', 'dimana', 'summary', 'rekap'];
+
+function detectType(text) {
+  const lower = text.toLowerCase();
+  return INCOME_KEYWORDS.some(k => lower.includes(k)) ? 'income' : 'expense';
 }
 
-function detectCategoryByKeyword(text) {
-  const keywords = {
-    'Makanan & Minuman': ['makan', 'kopi', 'minum', 'food', 'cafe', 'restaurant', 'warteg', 'indomaret', 'alfamart', 'minimarket', 'water', 'juice', 'orange', 'teh', 'es', 'susu', 'soda', 'drink', 'bread', 'roti', 'snack', 'cemilan', 'nasi', 'ayam', 'soto', 'bakso', 'mie', 'pizza', 'burger'],
-    'Transportasi': ['parkir', 'tol', 'bensin', 'ojek', 'gojek', 'grab', 'transport', 'taxi', 'buss', 'kereta', 'mrt'],
-    'Belanja': ['beli', 'shop', 'toko', 'market', 'tokopedia', 'shopee', 'lazada', 'zalora'],
-    'Hiburan': ['nonton', 'game', 'netflix', 'spotify', 'bioskop', 'konser', 'youtube'],
-    'Kesehatan': ['obat', 'dokter', 'apotek', 'rumah sakit', 'medical', 'vitamin'],
-    'Tagihan': ['listrik', 'wifi', 'air', 'pulsa', 'internet', 'tagihan', 'bpjs', 'token'],
-    'Gaji': ['gaji', 'thr', 'bonus', 'salary', 'upah'],
-    'Investasi': ['invest', 'saham', 'crypto', 'reksadana', 'deposito'],
-    'Pinjaman': ['pinjam', 'pinjeman', 'hutang', 'utang', 'borrow', 'loan', 'lend', 'kembali', 'bayar kembali']
-  };
-  
-  // Check in priority order - Makanan & Minuman first
-  const foodKws = keywords['Makanan & Minuman'];
-  if (foodKws.some(k => text.includes(k))) return 'Makanan & Minuman';
-  
-  for (const [cat, kws] of Object.entries(keywords)) {
+function detectCategory(text) {
+  const lower = text.toLowerCase();
+  if (CATEGORY_KEYWORDS['Makanan & Minuman'].some(k => lower.includes(k))) return 'Makanan & Minuman';
+  for (const [cat, kws] of Object.entries(CATEGORY_KEYWORDS)) {
     if (cat === 'Makanan & Minuman') continue;
-    if (kws.some(k => text.includes(k))) return cat;
+    if (kws.some(k => lower.includes(k))) return cat;
   }
-  
   return 'Lainnya';
 }
 
-// ============================================
-// INTENT DETECTION + PARSING (Hybrid: LLM do it all)
-// ============================================
+function fallbackParse(message) {
+  const lower = message.toLowerCase();
+  const isQuery = QUERY_KEYWORDS.some(k => lower.includes(k));
 
-async function parseWithLLM(message) {
-  const today = new Date().toISOString().split('T')[0];
-  
-  // DETECT INTENT: transaction vs query
-  const intentPrompt = `Cek intent pesan ini:
-
-PESAN: "${message}"
-
-Jenis:
-- "transaction" = catat transaksi (keluar/masuk uang)
-- "query" = minta laporan/info (hitung.total, berapa, saldo, laporan, summary)
-
-Jawab JSON saja: {"intent":"transaction|query"}
-
-Contoh:
-- "beli kopi 25rb" → {"intent":"transaction"}
-- "pengeluaran bulan ini" → {"intent":"query"}
-- "saldo ada berapa" → {"intent":"query"}
-- "gimana keuangan saya" → {"intent":"query"}`;
-
-  // Try LLM untuk intent detection
-  const groqKey = process.env.GROQ_API_KEY;
-  let intent = 'transaction'; // default
-  
-  if (groqKey) {
-    try {
-      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqKey}` },
-        body: JSON.stringify({
-          model: 'llama-3.1-8b-instant',
-          messages: [{ role: 'user', content: intentPrompt }],
-          temperature: 0.1,
-          max_tokens: 32
-        })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const text = data.choices?.[0]?.message?.content;
-        const match = text?.match(/"intent":"(\w+)"/);
-        if (match) intent = match[1];
-      }
-    } catch (e) { console.log(`⚠️ Intent: ${e.message}`); }
-  }
-
-  console.log(`🎯 Intent: ${intent}`);
-
-  // IF QUERY - return query object (bot akan handle)
-  if (intent === 'query') {
-    const queryPrompt = `Parse query keuangan:
-
-PESAN: "${message}"
-
-Categories untuk query:
-- "expense": pengeluaran
-- "income": pemasukan  
-- "balance": saldo
-- "month": bulan ini
-- "week": minggu ini
-- "day": hari ini
-- "year": tahun ini
-- "all": semua/keseluruhan
-- "highest": terbesar/terbanyak
-- "category": per kategori
-
-Jawab JSON valid: {"query":"X","timeframe":"Y","category":"Z"}
-
-Contoh:
-- "pengeluaran bulan ini" → {"query":"expense","timeframe":"month","category":"all"}
-- "saldo ada berapa" → {"query":"balance","timeframe":"day","category":"all"}
-- "pengeluaran terbesar dimana" → {"query":"expense","timeframe":"all","category":"highest"}
-- "laporan april" → {"query":"all","timeframe":"month","category":"all"}`;
-
-    let queryResult = { query: 'expense', timeframe: 'month', category: 'all' };
-    
-    if (groqKey) {
-      try {
-        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqKey}` },
-          body: JSON.stringify({
-            model: 'llama-3.1-8b-instant',
-            messages: [{ role: 'user', content: queryPrompt }],
-            temperature: 0.1,
-            max_tokens: 64
-          })
-        });
-        if (res.ok) {
-          const data = await res.json();
-          const text = data.choices?.[0]?.message?.content;
-          const match = text?.match(/\{[\s\S]*\}/);
-          if (match) queryResult = JSON.parse(match[0]);
-        }
-      } catch (e) { console.log(`⚠️ Query: ${e.message}`); }
-    }
-
-    console.log(`🔍 Query parsed:`, queryResult);
+  if (isQuery) {
     return {
-      type: 'query',
-      query: queryResult.query,
-      timeframe: queryResult.timeframe,
-      category: queryResult.category,
-      date: today
+      intent: 'query',
+      query: lower.includes('saldo') ? 'balance' : lower.includes('pemasukan') ? 'income' : 'expense',
+      timeframe: lower.includes('hari') ? 'day' : lower.includes('minggu') ? 'week' : lower.includes('tahun') ? 'year' : 'month',
+      special: lower.includes('terbesar') || lower.includes('terbanyak') ? 'highest' : 'none'
     };
   }
 
-  // IF TRANSACTION - proceed with normal parsing
-  return null; // Placeholder - akan lanjut di main function
-}
+  const segments = message.split(/\s*(?:dan|sama|plus|ditambah|&|\+|,|terus)\s+/i).filter(s => /\d/.test(s));
+  if (segments.length === 0) return null;
 
-// Parse QUERY dengan LLM
-async function parseQueryWithLLM(message) {
-  const today = new Date().toISOString().split('T')[0];
-  
-  // STRICT - langsung JSON tanpa contoh
-  const prompt = `Jawab JSON saja, tanpa teks lain:
+  const items = [];
+  for (const seg of segments) {
+    const amountSet = extractAllAmounts(seg);
+    if (amountSet.size === 0) continue;
 
-{"query":"expense|income|balance|budget|all","timeframe":"day|week|month|year|all","special":"highest|category|all|none","category":"all"}
+    const amount = Math.max(...amountSet);
 
-PESAN: "${message}"`;
+    let description = seg
+      .replace(/\d+/g, '')
+      .replace(/\b(rb|ribu|rebu|rbu|jt|juta|k)\b/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 60);
+    description = description ? description.charAt(0).toUpperCase() + description.slice(1) : 'Transaksi';
 
-  let result = { query: 'balance', timeframe: 'day', special: 'none', category: 'all' };
-  
-  const groqKey = process.env.GROQ_API_KEY;
-  if (groqKey) {
-    try {
-      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqKey}` },
-        body: JSON.stringify({
-          model: 'llama-3.1-8b-instant',
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.1,
-          max_tokens: 80
-        })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const text = data.choices?.[0]?.message?.content;
-        console.log(`🔍 Raw: "${text}"`);
-        // Extract clean JSON
-        const jsonMatch = text.match(/\{[^{}]*\}/);
-        if (jsonMatch) {
-          try { result = JSON.parse(jsonMatch[0]); } catch (e) {}
-        }
-      }
-    } catch (e) { console.log(`⚠️ Q: ${e.message}`); }
+    items.push({
+      type: detectType(seg),
+      amount,
+      category: detectCategory(seg),
+      description
+    });
   }
 
-  return { type: 'query', date: today, raw: message, ...result };
-}
-    ...result
-  };
-}
-
-async function classifyWithLLM(segment) {
-  // STRICT PROMPT
-  const prompt = `Output HARUS JSON VALID TANPA TEXT LAIN:
-
-{"type":"expense|income","category":"X"}
-
-Rules:
-- income: gaji, bonus, jual, transfer masuk, dapat, terima, nambah saldo, masukin uang, topup saldo, pinjam, pinjeman, hutang
-- selain itu expense
-- category hanya dari: ${CATEGORIES.join(', ')}, jika tidak cocok → "Lainnya"
-
-Input: "${segment}"`;
-
-  // TRY GROQ (Primary)
-  const groqKey = process.env.GROQ_API_KEY;
-  if (groqKey) {
-    try {
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqKey}` },
-        body: JSON.stringify({
-          model: process.env.GROQ_MODEL || 'llama-3.1-8b-instant',
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.1,
-          max_tokens: 64
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const text = data.choices?.[0]?.message?.content;
-        if (text) {
-          const parsed = safeJSONParse(text);
-          const validated = validateLLMResult(parsed);
-          if (validated) {
-            console.log(`🤖 Groq: ${JSON.stringify(validated)}`);
-            return validated;
-          }
-        }
-      }
-    } catch (e) { console.log(`⚠️ Groq: ${e.message}`); }
-  }
-
-  // TRY OPENROUTER
-  const orKey = process.env.OPENROUTER_API_KEY;
-  if (orKey) {
-    try {
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${orKey}`, 'HTTP-Referer': 'https://finchat.id', 'X-Title': 'FinChat' },
-        body: JSON.stringify({ model: 'deepseek/deepseek-chat', messages: [{ role: 'user', content: prompt }], temperature: 0.1, max_tokens: 64 })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const text = data.choices?.[0]?.message?.content;
-        if (text) {
-          const parsed = safeJSONParse(text);
-          const validated = validateLLMResult(parsed);
-          if (validated) {
-            console.log(`🤖 OpenRouter: ${JSON.stringify(validated)}`);
-            return validated;
-          }
-        }
-      }
-    } catch (e) { console.log(`⚠️ OpenRouter: ${e.message}`); }
-  }
-
-  // TRY GEMINI
-  const geminiKey = process.env.GEMINI_API_KEY;
-  if (geminiKey) {
-    try {
-      const model = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
-      const version = model.includes('2.0') || model.includes('2.5') ? 'v1' : 'v1beta';
-      const url = `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${geminiKey}`;
-
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.1, maxOutputTokens: 64 } })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) {
-          const parsed = safeJSONParse(text);
-          const validated = validateLLMResult(parsed);
-          if (validated) {
-            console.log(`🤖 Gemini: ${JSON.stringify(validated)}`);
-            return validated;
-          }
-        }
-      }
-    } catch (e) { console.log(`⚠️ Gemini: ${e.message}`); }
-  }
-
-  // FALLBACK ke deterministic
-  console.log(`🔄 Fallback deterministic untuk: "${segment}"`);
-  return fallbackClassify(segment);
+  if (items.length === 0) return null;
+  return { intent: 'transaction', items };
 }
 
 // ============================================
@@ -416,81 +401,64 @@ export async function parseTransaction(message, userId = null) {
   }
 
   const today = new Date().toISOString().split('T')[0];
+  console.log(`📩 Input: "${message}"`);
 
-  // ===== DETECT INTENT: transaction vs query =====
-  const queryKeywords = ['berapa', 'total', 'saldo', 'laporan', 'pengeluaran', 'pemasukan', 'keuangan', 'gimana', 'apa', 'cek', 'lihat', 'hitung', 'bulan', 'minggu', 'hari', 'tahun', 'terbesar', 'terbanyak', 'dimana', 'raport', 'summary'];
-  const isQuery = queryKeywords.some(k => message.toLowerCase().includes(k));
-  
-  if (isQuery) {
-    console.log(`🎯 Intent: QUERY - "${message}"`);
-    return await parseQueryWithLLM(message);
+  // ===== TRY LLM =====
+  const llmResponse = await callLLM(buildPrompt(message), 400);
+  const parsed = safeJSONParse(llmResponse);
+
+  if (parsed?.intent === 'query') {
+    console.log(`✅ Query parsed by LLM`);
+    return {
+      type: 'query',
+      date: today,
+      raw: message,
+      parsedBy: 'llm',
+      ...validateQuery(parsed)
+    };
   }
 
-  console.log(`🎯 Intent: TRANSACTION - "${message}"`);
+  if (parsed?.intent === 'transaction' && Array.isArray(parsed.items) && parsed.items.length > 0) {
+    const amountSet = extractAllAmounts(message);
+    const validated = parsed.items
+      .map(item => validateTransactionItem(item, amountSet))
+      .filter(Boolean);
 
-  try {
-    // Step 1: Normalize
-    const normalized = normalize(message);
-    console.log(`📝 Normalized: "${message}" → "${normalized}"`);
-    if (!normalized) return null;
+    const allVerified = validated.length > 0 && validated.every(i => i._verified);
 
-    // Step 2: Extract segments (multi-transaction)
-    const segments = extractSegments(normalized);
-    console.log(`📝 Segments: ${segments.length}`, segments);
-    
-    if (segments.length === 0) return null;
-
-    // Step 3: Process each segment
-    const transactions = [];
-    
-    for (const segment of segments) {
-      const amount = extractAmount(segment);
-      console.log(`💰 Segment: "${segment}" → amount: ${amount}`);
-      if (amount === 0) {
-        console.log(`⚠️ Skipping segment with amount 0: "${segment}"`);
-        continue;
-      }
-
-      const description = cleanDescription(segment);
-      console.log(`📝 Description for "${segment}": "${description}"`);
-
-      // LLM classification + FORCE FALLBACK if LLM fails
-      let llmResult = await classifyWithLLM(segment);
-      console.log(`🤖 LLM Result for "${segment}":`, llmResult);
-      
-      // Check if need fallback: LLM returns null OR wrong type (income keywords → expense)
-      const keywords = ['nambah', 'masukin', 'masuk', 'terima', 'dapat', 'gaji', 'bonus', 'transfer', 'saldo', 'topup', 'uang'];
-      const hasIncomeKeyword = keywords.some(k => segment.includes(k));
-      const needsFallback = !llmResult || (hasIncomeKeyword && llmResult?.type === 'expense');
-      
-      if (needsFallback) {
-        console.log(`🔄 Force fallback for: "${segment}" (LLM type was wrong or null)`);
-        llmResult = fallbackClassify(segment);
-        console.log(`🔄 Fallback result:`, llmResult);
-      }
-      
-      const type = llmResult?.type || 'expense';
-      const category = llmResult?.category || 'Lainnya';
-
-      transactions.push({
-        type,
-        amount,
-        category: CATEGORIES.includes(category) ? category : 'Lainnya',
-        description,
+    if (allVerified) {
+      console.log(`✅ ${validated.length} transaction(s) by LLM — amounts verified`);
+      const result = validated.map(({ _verified, ...rest }) => ({
+        ...rest,
         date: today,
-        parsedBy: llmResult ? 'llm' : 'fallback'
-      });
+        parsedBy: 'llm'
+      }));
+      return result.length === 1 ? result[0] : result;
     }
 
-    if (transactions.length === 0) return null;
+    const unverified = validated.filter(i => !i._verified).map(i => i.amount);
+    console.log(`⚠️ LLM returned unverifiable amounts: ${unverified.join(', ')} — falling back`);
+  } else if (llmResponse) {
+    console.log(`⚠️ LLM response unparseable, falling back`);
+  } else {
+    console.log(`⚠️ All LLM providers failed, falling back`);
+  }
 
-    console.log(`✅ Parsed ${transactions.length} transaction(s)`);
-    return transactions.length === 1 ? transactions[0] : transactions;
-
-  } catch (error) {
-    console.error(`❌ Parse error: ${error.message}`);
+  // ===== DETERMINISTIC FALLBACK =====
+  const fb = fallbackParse(message);
+  if (!fb) {
+    console.log(`❌ Fallback also failed`);
     return null;
   }
+
+  if (fb.intent === 'query') {
+    console.log(`✅ Query parsed by fallback`);
+    return { type: 'query', date: today, raw: message, parsedBy: 'fallback', ...fb };
+  }
+
+  console.log(`✅ ${fb.items.length} transaction(s) by fallback`);
+  const result = fb.items.map(item => ({ ...item, date: today, parsedBy: 'fallback' }));
+  return result.length === 1 ? result[0] : result;
 }
 
 export { CATEGORIES };
