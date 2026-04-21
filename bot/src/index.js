@@ -153,14 +153,11 @@ const checkTransactionLimit = async (telegramId) => {
 };
 
 // ============================================
-// QUERY HANDLING (NEW — replaces old isQuery keyword block)
+// QUERY HANDLING
 // ============================================
 
 const fmtDate = (d) => d.toISOString().split('T')[0];
 
-/**
- * Convert parser timeframe string to { startDate, endDate, periodName }.
- */
 function resolveTimeframe(timeframe) {
   const now = new Date();
   const year = now.getFullYear();
@@ -213,10 +210,6 @@ function resolveTimeframe(timeframe) {
   }
 }
 
-/**
- * Handle a query result from the parser.
- * Parser returns: { type: 'query', query, timeframe, special, category, ... }
- */
 async function handleQuery(ctx, queryResult) {
   const from = ctx.from;
   const { query, timeframe, special } = queryResult;
@@ -224,7 +217,6 @@ async function handleQuery(ctx, queryResult) {
   const { startDate, endDate, periodName } = resolveTimeframe(timeframe);
 
   try {
-    // Special case: category breakdown or highest category
     if (special === 'highest' || special === 'category') {
       return await handleCategoryBreakdown(ctx, from, startDate, endDate, periodName, special);
     }
@@ -243,7 +235,7 @@ async function handleQuery(ctx, queryResult) {
       response += `💸 Total Pengeluaran: ${formatRupiah(expense)}\n📝 ${expenseCount} transaksi`;
     } else if (query === 'balance') {
       response += `💰 Pemasukan: ${formatRupiah(income)}\n💸 Pengeluaran: ${formatRupiah(expense)}\n━━━━━━━━━━━━━━\n📈 *Saldo: ${formatRupiah(income - expense)}*`;
-    } else { // 'all'
+    } else {
       response += `💰 Pemasukan: ${formatRupiah(income)} (${incomeCount} txn)\n💸 Pengeluaran: ${formatRupiah(expense)} (${expenseCount} txn)\n━━━━━━━━━━━━━━\n📈 Saldo: ${formatRupiah(income - expense)}`;
     }
 
@@ -259,7 +251,6 @@ async function handleCategoryBreakdown(ctx, from, startDate, endDate, periodName
   try {
     const token = await loginAndGetToken(from.id);
 
-    // Fetch transactions in range and aggregate locally
     const res = await axios.get(
       `${API_URL}/api/transactions?startDate=${startDate}&endDate=${endDate}&limit=1000`,
       { headers: { Authorization: `Bearer ${token}` } }
@@ -271,7 +262,6 @@ async function handleCategoryBreakdown(ctx, from, startDate, endDate, periodName
       return await ctx.reply(`📊 *${periodName}*\n\nBelum ada pengeluaran di periode ini.`, { parse_mode: 'Markdown' });
     }
 
-    // Group by category
     const byCategory = {};
     for (const t of expenseTxns) {
       const cat = t.category_name || t.category || 'Lainnya';
@@ -290,7 +280,6 @@ async function handleCategoryBreakdown(ctx, from, startDate, endDate, periodName
         { parse_mode: 'Markdown' }
       );
     } else {
-      // breakdown
       const total = sorted.reduce((s, [, v]) => s + v, 0);
       let msg = `📊 *Breakdown ${periodName}*\n\n`;
       for (const [cat, amt] of sorted) {
@@ -368,7 +357,6 @@ ketik /bantuan untuk panduan lengkap 👇`;
     console.error('Registration error:', error);
   }
 
-  // First time user - onboarding
   ctx.session.onboarding = true;
   ctx.session.onboardingStep = 1;
 
@@ -746,6 +734,7 @@ bot.command('export', async (ctx) => {
   }
 });
 
+// === KATEGORI COMMAND (Business Only) ===
 bot.command('kategori', async (ctx) => {
   const from = ctx.from;
   if (!from) return;
@@ -763,62 +752,22 @@ bot.command('kategori', async (ctx) => {
       return;
     }
 
-    // Get custom categories
-    await ctx.reply(
-      `📂 *Custom Categories*\n\n${customCats.length} kategori custom:\n\n${customCats.map(c => `• ${c.icon} ${c.name}`).join('\n')}`,
-      { parse_mode: 'Markdown' }
-    );
-  } catch (error) {
-    console.error('Error in /kategori:', error);
-    await ctx.reply('Maaf, ada masalah. Coba lagi.');
-  }
-});
+    const { data: catData } = await axios.get(`${API_URL}/api/categories`, { headers: { Authorization: `Bearer ${token}` } });
+    const customCategories = catData.categories?.filter(c => c.is_custom) || [];
 
-bot.command('kategori_tambah', async (ctx) => {
-  const from = ctx.from;
-  if (!from) return;
-  const text = ctx.message.text.replace(/^\/kategori_tambah\s*/i, '').trim();
-  
-  if (!text) {
-    await ctx.reply('❌ Nama kategori tidak boleh kosong.\n\nContoh: /kategori_tambah Investasi');
-    return;
-  }
-  
-  try {
-    const token = await loginAndGetToken(from.id, from.first_name, from.username);
-    const { data: subData } = await axios.get(`${API_URL}/api/subscription/status`, { headers: { Authorization: `Bearer ${token}` } });
-    if (subData.subscription.plan !== 'business') {
-      return await ctx.reply('🔒 Custom categories hanya untuk plan Business. Upgrade di /upgrade');
+    let message = `📂 *Custom Categories*\n\nKategori yang kamu buat:\n\n`;
+    if (customCategories.length === 0) {
+      message += `Belum ada custom categories.\n\nKetik: /kategori tambah [nama] untuk menambah.`;
+    } else {
+      customCategories.forEach((cat, i) => { message += `${i + 1}. ${cat.name}\n`; });
+      message += `\nTotal: ${customCategories.length}/∞`;
     }
-    await axios.post(`${API_URL}/api/categories`, { name: text, is_custom: true }, { headers: { Authorization: `Bearer ${token}` } });
-    await ctx.reply(`✅ Kategori "${text}" berhasil ditambahkan!`);
-  } catch (error) {
-    if (error.response?.status === 409) await ctx.reply('❌ Kategori sudah ada.');
-    else { console.error('Kategori tambah error:', error); await ctx.reply('❌ Gagal menambah kategori.'); }
-  }
-});
 
-bot.command('kategori_hapus', async (ctx) => {
-  const from = ctx.from;
-  if (!from) return;
-  const text = ctx.message.text.replace(/^\/kategori_hapus\s*/i, '').trim();
-  
-  if (!text) {
-    await ctx.reply('❌ Nama kategori tidak boleh kosong.\n\nContoh: /kategori_hapus Investasi');
-    return;
-  }
-  
-  try {
-    const token = await loginAndGetToken(from.id, from.first_name, from.username);
-    const { data: subData } = await axios.get(`${API_URL}/api/subscription/status`, { headers: { Authorization: `Bearer ${token}` } });
-    if (subData.subscription.plan !== 'business') {
-      return await ctx.reply('🔒 Custom categories hanya untuk plan Business. Upgrade di /upgrade');
-    }
-    await axios.delete(`${API_URL}/api/categories/${encodeURIComponent(text)}`, { headers: { Authorization: `Bearer ${token}` } });
-    await ctx.reply(`✅ Kategori "${text}" berhasil dihapus!`);
+    message += `\n\n━━━━━━━━━━━━━━━━━━━━\n📝 *Aksi:*\n/kategori tambah [nama] - Tambah\n/kategori hapus [nama] - Hapus`;
+    await ctx.reply(message, { parse_mode: 'Markdown' });
   } catch (error) {
-    if (error.response?.status === 404) await ctx.reply('❌ Kategori tidak ditemukan.');
-    else { console.error('Kategori hapus error:', error); await ctx.reply('❌ Gagal menghapus kategori.'); }
+    console.error('Kategori command error:', error);
+    await ctx.reply('❌ Terjadi kesalahan. Silakan coba lagi.');
   }
 });
 
@@ -832,7 +781,7 @@ bot.on('message:text', async (ctx) => {
 
   const text = ctx.message.text;
 
-  // ---- /kategori tambah / hapus (sub-commands) ----
+  // ---- /kategori tambah [nama] (Business only) ----
   if (text.toLowerCase().startsWith('/kategori tambah ')) {
     const categoryName = text.replace(/^\/kategori tambah /i, '').trim();
     if (!categoryName) return await ctx.reply('❌ Nama kategori tidak boleh kosong.\n\nContoh: /kategori tambah Investasi');
@@ -852,6 +801,7 @@ bot.on('message:text', async (ctx) => {
     return;
   }
 
+  // ---- /kategori hapus [nama] (Business only) ----
   if (text.toLowerCase().startsWith('/kategori hapus ')) {
     const categoryName = text.replace(/^\/kategori hapus /i, '').trim();
     if (!categoryName) return await ctx.reply('❌ Nama kategori tidak boleh kosong.\n\nContoh: /kategori hapus Investasi');
@@ -953,10 +903,6 @@ bot.on('message:text', async (ctx) => {
   }
 
   // ---- Parse message (transaction OR query) ----
-  // Parser akan return either:
-  //   - { type: 'query', ... }           → handle via handleQuery
-  //   - { type: 'expense'|'income', ... } atau array → transaction flow
-  //   - null                              → can't parse
   try {
     const parsed = await parseTransaction(text);
 
@@ -966,7 +912,6 @@ bot.on('message:text', async (ctx) => {
     }
 
     // === TRANSACTION BRANCH ===
-    // Check transaction limit for free plan BEFORE saving
     const limitCheck = await checkTransactionLimit(from.id);
     if (!limitCheck.allowed) {
       const planMsg = limitCheck.limit === Infinity ? 'Pro/Business' : 'Free Plan';
