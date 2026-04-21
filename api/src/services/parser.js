@@ -146,8 +146,170 @@ function detectCategoryByKeyword(text) {
 }
 
 // ============================================
-// LLM CLASSIFICATION (Groq → OpenRouter → Gemini)
+// INTENT DETECTION + PARSING (Hybrid: LLM do it all)
 // ============================================
+
+async function parseWithLLM(message) {
+  const today = new Date().toISOString().split('T')[0];
+  
+  // DETECT INTENT: transaction vs query
+  const intentPrompt = `Cek intent pesan ini:
+
+PESAN: "${message}"
+
+Jenis:
+- "transaction" = catat transaksi (keluar/masuk uang)
+- "query" = minta laporan/info (hitung.total, berapa, saldo, laporan, summary)
+
+Jawab JSON saja: {"intent":"transaction|query"}
+
+Contoh:
+- "beli kopi 25rb" → {"intent":"transaction"}
+- "pengeluaran bulan ini" → {"intent":"query"}
+- "saldo ada berapa" → {"intent":"query"}
+- "gimana keuangan saya" → {"intent":"query"}`;
+
+  // Try LLM untuk intent detection
+  const groqKey = process.env.GROQ_API_KEY;
+  let intent = 'transaction'; // default
+  
+  if (groqKey) {
+    try {
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqKey}` },
+        body: JSON.stringify({
+          model: 'llama-3.1-8b-instant',
+          messages: [{ role: 'user', content: intentPrompt }],
+          temperature: 0.1,
+          max_tokens: 32
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const text = data.choices?.[0]?.message?.content;
+        const match = text?.match(/"intent":"(\w+)"/);
+        if (match) intent = match[1];
+      }
+    } catch (e) { console.log(`⚠️ Intent: ${e.message}`); }
+  }
+
+  console.log(`🎯 Intent: ${intent}`);
+
+  // IF QUERY - return query object (bot akan handle)
+  if (intent === 'query') {
+    const queryPrompt = `Parse query keuangan:
+
+PESAN: "${message}"
+
+Categories untuk query:
+- "expense": pengeluaran
+- "income": pemasukan  
+- "balance": saldo
+- "month": bulan ini
+- "week": minggu ini
+- "day": hari ini
+- "year": tahun ini
+- "all": semua/keseluruhan
+- "highest": terbesar/terbanyak
+- "category": per kategori
+
+Jawab JSON valid: {"query":"X","timeframe":"Y","category":"Z"}
+
+Contoh:
+- "pengeluaran bulan ini" → {"query":"expense","timeframe":"month","category":"all"}
+- "saldo ada berapa" → {"query":"balance","timeframe":"day","category":"all"}
+- "pengeluaran terbesar dimana" → {"query":"expense","timeframe":"all","category":"highest"}
+- "laporan april" → {"query":"all","timeframe":"month","category":"all"}`;
+
+    let queryResult = { query: 'expense', timeframe: 'month', category: 'all' };
+    
+    if (groqKey) {
+      try {
+        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqKey}` },
+          body: JSON.stringify({
+            model: 'llama-3.1-8b-instant',
+            messages: [{ role: 'user', content: queryPrompt }],
+            temperature: 0.1,
+            max_tokens: 64
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const text = data.choices?.[0]?.message?.content;
+          const match = text?.match(/\{[\s\S]*\}/);
+          if (match) queryResult = JSON.parse(match[0]);
+        }
+      } catch (e) { console.log(`⚠️ Query: ${e.message}`); }
+    }
+
+    console.log(`🔍 Query parsed:`, queryResult);
+    return {
+      type: 'query',
+      query: queryResult.query,
+      timeframe: queryResult.timeframe,
+      category: queryResult.category,
+      date: today
+    };
+  }
+
+  // IF TRANSACTION - proceed with normal parsing
+  return null; // Placeholder - akan lanjut di main function
+}
+
+// Parse QUERY dengan LLM
+async function parseQueryWithLLM(message) {
+  const today = new Date().toISOString().split('T')[0];
+  
+  const prompt = `Parse query keuangan Indonesia:
+
+PESAN: "${message}"
+
+Format: {"query":"expense|income|balance|all","timeframe":"day|week|month|year|all","special":"highest|category|all|none"}
+
+Contoh:
+- "pengeluaran bulan ini" → {"query":"expense","timeframe":"month","special":"none"}
+- "saldo ada berapa" → {"query":"balance","timeframe":"day","special":"none"}
+- "pengeluaran terbesar dimana" → {"query":"expense","timeframe":"all","special":"highest"}
+- "laporan april" → {"query":"all","timeframe":"month","special":"category"}
+- "gimana keuangan saya" → {"query":"all","timeframe":"all","special":"none"}
+- "gua rasa kaya miskin banget ini" → {"query":"expense","timeframe":"month","special":"none"}
+
+Jawab JSON valid saja.`;
+
+  let result = { query: 'expense', timeframe: 'month', special: 'none' };
+  
+  const groqKey = process.env.GROQ_API_KEY;
+  if (groqKey) {
+    try {
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqKey}` },
+        body: JSON.stringify({
+          model: 'llama-3.1-8b-instant',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.1,
+          max_tokens: 64
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const text = data.choices?.[0]?.message?.content;
+        const match = text?.match(/\{[\s\S]*\}/);
+        if (match) result = JSON.parse(match[0]);
+      }
+    } catch (e) { console.log(`⚠️ Query: ${e.message}`); }
+  }
+
+  return {
+    type: 'query',
+    date: today,
+    raw: message,
+    ...result
+  };
+}
 
 async function classifyWithLLM(segment) {
   // STRICT PROMPT
@@ -261,6 +423,17 @@ export async function parseTransaction(message, userId = null) {
   }
 
   const today = new Date().toISOString().split('T')[0];
+
+  // ===== DETECT INTENT: transaction vs query =====
+  const queryKeywords = ['berapa', 'total', 'saldo', 'laporan', 'pengeluaran', 'pemasukan', 'keuangan', 'gimana', 'apa', 'cek', 'lihat', 'hitung', 'bulan', 'minggu', 'hari', 'tahun', 'terbesar', 'terbanyak', 'dimana', 'raport', 'summary'];
+  const isQuery = queryKeywords.some(k => message.toLowerCase().includes(k));
+  
+  if (isQuery) {
+    console.log(`🎯 Intent: QUERY - "${message}"`);
+    return await parseQueryWithLLM(message);
+  }
+
+  console.log(`🎯 Intent: TRANSACTION - "${message}"`);
 
   try {
     // Step 1: Normalize
