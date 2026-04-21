@@ -263,24 +263,14 @@ Contoh:
 async function parseQueryWithLLM(message) {
   const today = new Date().toISOString().split('T')[0];
   
-  const prompt = `Parse query keuangan Indonesia:
+  // STRICT - langsung JSON tanpa contoh
+  const prompt = `Jawab JSON saja, tanpa teks lain:
 
-PESAN: "${message}"
+{"query":"expense|income|balance|budget|all","timeframe":"day|week|month|year|all","special":"highest|category|all|none","category":"all"}
 
-Format: {"query":"expense|income|balance|budget|all","timeframe":"day|week|month|year|all","special":"highest|category|all|none"}
+PESAN: "${message}"`;
 
-Contoh:
-- "pengeluaran bulan ini" → {"query":"expense","timeframe":"month","special":"none"}
-- "saldo ada berapa" → {"query":"balance","timeframe":"day","special":"none"}
-- "sisa budget makanan" → {"query":"budget","timeframe":"month","special":"none","category":"Makanan & Minuman"}
-- "budget makan dan minum" → {"query":"budget","timeframe":"month","special":"none","category":"Makanan & Minuman"}
-- "pengeluaran terbesar dimana" → {"query":"expense","timeframe":"all","special":"highest"}
-- "laporan april" → {"query":"all","timeframe":"month","special":"category"}
-- "gimana keuangan saya" → {"query":"all","timeframe":"all","special":"none"}
-
-Jawab JSON valid saja.`;
-
-  let result = { query: 'expense', timeframe: 'month', special: 'none', category: 'all' };
+  let result = { query: 'balance', timeframe: 'day', special: 'none', category: 'all' };
   
   const groqKey = process.env.GROQ_API_KEY;
   if (groqKey) {
@@ -298,24 +288,18 @@ Jawab JSON valid saja.`;
       if (res.ok) {
         const data = await res.json();
         const text = data.choices?.[0]?.message?.content;
-        console.log(`🔍 Raw LLM response: "${text}"`);
-        // More robust JSON extraction
-        const jsonMatch = text?.match(/\{[^{}]*\}/);
+        console.log(`🔍 Raw: "${text}"`);
+        // Extract clean JSON
+        const jsonMatch = text.match(/\{[^{}]*\}/);
         if (jsonMatch) {
-          try {
-            result = JSON.parse(jsonMatch[0]);
-          } catch (e) {
-            console.log(`⚠️ JSON parse failed: ${e.message}`);
-          }
+          try { result = JSON.parse(jsonMatch[0]); } catch (e) {}
         }
       }
-    } catch (e) { console.log(`⚠️ Query: ${e.message}`); }
+    } catch (e) { console.log(`⚠️ Q: ${e.message}`); }
   }
 
-  return {
-    type: 'query',
-    date: today,
-    raw: message,
+  return { type: 'query', date: today, raw: message, ...result };
+}
     ...result
   };
 }
