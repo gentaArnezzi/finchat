@@ -755,7 +755,7 @@ bot.command('kategori', async (ctx) => {
     const sub = subData.subscription;
     const plan = sub.plan;
 
-if (plan !== 'business') {
+    if (plan !== 'business') {
       await ctx.reply(
         `🔒 *Custom Categories*\n\nFitur kategori custom hanya tersedia untuk plan *Business*.\n\n📊 Plan saat ini: *${sub.planName}*\n\nUpgrade ke Business untuk unlimited custom categories!`,
         { reply_markup: { inline_keyboard: [[{ text: '💎 Upgrade ke Business', callback_data: 'show_upgrade' }]] } }
@@ -775,38 +775,50 @@ if (plan !== 'business') {
 });
 
 bot.command('kategori_tambah', async (ctx) => {
-  const { subData } = session;
-  if (!subData?.subscription) {
-    await ctx.reply('❌ Sesi tidak valid. Ketik /start');
+  const from = ctx.from;
+  if (!from) return;
+  const text = ctx.message.text.replace(/^\/kategori_tambah\s*/i, '').trim();
+  
+  if (!text) {
+    await ctx.reply('❌ Nama kategori tidak boleh kosong.\n\nContoh: /kategori_tambah Investasi');
     return;
   }
-  const sub = subData.subscription;
-  const plan = sub.plan;
-
-  if (plan !== 'business') {
-    await ctx.reply(
-      `🔒 *Tambah Kategori*\n\nFitur tambah kategori hanya tersedia untuk plan *Business*.\n\n📊 Plan saat ini: *${sub.planName}*\n\nUpgrade ke Business!`,
-      { reply_markup: { inline_keyboard: [[{ text: '💎 Upgrade ke Business', callback_data: 'show_upgrade' }]] } }
-    );
-    return;
-  }
-
-    const { data: catData } = await axios.get(`${API_URL}/api/categories`, { headers: { Authorization: `Bearer ${token}` } });
-    const customCategories = catData.categories?.filter(c => c.is_custom) || [];
-
-    let message = `📂 *Custom Categories*\n\nKategori yang kamu buat:\n\n`;
-    if (customCategories.length === 0) {
-      message += `Belum ada custom categories.\n\nKetik: /kategori tambah [nama] untuk menambah.`;
-    } else {
-      customCategories.forEach((cat, i) => { message += `${i + 1}. ${cat.name}\n`; });
-      message += `\nTotal: ${customCategories.length}/∞`;
+  
+  try {
+    const token = await loginAndGetToken(from.id, from.first_name, from.username);
+    const { data: subData } = await axios.get(`${API_URL}/api/subscription/status`, { headers: { Authorization: `Bearer ${token}` } });
+    if (subData.subscription.plan !== 'business') {
+      return await ctx.reply('🔒 Custom categories hanya untuk plan Business. Upgrade di /upgrade');
     }
-
-    message += `\n\n━━━━━━━━━━━━━━━━━━━━\n📝 *Aksi:*\n/kategori tambah [nama] - Tambah\n/kategori hapus [nama] - Hapus`;
-    await ctx.reply(message, { parse_mode: 'Markdown' });
+    await axios.post(`${API_URL}/api/categories`, { name: text, is_custom: true }, { headers: { Authorization: `Bearer ${token}` } });
+    await ctx.reply(`✅ Kategori "${text}" berhasil ditambahkan!`);
   } catch (error) {
-    console.error('Kategori command error:', error);
-    await ctx.reply('❌ Terjadi kesalahan. Silakan coba lagi.');
+    if (error.response?.status === 409) await ctx.reply('❌ Kategori sudah ada.');
+    else { console.error('Kategori tambah error:', error); await ctx.reply('❌ Gagal menambah kategori.'); }
+  }
+});
+
+bot.command('kategori_hapus', async (ctx) => {
+  const from = ctx.from;
+  if (!from) return;
+  const text = ctx.message.text.replace(/^\/kategori_hapus\s*/i, '').trim();
+  
+  if (!text) {
+    await ctx.reply('❌ Nama kategori tidak boleh kosong.\n\nContoh: /kategori_hapus Investasi');
+    return;
+  }
+  
+  try {
+    const token = await loginAndGetToken(from.id, from.first_name, from.username);
+    const { data: subData } = await axios.get(`${API_URL}/api/subscription/status`, { headers: { Authorization: `Bearer ${token}` } });
+    if (subData.subscription.plan !== 'business') {
+      return await ctx.reply('🔒 Custom categories hanya untuk plan Business. Upgrade di /upgrade');
+    }
+    await axios.delete(`${API_URL}/api/categories/${encodeURIComponent(text)}`, { headers: { Authorization: `Bearer ${token}` } });
+    await ctx.reply(`✅ Kategori "${text}" berhasil dihapus!`);
+  } catch (error) {
+    if (error.response?.status === 404) await ctx.reply('❌ Kategori tidak ditemukan.');
+    else { console.error('Kategori hapus error:', error); await ctx.reply('❌ Gagal menghapus kategori.'); }
   }
 });
 
