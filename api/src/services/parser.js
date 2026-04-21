@@ -149,13 +149,30 @@ function buildPrompt(message) {
 
 PESAN: "${message}"
 
+== ATURAN UTAMA (BACA DULU!) ==
+
+1. KALAU PESAN TIDAK ADA ANGKA NUMERIK (misal: "saldo saya", "laporan", "cek pengeluaran") → WAJIB intent="query". JANGAN BIKIN ANGKA. JANGAN HALUSINASI amount.
+2. Amount HANYA boleh dari angka yang BENAR-BENAR ada di pesan. Kalau ragu, pakai intent="query" atau return kosong.
+3. Kata kunci query: saldo, berapa, total, laporan, rekap, gimana, cek, lihat, pengeluaran bulan, pemasukan bulan, terbesar, summary.
+
 == SCHEMA ==
 
-Kalau user NANYA INFO (berapa, total, saldo, laporan, pengeluaran bulan ini, dll):
-{"intent":"query","query":"expense|income|balance|all","timeframe":"day|week|month|year|all","special":"highest|category|none"}
+Kalau user NANYA INFO:
+{"intent":"query","query":"expense|income|balance|all","timeframe":"day|yesterday|week|last_week|month|last_month|year|last_year|all","special":"highest|category|none"}
 
-Kalau user CATAT TRANSAKSI:
+Kalau user CATAT TRANSAKSI (HARUS ada angka di pesan):
 {"intent":"transaction","items":[{"type":"expense|income","amount":<integer>,"category":"<kategori>","description":"<singkat>"}]}
+
+TIMEFRAME MAPPING:
+- "hari ini" → day
+- "kemarin" → yesterday
+- "minggu ini" → week
+- "minggu lalu" / "minggu kemarin" → last_week
+- "bulan ini" → month
+- "bulan lalu" / "bulan kemarin" → last_month
+- "tahun ini" → year
+- "tahun lalu" / "tahun kemarin" → last_year
+- tanpa periode spesifik, default → month (untuk expense/income), all (untuk balance)
 
 == RULES ==
 
@@ -206,11 +223,35 @@ DESCRIPTION: singkat (1-4 kata), huruf awal kapital. Contoh: "Kopi", "Ojek kanto
 "pengeluaran bulan ini berapa"
 → {"intent":"query","query":"expense","timeframe":"month","special":"none"}
 
+"pengeluaran bulan lalu"
+→ {"intent":"query","query":"expense","timeframe":"last_month","special":"none"}
+
+"pemasukan minggu lalu"
+→ {"intent":"query","query":"income","timeframe":"last_week","special":"none"}
+
+"total tahun lalu"
+→ {"intent":"query","query":"all","timeframe":"last_year","special":"none"}
+
 "pengeluaran terbesar dimana"
 → {"intent":"query","query":"expense","timeframe":"all","special":"highest"}
 
 "saldo gw berapa"
 → {"intent":"query","query":"balance","timeframe":"all","special":"none"}
+
+"sisa saldo saya"
+→ {"intent":"query","query":"balance","timeframe":"all","special":"none"}
+
+"laporan dong"
+→ {"intent":"query","query":"all","timeframe":"month","special":"none"}
+
+"gimana keuangan gw"
+→ {"intent":"query","query":"all","timeframe":"month","special":"none"}
+
+"rekap minggu ini"
+→ {"intent":"query","query":"all","timeframe":"week","special":"none"}
+
+"pengeluaran kemarin"
+→ {"intent":"query","query":"expense","timeframe":"yesterday","special":"none"}
 
 JAWAB JSON SAJA:`;
 }
@@ -299,13 +340,18 @@ function validateTransactionItem(item, amountSet) {
 
 function validateQuery(obj) {
   const validQuery = ['expense', 'income', 'balance', 'all'];
-  const validTimeframe = ['day', 'week', 'month', 'year', 'all'];
+  const validTimeframe = ['day', 'yesterday', 'week', 'last_week', 'month', 'last_month', 'year', 'last_year', 'all'];
   const validSpecial = ['highest', 'category', 'none'];
 
+  const query = validQuery.includes(obj.query) ? obj.query : 'balance';
+  // Balance queries semantically ga punya timeframe — default ke 'all'
+  const defaultTimeframe = query === 'balance' ? 'all' : 'month';
+
   return {
-    query: validQuery.includes(obj.query) ? obj.query : 'balance',
-    timeframe: validTimeframe.includes(obj.timeframe) ? obj.timeframe : 'month',
-    special: validSpecial.includes(obj.special) ? obj.special : 'none'
+    query,
+    timeframe: validTimeframe.includes(obj.timeframe) ? obj.timeframe : defaultTimeframe,
+    special: validSpecial.includes(obj.special) ? obj.special : 'none',
+    category: 'all' // backward compat dengan versi lama
   };
 }
 
@@ -331,7 +377,7 @@ const CATEGORY_KEYWORDS = {
   'Pinjaman': ['pinjem', 'pinjam', 'hutang', 'utang', 'loan']
 };
 
-const QUERY_KEYWORDS = ['berapa', 'total', 'saldo', 'laporan', 'pengeluaran', 'pemasukan', 'keuangan', 'gimana', 'cek', 'lihat', 'hitung', 'bulan ini', 'minggu ini', 'hari ini', 'tahun ini', 'terbesar', 'terbanyak', 'dimana', 'summary', 'rekap'];
+const QUERY_KEYWORDS = ['berapa', 'total', 'saldo', 'sisa', 'laporan', 'pengeluaran', 'pemasukan', 'pendapat', 'keuangan', 'gimana', 'cek', 'lihat', 'hitung', 'bulan ini', 'bulan lalu', 'minggu ini', 'minggu lalu', 'hari ini', 'kemarin', 'tahun ini', 'tahun lalu', 'terbesar', 'terbanyak', 'dimana', 'summary', 'rekap'];
 
 function detectType(text) {
   const lower = text.toLowerCase();
@@ -353,11 +399,33 @@ function fallbackParse(message) {
   const isQuery = QUERY_KEYWORDS.some(k => lower.includes(k));
 
   if (isQuery) {
+    const query = lower.includes('saldo') ? 'balance'
+      : lower.includes('pemasukan') || lower.includes('pendapat') || lower.includes('income') ? 'income'
+        : lower.includes('pengeluaran') || lower.includes('expense') ? 'expense'
+          : 'all';
+
+    // Detect timeframe with "lalu/kemarin" support
+    let timeframe = 'month';
+    if (query === 'balance') {
+      timeframe = 'all';
+    } else if (lower.includes('kemarin') && !lower.includes('bulan') && !lower.includes('minggu') && !lower.includes('tahun')) {
+      timeframe = 'yesterday';
+    } else if (lower.includes('hari ini')) {
+      timeframe = 'day';
+    } else if (lower.includes('minggu')) {
+      timeframe = lower.includes('lalu') || lower.includes('kemarin') ? 'last_week' : 'week';
+    } else if (lower.includes('tahun')) {
+      timeframe = lower.includes('lalu') || lower.includes('kemarin') ? 'last_year' : 'year';
+    } else if (lower.includes('bulan')) {
+      timeframe = lower.includes('lalu') || lower.includes('kemarin') ? 'last_month' : 'month';
+    }
+
     return {
       intent: 'query',
-      query: lower.includes('saldo') ? 'balance' : lower.includes('pemasukan') ? 'income' : 'expense',
-      timeframe: lower.includes('hari') ? 'day' : lower.includes('minggu') ? 'week' : lower.includes('tahun') ? 'year' : 'month',
-      special: lower.includes('terbesar') || lower.includes('terbanyak') ? 'highest' : 'none'
+      query,
+      timeframe,
+      special: lower.includes('terbesar') || lower.includes('terbanyak') ? 'highest' : 'none',
+      category: 'all'
     };
   }
 
