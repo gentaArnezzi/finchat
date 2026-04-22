@@ -35,8 +35,8 @@ function AdminLogin() {
     <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 overflow-hidden shadow-lg shadow-emerald-500/20">
-            <Image src="/Logo2finchat.webp" alt="FinChat" width={64} height={64} className="w-full h-full object-cover" />
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-4 overflow-hidden">
+            <Image src="/logo_FINChat-removebg-preview.png" alt="FinChat" width={80} height={80} className="w-full h-full object-contain" />
           </div>
           <h1 className="text-2xl font-bold text-white">FinChat Admin</h1>
           <p className="text-slate-400 mt-1 text-sm">Masukkan admin secret key</p>
@@ -100,8 +100,8 @@ function AdminShell({ children }: { children: React.ReactNode }) {
       {/* Sidebar - desktop */}
       <aside className="hidden lg:flex lg:flex-col w-64 bg-slate-900 border-r border-slate-800 fixed inset-y-0 left-0 z-40">
         <div className="flex items-center gap-3 px-6 h-16 border-b border-slate-800">
-          <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
-            <Image src="/Logo2finchat.webp" alt="FinChat" width={32} height={32} className="w-full h-full object-cover" />
+          <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center">
+            <Image src="/logo_FINChat-removebg-preview.png" alt="FinChat" width={40} height={40} className="w-full h-full object-contain" />
           </div>
           <span className="text-white font-bold text-lg">FinChat Admin</span>
         </div>
