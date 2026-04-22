@@ -12,6 +12,7 @@ import categoryRoutes from './routes/categoryRoutes.js';
 import budgetRoutes from './routes/budgetRoutes.js';
 import exportRoutes from './routes/exportRoutes.js';
 import subscriptionRoutes from './routes/subscriptionRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 import { startScheduler } from './services/scheduler.js';
 
 dotenv.config();
@@ -80,6 +81,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/budgets', budgetRoutes);
 app.use('/api/export', exportRoutes);
 app.use('/api/subscription', subscriptionRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.use((err, req, res, next) => {
   console.error('Error:', err);
