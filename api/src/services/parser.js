@@ -199,7 +199,11 @@ CATEGORY (pilih persis satu, default "Lainnya"):
 - Lainnya: ga cocok
 
 MULTI-TRANSAKSI:
-Pisahkan jadi items terpisah kalau ada pemisah: dan, sama, plus, terus, koma, &, +
+Pisahkan jadi items terpisah HANYA kalau ada kata pemisah EKSPLISIT: dan, sama, plus, terus, koma, &, +
+Kalau TIDAK ADA pemisah eksplisit → ITU SATU TRANSAKSI. Jangan pecah!
+Contoh SALAH: "beli burger bangor 30k" → 2 item (SALAH! itu 1 transaksi: Burger Bangor 30k)
+Contoh BENAR: "beli burger bangor 30k" → 1 item: {type:"expense",amount:30000,category:"Makanan & Minuman",description:"Burger Bangor"}
+Contoh BENAR split: "beli burger 30k dan kopi 15k" → 2 item (ada kata "dan")
 
 DESCRIPTION: singkat (1-4 kata), huruf awal kapital. Contoh: "Kopi", "Ojek kantor", "Gaji bulanan"
 
@@ -305,6 +309,55 @@ function extractAllAmounts(text) {
   }
 
   return amounts;
+}
+
+/**
+ * Count how many times each normalized amount appears in the raw message.
+ * Used to detect when LLM creates more items than actual amounts in the message.
+ * e.g. "beli burger bangor 30k" has only 1 occurrence of 30000, so LLM shouldn't produce 2 items of 30000.
+ */
+function countAmountOccurrences(text) {
+  if (!text) return new Map();
+
+  const counts = new Map();
+
+  // Find all amount patterns in the original text and count them
+  const patterns = [
+    /(\d+)\s*(rb|ribu|rebu|rbu)\b/gi,
+    /(\d+)\s*(jt|juta)\b/gi,
+    /(\d+)\s*k(?!\w)/gi,
+    /(\d[\d.,]*\d)\b(?!\s*(rb|ribu|rebu|rbu|jt|juta|k)\b)/gi, // plain numbers
+  ];
+
+  const multipliers = [1000, 1000000, 1000, 1];
+  const processed = new Set(); // track matched positions to avoid double counting
+
+  for (let pi = 0; pi < patterns.length; pi++) {
+    const pattern = patterns[pi];
+    const mult = multipliers[pi];
+    let match;
+    while ((match = pattern.exec(text)) !== null) {
+      const pos = match.index;
+      if (processed.has(pos)) continue;
+      processed.add(pos);
+
+      const numStr = match[1].replace(/[.,\s]/g, '');
+      const n = parseInt(numStr, 10);
+      if (!Number.isFinite(n) || n < 1 || n > 10_000_000_000) continue;
+
+      const amount = n * mult;
+      if (amount >= 100) {
+        counts.set(amount, (counts.get(amount) || 0) + 1);
+      }
+      // Indonesian convention: small numbers as thousands
+      if (mult === 1 && n < 1000) {
+        const asThousands = n * 1000;
+        counts.set(asThousands, (counts.get(asThousands) || 0) + 1);
+      }
+    }
+  }
+
+  return counts;
 }
 
 function verifyAmount(amountSet, llmAmount) {
@@ -494,7 +547,25 @@ export async function parseTransaction(message, userId = null) {
 
     const allVerified = validated.length > 0 && validated.every(i => i._verified);
 
-    if (allVerified) {
+    // Safety: count how many times each amount appears in LLM output vs the message
+    // If LLM produced more items than distinct amounts, it likely hallucinated a split
+    const llmAmountCounts = new Map();
+    for (const item of validated) {
+      llmAmountCounts.set(item.amount, (llmAmountCounts.get(item.amount) || 0) + 1);
+    }
+    // Count how many times each amount could reasonably appear in the original message
+    const messageAmountCounts = countAmountOccurrences(message);
+    let amountCountsValid = true;
+    for (const [amt, count] of llmAmountCounts) {
+      const maxAllowed = messageAmountCounts.get(amt) || 0;
+      if (count > maxAllowed) {
+        console.log(`⚠️ LLM produced ${count}x amount ${amt} but message only has ${maxAllowed} — likely hallucinated split`);
+        amountCountsValid = false;
+        break;
+      }
+    }
+
+    if (allVerified && amountCountsValid) {
       console.log(`✅ ${validated.length} transaction(s) by LLM — amounts verified`);
       const result = validated.map(({ _verified, ...rest }) => ({
         ...rest,
