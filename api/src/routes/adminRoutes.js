@@ -146,23 +146,34 @@ router.get('/users', async (req, res) => {
     const sortBy = ['created_at', 'name', 'plan', 'transaction_count'].includes(req.query.sort) ? req.query.sort : 'created_at';
     const sortOrder = req.query.order === 'asc' ? 'ASC' : 'DESC';
 
-    let whereConditions = [];
+    // Build filter conditions and params for main query (starting at $3) and count query (starting at $1)
+    let mainConditions = [];
+    let countConditions = [];
     const params = [limit, offset];
-    let paramIdx = 3;
+    const countParams = [];
+    let mainIdx = 3;
+    let countIdx = 1;
 
     if (search) {
-      whereConditions.push(`(u.name ILIKE $${paramIdx} OR u.username ILIKE $${paramIdx} OR u.telegram_id::TEXT ILIKE $${paramIdx})`);
+      mainConditions.push(`(u.name ILIKE $${mainIdx} OR u.username ILIKE $${mainIdx} OR u.telegram_id::TEXT ILIKE $${mainIdx})`);
+      countConditions.push(`(u.name ILIKE $${countIdx} OR u.username ILIKE $${countIdx} OR u.telegram_id::TEXT ILIKE $${countIdx})`);
       params.push(`%${search}%`);
-      paramIdx++;
+      countParams.push(`%${search}%`);
+      mainIdx++;
+      countIdx++;
     }
 
     if (planFilter) {
-      whereConditions.push(`u.plan = $${paramIdx}`);
+      mainConditions.push(`u.plan = $${mainIdx}`);
+      countConditions.push(`u.plan = $${countIdx}`);
       params.push(planFilter);
-      paramIdx++;
+      countParams.push(planFilter);
+      mainIdx++;
+      countIdx++;
     }
 
-    const whereClause = whereConditions.length > 0 ? 'WHERE ' + whereConditions.join(' AND ') : '';
+    const whereClause = mainConditions.length > 0 ? 'WHERE ' + mainConditions.join(' AND ') : '';
+    const countWhereClause = countConditions.length > 0 ? 'WHERE ' + countConditions.join(' AND ') : '';
 
     const orderByColumn = sortBy === 'transaction_count' ? 'transaction_count' : `u.${sortBy}`;
 
@@ -180,8 +191,8 @@ router.get('/users', async (req, res) => {
         params
       ),
       query(
-        `SELECT COUNT(*) as count FROM users u ${whereClause}`,
-        params.slice(2)
+        `SELECT COUNT(*) as count FROM users u ${countWhereClause}`,
+        countParams
       ),
     ]);
 
@@ -358,27 +369,40 @@ router.get('/transactions', async (req, res) => {
     const type = req.query.type || '';
     const userId = req.query.userId || '';
 
-    let whereConditions = [];
+    let mainConditions = [];
+    let countConditions = [];
     const params = [limit, offset];
-    let paramIdx = 3;
+    const countParams = [];
+    let mainIdx = 3;
+    let countIdx = 1;
 
     if (search) {
-      whereConditions.push(`(t.description ILIKE $${paramIdx} OR u.name ILIKE $${paramIdx})`);
+      mainConditions.push(`(t.description ILIKE $${mainIdx} OR u.name ILIKE $${mainIdx})`);
+      countConditions.push(`(t.description ILIKE $${countIdx} OR u.name ILIKE $${countIdx})`);
       params.push(`%${search}%`);
-      paramIdx++;
+      countParams.push(`%${search}%`);
+      mainIdx++;
+      countIdx++;
     }
     if (type && ['income', 'expense'].includes(type)) {
-      whereConditions.push(`t.type = $${paramIdx}`);
+      mainConditions.push(`t.type = $${mainIdx}`);
+      countConditions.push(`t.type = $${countIdx}`);
       params.push(type);
-      paramIdx++;
+      countParams.push(type);
+      mainIdx++;
+      countIdx++;
     }
     if (userId) {
-      whereConditions.push(`t.user_id = $${paramIdx}`);
+      mainConditions.push(`t.user_id = $${mainIdx}`);
+      countConditions.push(`t.user_id = $${countIdx}`);
       params.push(userId);
-      paramIdx++;
+      countParams.push(userId);
+      mainIdx++;
+      countIdx++;
     }
 
-    const whereClause = whereConditions.length > 0 ? 'WHERE ' + whereConditions.join(' AND ') : '';
+    const whereClause = mainConditions.length > 0 ? 'WHERE ' + mainConditions.join(' AND ') : '';
+    const countWhereClause = countConditions.length > 0 ? 'WHERE ' + countConditions.join(' AND ') : '';
 
     const [txResult, countResult] = await Promise.all([
       query(
@@ -394,8 +418,8 @@ router.get('/transactions', async (req, res) => {
       query(
         `SELECT COUNT(*) as count FROM transactions t
          JOIN users u ON t.user_id = u.id
-         ${whereClause}`,
-        params.slice(2)
+         ${countWhereClause}`,
+        countParams
       ),
     ]);
 
@@ -450,17 +474,24 @@ router.get('/payments', async (req, res) => {
     const offset = (page - 1) * limit;
     const status = req.query.status || '';
 
-    let whereConditions = [];
+    let mainConditions = [];
+    let countConditions = [];
     const params = [limit, offset];
-    let paramIdx = 3;
+    const countParams = [];
+    let mainIdx = 3;
+    let countIdx = 1;
 
     if (status) {
-      whereConditions.push(`p.status = $${paramIdx}`);
+      mainConditions.push(`p.status = $${mainIdx}`);
+      countConditions.push(`p.status = $${countIdx}`);
       params.push(status);
-      paramIdx++;
+      countParams.push(status);
+      mainIdx++;
+      countIdx++;
     }
 
-    const whereClause = whereConditions.length > 0 ? 'WHERE ' + whereConditions.join(' AND ') : '';
+    const whereClause = mainConditions.length > 0 ? 'WHERE ' + mainConditions.join(' AND ') : '';
+    const countWhereClause = countConditions.length > 0 ? 'WHERE ' + countConditions.join(' AND ') : '';
 
     const [paymentsResult, countResult] = await Promise.all([
       query(
@@ -472,7 +503,7 @@ router.get('/payments', async (req, res) => {
          LIMIT $1 OFFSET $2`,
         params
       ),
-      query(`SELECT COUNT(*) as count FROM payments p ${whereClause}`, params.slice(2)),
+      query(`SELECT COUNT(*) as count FROM payments p ${countWhereClause}`, countParams),
     ]);
 
     res.json({
@@ -551,17 +582,24 @@ router.get('/subscriptions', async (req, res) => {
     const offset = (page - 1) * limit;
     const status = req.query.status || '';
 
-    let whereConditions = [];
+    let mainConditions = [];
+    let countConditions = [];
     const params = [limit, offset];
-    let paramIdx = 3;
+    const countParams = [];
+    let mainIdx = 3;
+    let countIdx = 1;
 
     if (status) {
-      whereConditions.push(`s.status = $${paramIdx}`);
+      mainConditions.push(`s.status = $${mainIdx}`);
+      countConditions.push(`s.status = $${countIdx}`);
       params.push(status);
-      paramIdx++;
+      countParams.push(status);
+      mainIdx++;
+      countIdx++;
     }
 
-    const whereClause = whereConditions.length > 0 ? 'WHERE ' + whereConditions.join(' AND ') : '';
+    const whereClause = mainConditions.length > 0 ? 'WHERE ' + mainConditions.join(' AND ') : '';
+    const countWhereClause = countConditions.length > 0 ? 'WHERE ' + countConditions.join(' AND ') : '';
 
     const [subsResult, countResult] = await Promise.all([
       query(
@@ -573,7 +611,7 @@ router.get('/subscriptions', async (req, res) => {
          LIMIT $1 OFFSET $2`,
         params
       ),
-      query(`SELECT COUNT(*) as count FROM subscriptions s ${whereClause}`, params.slice(2)),
+      query(`SELECT COUNT(*) as count FROM subscriptions s ${countWhereClause}`, countParams),
     ]);
 
     res.json({
