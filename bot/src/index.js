@@ -347,7 +347,6 @@ ketik /bantuan untuk panduan lengkap 👇`;
       reply_markup: {
         inline_keyboard: [
           [{ text: '🌐 Web Dashboard', url: webDashboardUrl }],
-          [{ text: '📱 Buka di Telegram', web_app: { url: miniAppUrl } }],
           [{ text: '📚 Panduan Lengkap', callback_data: 'show_help' }]
         ]
       }
