@@ -22,11 +22,11 @@ function formatDateTime(s: string | null): string {
   return new Date(s).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 function statusBadge(status: string) {
-  const s: Record<string, string> = { paid: 'bg-emerald-100 text-emerald-700', pending: 'bg-amber-100 text-amber-700', failed: 'bg-red-100 text-red-700', refunded: 'bg-slate-100 text-slate-600' };
+  const s: Record<string, string> = { paid: 'bg-[#a2c828]/20 text-[#7d9c1f]', pending: 'bg-amber-100 text-amber-700', failed: 'bg-red-100 text-red-700', refunded: 'bg-slate-100 text-slate-600' };
   return <span className={`px-2 py-0.5 rounded-full text-xs font-semibold capitalize ${s[status] || 'bg-slate-100 text-slate-600'}`}>{status}</span>;
 }
 function planBadge(plan: string) {
-  const s: Record<string, string> = { free: 'bg-slate-100 text-slate-600', pro: 'bg-amber-100 text-amber-700', business: 'bg-purple-100 text-purple-700' };
+  const s: Record<string, string> = { free: 'bg-slate-100 text-slate-600', pro: 'bg-[#a2c828]/20 text-[#7d9c1f]', business: 'bg-[#7d9c1f]/20 text-[#5a7117]' };
   return <span className={`px-2 py-0.5 rounded-full text-xs font-semibold capitalize ${s[plan] || s.free}`}>{plan}</span>;
 }
 
@@ -135,7 +135,7 @@ export default function AdminPaymentsPage() {
                     <td className="px-4 py-3">{statusBadge(p.status)}</td>
                     <td className="px-4 py-3 text-slate-500 text-xs">{formatDateTime(p.paid_at || p.created_at)}</td>
                     <td className="px-4 py-3 text-right">
-                      <button onClick={() => handleEditStatus(p)} className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Edit Status">
+                      <button onClick={() => handleEditStatus(p)} className="p-1.5 rounded-lg text-slate-400 hover:text-[#a2c828] hover:bg-[#a2c828]/10 transition-colors" title="Edit Status">
                         <Pencil size={14} />
                       </button>
                     </td>

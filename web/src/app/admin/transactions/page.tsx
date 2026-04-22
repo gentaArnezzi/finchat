@@ -117,7 +117,7 @@ export default function AdminTransactionsPage() {
                     <td className="px-4 py-3 text-slate-500 text-xs">{tx.category_name || '-'}</td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
-                        tx.type === 'income' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                        tx.type === 'income' ? 'bg-[#a2c828]/20 text-[#7d9c1f]' : 'bg-red-100 text-red-700'}`}>
                         {tx.type === 'income' ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
                         {tx.type === 'income' ? 'Masuk' : 'Keluar'}
                       </span>

@@ -19,7 +19,7 @@ function formatDate(s: string | null): string {
 }
 
 function planBadge(plan: string) {
-  const s: Record<string, string> = { free: 'bg-slate-100 text-slate-600', pro: 'bg-amber-100 text-amber-700', business: 'bg-purple-100 text-purple-700' };
+  const s: Record<string, string> = { free: 'bg-slate-100 text-slate-600', pro: 'bg-[#a2c828]/20 text-[#7d9c1f]', business: 'bg-[#7d9c1f]/20 text-[#5a7117]' };
   return <span className={`px-2 py-0.5 rounded-full text-xs font-semibold capitalize ${s[plan] || s.free}`}>{plan || 'free'}</span>;
 }
 
@@ -160,7 +160,7 @@ export default function AdminUsersPage() {
                     <td className="px-4 py-3 text-slate-500 text-xs">{formatDate(u.last_transaction_at)}</td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <button onClick={() => handleEdit(u)} className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Edit">
+                        <button onClick={() => handleEdit(u)} className="p-1.5 rounded-lg text-slate-400 hover:text-[#a2c828] hover:bg-[#a2c828]/10 transition-colors" title="Edit">
                           <Pencil size={14} />
                         </button>
                         <button onClick={() => { setDeleteUser(u); setDeleteConfirm(''); }} className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors" title="Hapus">

@@ -23,11 +23,11 @@ function formatDate(s: string | null): string {
   return new Date(s).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 function statusBadge(status: string) {
-  const s: Record<string, string> = { active: 'bg-emerald-100 text-emerald-700', expired: 'bg-slate-100 text-slate-600', cancelled: 'bg-red-100 text-red-700' };
+  const s: Record<string, string> = { active: 'bg-[#a2c828]/20 text-[#7d9c1f]', expired: 'bg-slate-100 text-slate-600', cancelled: 'bg-red-100 text-red-700' };
   return <span className={`px-2 py-0.5 rounded-full text-xs font-semibold capitalize ${s[status] || 'bg-slate-100 text-slate-600'}`}>{status}</span>;
 }
 function planBadge(plan: string) {
-  const s: Record<string, string> = { free: 'bg-slate-100 text-slate-600', pro: 'bg-amber-100 text-amber-700', business: 'bg-purple-100 text-purple-700' };
+  const s: Record<string, string> = { free: 'bg-slate-100 text-slate-600', pro: 'bg-[#a2c828]/20 text-[#7d9c1f]', business: 'bg-[#7d9c1f]/20 text-[#5a7117]' };
   return <span className={`px-2 py-0.5 rounded-full text-xs font-semibold capitalize ${s[plan] || s.free}`}>{plan}</span>;
 }
 
@@ -147,7 +147,7 @@ export default function AdminSubscriptionsPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button onClick={() => handleEdit(sub)} className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Edit">
+                      <button onClick={() => handleEdit(sub)} className="p-1.5 rounded-lg text-slate-400 hover:text-[#a2c828] hover:bg-[#a2c828]/10 transition-colors" title="Edit">
                         <Pencil size={14} />
                       </button>
                     </td>

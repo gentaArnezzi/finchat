@@ -54,8 +54,8 @@ function formatMonthLabel(ym: string): string {
 // COMPONENTS
 // ============================================
 
-function StatCard({ title, value, subtitle, icon: Icon, iconBg, growth }: {
-  title: string; value: string; subtitle: string; icon: any; iconBg: string; growth?: number | null;
+function StatCard({ title, value, subtitle, icon: Icon, growth }: {
+  title: string; value: string; subtitle: string; icon: any; growth?: number | null;
 }) {
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
@@ -65,7 +65,7 @@ function StatCard({ title, value, subtitle, icon: Icon, iconBg, growth }: {
           <p className="text-2xl font-bold text-slate-900 mt-1">{value}</p>
           <p className="text-xs text-slate-400 mt-1 truncate">{subtitle}</p>
         </div>
-        <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${iconBg}`}>
+        <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: '#a2c828' }}>
           <Icon className="w-5 h-5 text-white" />
         </div>
       </div>
@@ -111,7 +111,7 @@ function MiniBarChart({ data, labels, color, formatter }: { data: number[]; labe
 
 function PlanChart({ distribution }: { distribution: { plan: string; count: number }[] }) {
   const total = distribution.reduce((s, d) => s + d.count, 0) || 1;
-  const colors: Record<string, string> = { free: '#94A3B8', pro: '#F59E0B', business: '#8B5CF6' };
+  const colors: Record<string, string> = { free: '#94A3B8', pro: '#a2c828', business: '#7d9c1f' };
 
   return (
     <div className="space-y-3 mt-4">
@@ -180,29 +180,29 @@ export default function AdminDashboard() {
 
       {stats && (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          <StatCard title="Total Users" value={formatNumber(stats.totalUsers)} subtitle={`+${stats.newUsersThisMonth} bulan ini`} icon={Users} iconBg="bg-blue-500" growth={stats.userGrowthPercent} />
-          <StatCard title="Total Revenue" value={formatRupiah(stats.totalRevenue)} subtitle={`${formatRupiah(stats.revenueThisMonth)} bulan ini`} icon={DollarSign} iconBg="bg-emerald-500" />
-          <StatCard title="Total Transaksi" value={formatNumber(stats.totalTransactions)} subtitle={`${formatNumber(stats.transactionsThisMonth)} bulan ini`} icon={ReceiptText} iconBg="bg-violet-500" />
-          <StatCard title="Active Subscribers" value={stats.activeSubscribers.toString()} subtitle="Paid plans aktif" icon={Crown} iconBg="bg-amber-500" />
+          <StatCard title="Total Users" value={formatNumber(stats.totalUsers)} subtitle={`+${stats.newUsersThisMonth} bulan ini`} icon={Users} growth={stats.userGrowthPercent} />
+          <StatCard title="Total Revenue" value={formatRupiah(stats.totalRevenue)} subtitle={`${formatRupiah(stats.revenueThisMonth)} bulan ini`} icon={DollarSign} />
+          <StatCard title="Total Transaksi" value={formatNumber(stats.totalTransactions)} subtitle={`${formatNumber(stats.transactionsThisMonth)} bulan ini`} icon={ReceiptText} />
+          <StatCard title="Active Subscribers" value={stats.activeSubscribers.toString()} subtitle="Paid plans aktif" icon={Crown} />
         </div>
       )}
 
       {charts && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="bg-white rounded-2xl border border-slate-200 p-5">
-            <div className="flex items-center gap-2"><Users size={16} className="text-blue-500" /><h3 className="text-sm font-semibold text-slate-700">User Growth</h3></div>
+            <div className="flex items-center gap-2"><Users size={16} style={{ color: '#a2c828' }} /><h3 className="text-sm font-semibold text-slate-700">User Growth</h3></div>
             <p className="text-xs text-slate-400">New signups per bulan</p>
-            <MiniBarChart data={charts.userGrowth} labels={charts.months} color="#3B82F6" formatter={(n) => `${n} users`} />
+            <MiniBarChart data={charts.userGrowth} labels={charts.months} color="#a2c828" formatter={(n) => `${n} users`} />
           </div>
           <div className="bg-white rounded-2xl border border-slate-200 p-5">
-            <div className="flex items-center gap-2"><DollarSign size={16} className="text-emerald-500" /><h3 className="text-sm font-semibold text-slate-700">Revenue</h3></div>
+            <div className="flex items-center gap-2"><DollarSign size={16} style={{ color: '#a2c828' }} /><h3 className="text-sm font-semibold text-slate-700">Revenue</h3></div>
             <p className="text-xs text-slate-400">Paid revenue per bulan</p>
-            <MiniBarChart data={charts.revenue} labels={charts.months} color="#10B981" formatter={formatRupiah} />
+            <MiniBarChart data={charts.revenue} labels={charts.months} color="#a2c828" formatter={formatRupiah} />
           </div>
           <div className="bg-white rounded-2xl border border-slate-200 p-5">
-            <div className="flex items-center gap-2"><BarChart3 size={16} className="text-violet-500" /><h3 className="text-sm font-semibold text-slate-700">Transaksi</h3></div>
+            <div className="flex items-center gap-2"><BarChart3 size={16} style={{ color: '#a2c828' }} /><h3 className="text-sm font-semibold text-slate-700">Transaksi</h3></div>
             <p className="text-xs text-slate-400">Total transactions per bulan</p>
-            <MiniBarChart data={charts.transactions} labels={charts.months} color="#8B5CF6" formatter={(n) => `${formatNumber(n)} txn`} />
+            <MiniBarChart data={charts.transactions} labels={charts.months} color="#a2c828" formatter={(n) => `${formatNumber(n)} txn`} />
           </div>
         </div>
       )}
