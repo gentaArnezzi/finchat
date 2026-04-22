@@ -51,7 +51,6 @@ export default function FooterPublic({ showCTA = true }: FooterPublicProps) {
             <div>
               <h4 className="font-semibold text-slate-900 mb-4 text-sm uppercase tracking-wider">Perusahaan</h4>
               <ul className="space-y-3 text-sm text-slate-500">
-                <li><Link href="/blog" className="hover:text-slate-900">Blog Finansial</Link></li>
                 <li><Link href="#" className="hover:text-slate-900">Karir</Link></li>
                 <li><Link href="#" className="hover:text-slate-900">Media & Press</Link></li>
               </ul>

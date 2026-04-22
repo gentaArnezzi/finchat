@@ -106,7 +106,6 @@ export default function NavbarPublic() {
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-500">
           <a href="/#fitur" className="hover:text-slate-900 transition-colors">Fitur</a>
           <Link href="/pricing" className="hover:text-slate-900 transition-colors">Harga</Link>
-          <Link href="/blog" className="hover:text-slate-900 transition-colors">Blog</Link>
           <a href="/#faq" className="hover:text-slate-900 transition-colors">FAQ</a>
           <div className="w-[1px] h-4 bg-slate-300 mx-2"></div>
           <div id="telegram-widget-header" className="h-[38px] flex items-center justify-center overflow-hidden rounded-lg"></div>
@@ -135,7 +134,6 @@ export default function NavbarPublic() {
           <div className="px-6 py-4 space-y-3">
             <a href="/#solusi" className="block py-2 text-slate-600 hover:text-slate-900" onClick={() => setMobileMenuOpen(false)}>Fitur</a>
             <Link href="/pricing" className="block py-2 text-slate-600 hover:text-slate-900" onClick={() => setMobileMenuOpen(false)}>Harga</Link>
-            <Link href="/blog" className="block py-2 text-slate-600 hover:text-slate-900" onClick={() => setMobileMenuOpen(false)}>Blog</Link>
             <a href="/#faq" className="block py-2 text-slate-600 hover:text-slate-900" onClick={() => setMobileMenuOpen(false)}>FAQ</a>
             <div className="pt-3 border-t border-slate-100">
               {process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME && process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME !== 'your_bot_username' ? (
