@@ -222,7 +222,8 @@ export async function createPaymentOrder(userId, planKey, annual = false) {
     paymentId,
     orderId,
     plan: planKey,
-    amount: plan.price,
+    amount,
+    annual,
     snapToken: snapData.token,
     snapUrl: snapData.redirect_url
   };
